@@ -1,8 +1,24 @@
+using Microsoft.EntityFrameworkCore;
+using PRN222_Restaurant.Data;
+using PRN222_Restaurant.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddControllers();
+
+// Add DbContext
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// Add Services
+builder.Services.AddScoped<IDiskService, DiskService>();
+
+// Add HttpClient
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
@@ -24,6 +40,7 @@ app.UseAuthorization();
 // Map endpoints
 app.MapRazorPages();
 app.MapBlazorHub();
+app.MapControllers();
 app.MapFallbackToPage("/blazor/{*clientPath}", "/Blazor/_Host");
 
 app.Run();
