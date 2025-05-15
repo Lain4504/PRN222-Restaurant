@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -41,6 +43,7 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapControllers();
+app.MapHub<DiskHub>("/diskhub");
 app.MapFallbackToPage("/blazor/{*clientPath}", "/Blazor/_Host");
 
 app.Run();

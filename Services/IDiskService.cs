@@ -4,9 +4,9 @@ namespace PRN222_Restaurant.Services;
 
 public interface IDiskService
 {
-    Task<IEnumerable<Disk>> GetAllDisksAsync();
+    Task<List<Disk>> GetAllDisksAsync();
     Task<Disk?> GetDiskByIdAsync(int id);
     Task<Disk> CreateDiskAsync(Disk disk);
-    Task<Disk?> UpdateDiskAsync(int id, Disk disk);
+    Task<Disk?> UpdateDiskAsync(Disk disk);
     Task<bool> DeleteDiskAsync(int id);
 } 

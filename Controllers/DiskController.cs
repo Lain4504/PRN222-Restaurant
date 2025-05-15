@@ -4,8 +4,8 @@ using PRN222_Restaurant.Services;
 
 namespace PRN222_Restaurant.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
+[ApiController]
 public class DiskController : ControllerBase
 {
     private readonly IDiskService _diskService;
@@ -40,9 +40,10 @@ public class DiskController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateDisk(int id, Disk disk)
     {
-        var updatedDisk = await _diskService.UpdateDiskAsync(id, disk);
+        if (id != disk.Id) return BadRequest();
+        var updatedDisk = await _diskService.UpdateDiskAsync(disk);
         if (updatedDisk == null) return NotFound();
-        return Ok(updatedDisk);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]

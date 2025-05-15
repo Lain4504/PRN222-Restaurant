@@ -1,6 +1,7 @@
 {
   "name": "prn222_restaurant",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "css:build": "tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/site.min.css --minify",
@@ -18,7 +19,6 @@
     "url": "https://github.com/Lain4504/PRN222-Restaurant/issues"
   },
   "homepage": "https://github.com/Lain4504/PRN222-Restaurant#readme",
-  "description": "",
   "devDependencies": {
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",

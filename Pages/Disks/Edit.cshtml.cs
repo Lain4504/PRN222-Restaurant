@@ -19,16 +19,10 @@ public class EditModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int? id)
     {
-        if (id == null)
-        {
-            return NotFound();
-        }
+        if (id == null) return NotFound();
 
         var disk = await _diskService.GetDiskByIdAsync(id.Value);
-        if (disk == null)
-        {
-            return NotFound();
-        }
+        if (disk == null) return NotFound();
 
         Disk = disk;
         return Page();
@@ -36,17 +30,28 @@ public class EditModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        if (!ModelState.IsValid)
-        {
-            return Page();
-        }
+        if (!ModelState.IsValid) return Page();
 
-        var result = await _diskService.UpdateDiskAsync(Disk.Id, Disk);
-        if (result == null)
+        try
         {
-            return NotFound();
+            var updatedDisk = await _diskService.UpdateDiskAsync(Disk);
+            if (updatedDisk == null) return NotFound();
+        }
+        catch
+        {
+            if (!await DiskExistsAsync(Disk.Id))
+            {
+                return NotFound();
+            }
+            throw;
         }
 
         return RedirectToPage("./Index");
+    }
+
+    private async Task<bool> DiskExistsAsync(int id)
+    {
+        var disk = await _diskService.GetDiskByIdAsync(id);
+        return disk != null;
     }
 } 
