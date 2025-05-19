@@ -1,0 +1,145 @@
+@page "{id:int?}"
+@model PRN222_Restaurant.Pages.Admin.Products.EditModel
+@{
+    ViewData["Title"] = Model.IsNewProduct ? "Thêm sản phẩm mới" : "Cập nhật sản phẩm";
+}
+
+<div class="card bg-base-100 shadow-md">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">@(Model.IsNewProduct ? "Thêm sản phẩm mới" : "Cập nhật sản phẩm")</h2>
+        
+        <form method="post" id="productForm" data-validate="true" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Product.Id" />
+            <input type="hidden" asp-for="Product.ImageUrl" />
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Left column - Form fields -->
+                <div class="space-y-4">
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Tên sản phẩm</span>
+                        </label>
+                        <input type="text" asp-for="Product.Name" class="input input-bordered w-full" placeholder="Nhập tên sản phẩm" required />
+                    </div>
+                    
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Danh mục</span>
+                        </label>
+                        <select asp-for="Product.Category" class="select select-bordered w-full" required>
+                            <option value="">Chọn danh mục</option>
+                            <option value="Đồ uống">Đồ uống</option>
+                            <option value="Món chính">Món chính</option>
+                            <option value="Món tráng miệng">Món tráng miệng</option>
+                            <option value="Món khai vị">Món khai vị</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Giá (VNĐ)</span>
+                        </label>
+                        <input type="number" asp-for="Product.Price" class="input input-bordered w-full" placeholder="Nhập giá sản phẩm" required min="0" />
+                    </div>
+                    
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Trạng thái</span>
+                        </label>
+                        <select asp-for="Product.Status" class="select select-bordered w-full" required>
+                            <option value="">Chọn trạng thái</option>
+                            <option value="Đang bán">Đang bán</option>
+                            <option value="Hết hàng">Hết hàng</option>
+                            <option value="Ngưng bán">Ngưng bán</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Mô tả</span>
+                        </label>
+                        <textarea asp-for="Product.Description" class="textarea textarea-bordered h-24" placeholder="Nhập mô tả sản phẩm"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Right column - Image upload and preview -->
+                <div>
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Hình ảnh sản phẩm</span>
+                        </label>
+                        <input type="file" name="ImageFile" class="file-input file-input-bordered w-full" accept="image/*" @(Model.IsNewProduct ? "required" : "") />
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="label">
+                            <span class="label-text">Xem trước hình ảnh</span>
+                        </label>
+                        <div class="w-full h-64 bg-base-200 rounded-lg overflow-hidden">
+                            <img id="imagePreview" src="@Model.Product.ImageUrl" alt="Product preview" class="w-full h-full object-contain @(string.IsNullOrEmpty(Model.Product.ImageUrl) ? "hidden" : "")" />
+                            <div id="previewPlaceholder" class="w-full h-full flex items-center justify-center @(!string.IsNullOrEmpty(Model.Product.ImageUrl) ? "hidden" : "")">
+                                <span class="text-gray-400">No image uploaded</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="flex justify-end gap-2">
+                <a href="/Admin/Products" class="btn btn-ghost">Hủy</a>
+                <button type="submit" class="btn btn-primary">
+                    <span id="save-text">Lưu</span>
+                    <span id="save-loading" class="loading loading-spinner hidden"></span>
+                </button>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-error mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>@Model.ErrorMessage</span>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateForm('productForm')) {
+                const saveText = document.getElementById('save-text');
+                const saveLoading = document.getElementById('save-loading');
+                
+                saveText.classList.add('hidden');
+                saveLoading.classList.remove('hidden');
+                
+                // Submit the form after validation
+                this.submit();
+            }
+        });
+        
+        // Image preview functionality
+        const imageInput = document.querySelector('input[name="ImageFile"]');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewPlaceholder = document.getElementById('previewPlaceholder');
+        
+        imageInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.classList.remove('hidden');
+                    previewPlaceholder.classList.add('hidden');
+                }
+                
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    </script>
+}

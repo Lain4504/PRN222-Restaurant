@@ -18,9 +18,11 @@
   },
   "homepage": "https://github.com/Lain4504/PRN222-Restaurant#readme",
   "devDependencies": {
+    "@tailwindcss/cli": "^4.1.7",
     "autoprefixer": "^10.4.17",
+    "daisyui": "^5.0.35",
     "postcss": "^8.4.35",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^4.1.7"
   },
   "dependencies": {
     "alpinejs": "^3.14.9",

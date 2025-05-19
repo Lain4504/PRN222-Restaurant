@@ -1,0 +1,85 @@
+@page
+@model PRN222_Restaurant.Pages.Admin.LoginModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Admin Login";
+}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - PRN222_Restaurant</title>
+    <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+    <script src="~/js/dashboard.js" asp-append-version="true" defer></script>
+</head>
+<body class="bg-base-200 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-2xl font-bold text-center mb-6">Admin Login</h2>
+                
+                <form id="loginForm" method="post" data-validate="true">
+                    <div class="form-control w-full mb-4">
+                        <label class="label">
+                            <span class="label-text">Username</span>
+                        </label>
+                        <input type="text" name="Username" id="username" placeholder="Enter your username" class="input input-bordered w-full" required />
+                    </div>
+                    
+                    <div class="form-control w-full mb-4">
+                        <label class="label">
+                            <span class="label-text">Password</span>
+                        </label>
+                        <input type="password" name="Password" id="password" placeholder="Enter your password" class="input input-bordered w-full" required />
+                    </div>
+                    
+                    <div class="form-control mb-6">
+                        <label class="cursor-pointer label justify-start gap-2">
+                            <input type="checkbox" name="RememberMe" class="checkbox checkbox-sm" />
+                            <span class="label-text">Remember me</span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-control mt-6">
+                        <button type="submit" id="login-btn" class="btn btn-primary">
+                            <span id="login-text">Login</span>
+                            <span id="login-loading" class="loading loading-spinner hidden"></span>
+                        </button>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-error mt-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span>@Model.ErrorMessage</span>
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            if (this.checkValidity()) {
+                const loginBtn = document.getElementById('login-btn');
+                const loginText = document.getElementById('login-text');
+                const loginLoading = document.getElementById('login-loading');
+                
+                loginText.classList.add('hidden');
+                loginLoading.classList.remove('hidden');
+                loginBtn.disabled = true;
+                
+                // Simulate delay - remove in real implementation
+                setTimeout(() => {
+                    this.submit();
+                }, 1000);
+                
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+@page "{id:int?}"
+@model PRN222_Restaurant.Pages.Admin.Users.EditModel
+@{
+    ViewData["Title"] = Model.IsNewUser ? "Thêm người dùng mới" : "Cập nhật người dùng";
+}
+
+<div class="card bg-base-100 shadow-md">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">@(Model.IsNewUser ? "Thêm người dùng mới" : "Cập nhật người dùng")</h2>
+        
+        <form method="post" id="userForm" data-validate="true">
+            <input type="hidden" asp-for="User.Id" />
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Họ tên</span>
+                    </label>
+                    <input type="text" asp-for="User.Name" class="input input-bordered w-full" placeholder="Nhập họ tên" required />
+                </div>
+                
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    <input type="email" asp-for="User.Email" class="input input-bordered w-full" placeholder="email@example.com" required />
+                </div>
+                
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Vai trò</span>
+                    </label>
+                    <select asp-for="User.Role" class="select select-bordered w-full" required>
+                        <option value="">Chọn vai trò</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Staff">Staff</option>
+                        <option value="User">User</option>
+                    </select>
+                </div>
+                
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Trạng thái</span>
+                    </label>
+                    <div class="flex items-center mt-2">
+                        <input type="checkbox" asp-for="User.IsActive" class="toggle toggle-success" />
+                        <span class="ml-2">@(Model.User.IsActive ? "Hoạt động" : "Không hoạt động")</span>
+                    </div>
+                </div>
+                
+                @if (Model.IsNewUser)
+                {
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Mật khẩu</span>
+                        </label>
+                        <input type="password" asp-for="Password" class="input input-bordered w-full" placeholder="Nhập mật khẩu" required />
+                    </div>
+                    
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Xác nhận mật khẩu</span>
+                        </label>
+                        <input type="password" asp-for="ConfirmPassword" class="input input-bordered w-full" placeholder="Xác nhận mật khẩu" required />
+                    </div>
+                }
+                else
+                {
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Mật khẩu mới (để trống nếu không thay đổi)</span>
+                        </label>
+                        <input type="password" asp-for="Password" class="input input-bordered w-full" placeholder="Nhập mật khẩu mới" />
+                    </div>
+                    
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text">Xác nhận mật khẩu mới</span>
+                        </label>
+                        <input type="password" asp-for="ConfirmPassword" class="input input-bordered w-full" placeholder="Xác nhận mật khẩu mới" />
+                    </div>
+                }
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="flex justify-end gap-2">
+                <a href="/Admin/Users" class="btn btn-ghost">Hủy</a>
+                <button type="submit" class="btn btn-primary">
+                    <span id="save-text">Lưu</span>
+                    <span id="save-loading" class="loading loading-spinner hidden"></span>
+                </button>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-error mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>@Model.ErrorMessage</span>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateForm('userForm')) {
+                const saveText = document.getElementById('save-text');
+                const saveLoading = document.getElementById('save-loading');
+                
+                saveText.classList.add('hidden');
+                saveLoading.classList.remove('hidden');
+                
+                // For password confirm validation
+                const password = document.getElementById('Password').value;
+                const confirmPassword = document.getElementById('ConfirmPassword').value;
+                
+                if (password && password !== confirmPassword) {
+                    showToast('Mật khẩu không khớp!', 'error');
+                    saveText.classList.remove('hidden');
+                    saveLoading.classList.add('hidden');
+                    return;
+                }
+                
+                // Submit the form after validation
+                this.submit();
+            }
+        });
+        
+        // Toggle status text when changing the active toggle
+        document.getElementById('User_IsActive').addEventListener('change', function() {
+            const statusText = this.nextElementSibling;
+            statusText.textContent = this.checked ? 'Hoạt động' : 'Không hoạt động';
+        });
+    </script>
+}
