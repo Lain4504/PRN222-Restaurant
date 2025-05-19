@@ -19,10 +19,6 @@
     <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Pages\Components\" />
-  </ItemGroup>
-
   <Target Name="NpmInstall" BeforeTargets="Build">
     <Exec Command="npm install" />
   </Target>
