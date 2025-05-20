@@ -1,0 +1,250 @@
+@page "/about"
+@model PRN222_Restaurant.Pages.AboutModel
+@{
+    ViewData["Title"] = "About Us";
+}
+
+<!-- About Hero Section -->
+<section class="relative py-16 md:py-24">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+        <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=2074" 
+             alt="Fresh Seafood" 
+             class="w-full h-full object-cover" />
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900/80"></div>
+    </div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">About Ocean Delights</h1>
+            <p class="text-xl text-slate-200 max-w-2xl mx-auto">
+                Our story, our passion, and our commitment to bringing you the finest seafood experience
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Our Story Section -->
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <img src="https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?q=80&w=2074" 
+                     alt="Restaurant Founding" 
+                     class="rounded-lg shadow-xl w-full" />
+            </div>
+            
+            <div>
+                <h2 class="text-3xl font-bold text-slate-800 mb-6">Our Story</h2>
+                <p class="text-lg text-slate-600 mb-4">
+                    Ocean Delights was founded in 2010 by Chef Michael Rodriguez, a culinary visionary with a deep love for seafood. Having grown up in a coastal town, Michael developed a profound appreciation for the ocean's bounty from an early age.
+                </p>
+                <p class="text-lg text-slate-600 mb-4">
+                    After training at the prestigious Culinary Institute of America and working in Michelin-starred restaurants across Europe, Michael returned home with a dream: to create a restaurant that would showcase the finest seafood in dishes that honor both tradition and innovation.
+                </p>
+                <p class="text-lg text-slate-600">
+                    What began as a small seafood shack has evolved into one of the city's most celebrated dining destinations, while still maintaining the warmth and passion that inspired its creation.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Mission Section -->
+<section class="py-16 bg-slate-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-4">Our Mission</h2>
+            <p class="text-xl text-slate-600 max-w-3xl mx-auto">
+                At Ocean Delights, we're committed to three core principles that guide everything we do
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Sustainability -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body items-center text-center">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="card-title text-xl">Sustainability</h3>
+                    <p class="text-slate-600">
+                        We partner with local fishermen who practice sustainable fishing methods. By sourcing responsibly, we ensure that our seafood is not only delicious but also environmentally conscious.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Quality -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body items-center text-center">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                    </div>
+                    <h3 class="card-title text-xl">Quality</h3>
+                    <p class="text-slate-600">
+                        We believe in serving only the freshest, highest-quality seafood. Our chefs inspect every delivery to ensure that only the best ingredients make it to your plate.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Community -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body items-center text-center">
+                    <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="card-title text-xl">Community</h3>
+                    <p class="text-slate-600">
+                        We're proud to be part of our local community. We support local fisheries, farms, and food banks, giving back to the community that has supported us through the years.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Team Section -->
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-4">Meet Our Team</h2>
+            <p class="text-xl text-slate-600 max-w-3xl mx-auto">
+                The passionate individuals behind our exceptional seafood experience
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Chef Michael -->
+            <div class="card bg-base-100 shadow-xl">
+                <figure class="h-64">
+                    <img src="https://images.unsplash.com/photo-1566554273541-37a9ca77b91f?q=80&w=2080" 
+                         alt="Chef Michael" 
+                         class="w-full h-full object-cover" />
+                </figure>
+                <div class="card-body">
+                    <h3 class="card-title text-xl">Michael Rodriguez</h3>
+                    <p class="text-primary font-medium">Founder & Executive Chef</p>
+                    <p class="text-slate-600">
+                        With over 20 years of culinary experience, Michael's innovative approach to seafood has earned him numerous accolades.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Chef Sarah -->
+            <div class="card bg-base-100 shadow-xl">
+                <figure class="h-64">
+                    <img src="https://images.unsplash.com/photo-1581299894007-aaa50297cf16?q=80&w=1974" 
+                         alt="Chef Sarah" 
+                         class="w-full h-full object-cover" />
+                </figure>
+                <div class="card-body">
+                    <h3 class="card-title text-xl">Sarah Chen</h3>
+                    <p class="text-primary font-medium">Head Chef</p>
+                    <p class="text-slate-600">
+                        Sarah's expertise in Asian-fusion seafood dishes has expanded our menu and delighted our customers with new flavor profiles.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Sommelier James -->
+            <div class="card bg-base-100 shadow-xl">
+                <figure class="h-64">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974" 
+                         alt="James Wilson" 
+                         class="w-full h-full object-cover" />
+                </figure>
+                <div class="card-body">
+                    <h3 class="card-title text-xl">James Wilson</h3>
+                    <p class="text-primary font-medium">Sommelier</p>
+                    <p class="text-slate-600">
+                        James curates our extensive wine collection, ensuring perfect pairings that enhance the flavors of our seafood dishes.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Manager Elena -->
+            <div class="card bg-base-100 shadow-xl">
+                <figure class="h-64">
+                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961" 
+                         alt="Elena Morales" 
+                         class="w-full h-full object-cover" />
+                </figure>
+                <div class="card-body">
+                    <h3 class="card-title text-xl">Elena Morales</h3>
+                    <p class="text-primary font-medium">General Manager</p>
+                    <p class="text-slate-600">
+                        Elena's dedication to exceptional service ensures that every visit to Ocean Delights is memorable and enjoyable.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Awards and Recognition -->
+<section class="py-16 bg-slate-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-4">Awards & Recognition</h2>
+            <p class="text-xl text-slate-600 max-w-3xl mx-auto">
+                We're honored to have received recognition for our commitment to quality and innovation
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="flex flex-col items-center">
+                <div class="bg-white p-4 rounded-full shadow-md mb-4">
+                    <img src="https://via.placeholder.com/80" alt="Best Seafood Restaurant" class="w-20 h-20" />
+                </div>
+                <h3 class="font-bold text-slate-800 text-center">Best Seafood Restaurant 2023</h3>
+                <p class="text-sm text-slate-600 text-center">City Food Awards</p>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <div class="bg-white p-4 rounded-full shadow-md mb-4">
+                    <img src="https://via.placeholder.com/80" alt="Sustainability Award" class="w-20 h-20" />
+                </div>
+                <h3 class="font-bold text-slate-800 text-center">Sustainability Excellence</h3>
+                <p class="text-sm text-slate-600 text-center">Green Restaurant Association</p>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <div class="bg-white p-4 rounded-full shadow-md mb-4">
+                    <img src="https://via.placeholder.com/80" alt="Chef of the Year" class="w-20 h-20" />
+                </div>
+                <h3 class="font-bold text-slate-800 text-center">Chef of the Year 2022</h3>
+                <p class="text-sm text-slate-600 text-center">Culinary Excellence Awards</p>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <div class="bg-white p-4 rounded-full shadow-md mb-4">
+                    <img src="https://via.placeholder.com/80" alt="Customer Service" class="w-20 h-20" />
+                </div>
+                <h3 class="font-bold text-slate-800 text-center">Outstanding Service</h3>
+                <p class="text-sm text-slate-600 text-center">Hospitality Leaders</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Join Our Team -->
+<section class="py-16 bg-primary text-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold mb-4">Join Our Team</h2>
+            <p class="text-xl max-w-3xl mx-auto">
+                We're always looking for talented individuals who share our passion for seafood and exceptional service
+            </p>
+        </div>
+        
+        <div class="flex justify-center">
+            <a href="/careers" class="btn btn-lg bg-white text-primary hover:bg-slate-100">View Open Positions</a>
+        </div>
+    </div>
+</section>
