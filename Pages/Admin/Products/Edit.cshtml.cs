@@ -67,11 +67,10 @@ namespace PRN222_Restaurant.Pages.Admin.Products
                 SuccessMessage = "Đã thêm sản phẩm mới thành công";
             }
             else
-            {
-                SuccessMessage = $"Đã cập nhật sản phẩm {Product.Name} thành công";
+            {            SuccessMessage = $"Đã cập nhật sản phẩm {Product.Name} thành công";
             }
 
-            return RedirectToPage("/Admin/Products");
+            return RedirectToPage("/admin/products");
         }
 
         private Product? GetProductById(int id)

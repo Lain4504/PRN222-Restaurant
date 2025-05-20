@@ -1,4 +1,4 @@
-@page
+@page "/admin/dashboard"
 @model PRN222_Restaurant.Pages.Admin.DashboardModel
 @{
     ViewData["Title"] = "Dashboard";
@@ -120,13 +120,12 @@
 <!-- Quick Actions and Info Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="card bg-base-100 shadow-md">
-        <div class="card-body">
-            <h2 class="card-title text-xl mb-4">Quick Actions</h2>
+        <div class="card-body">            <h2 class="card-title text-xl mb-4">Quick Actions</h2>
             <div class="flex flex-wrap gap-2">
-                <a href="/Admin/Users/Create" class="btn btn-primary">Add New User</a>
-                <a href="/Admin/Products/Create" class="btn btn-secondary">Add New Product</a>
-                <a href="/Admin/Orders" class="btn btn-accent">View All Orders</a>
-                <a href="/Admin/Stats" class="btn btn-info">View Statistics</a>
+                <a href="/admin/users/create" class="btn btn-primary">Add New User</a>
+                <a href="/admin/products/create" class="btn btn-secondary">Add New Product</a>
+                <a href="/admin/orders" class="btn btn-accent">View All Orders</a>
+                <a href="/admin/stats" class="btn btn-info">View Statistics</a>
             </div>
         </div>
     </div>

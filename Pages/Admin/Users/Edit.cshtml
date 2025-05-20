@@ -1,4 +1,4 @@
-@page "{id:int?}"
+@page "/admin/users/edit/{id:int?}"
 @model PRN222_Restaurant.Pages.Admin.Users.EditModel
 @{
     ViewData["Title"] = Model.IsNewUser ? "Thêm người dùng mới" : "Cập nhật người dùng";
@@ -82,11 +82,10 @@
                     </div>
                 }
             </div>
-            
-            <div class="divider"></div>
+              <div class="divider"></div>
             
             <div class="flex justify-end gap-2">
-                <a href="/Admin/Users" class="btn btn-ghost">Hủy</a>
+                <a href="/admin/users" class="btn btn-ghost">Hủy</a>
                 <button type="submit" class="btn btn-primary">
                     <span id="save-text">Lưu</span>
                     <span id="save-loading" class="loading loading-spinner hidden"></span>

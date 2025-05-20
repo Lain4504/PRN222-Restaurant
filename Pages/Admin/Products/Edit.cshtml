@@ -1,4 +1,4 @@
-@page "{id:int?}"
+@page "/admin/products/edit/{id:int?}"
 @model PRN222_Restaurant.Pages.Admin.Products.EditModel
 @{
     ViewData["Title"] = Model.IsNewProduct ? "Thêm sản phẩm mới" : "Cập nhật sản phẩm";
@@ -84,11 +84,10 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="divider"></div>
+              <div class="divider"></div>
             
             <div class="flex justify-end gap-2">
-                <a href="/Admin/Products" class="btn btn-ghost">Hủy</a>
+                <a href="/admin/products" class="btn btn-ghost">Hủy</a>
                 <button type="submit" class="btn btn-primary">
                     <span id="save-text">Lưu</span>
                     <span id="save-loading" class="loading loading-spinner hidden"></span>

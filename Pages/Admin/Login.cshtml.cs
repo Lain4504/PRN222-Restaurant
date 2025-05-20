@@ -27,12 +27,11 @@ namespace PRN222_Restaurant.Pages.Admin
         public IActionResult OnPost()
         {
             // In a real application, you would validate against a database
-            // For demo purposes, we'll use a hardcoded credential
-            if (Username == "admin" && Password == "admin123")
+            // For demo purposes, we'll use a hardcoded credential            if (Username == "admin" && Password == "admin123")
             {
                 // In a real application, you would set authentication cookie
                 
-                return RedirectToPage("/Admin/Dashboard");
+                return RedirectToPage("/admin/dashboard");
             }
 
             ErrorMessage = "Invalid username or password";

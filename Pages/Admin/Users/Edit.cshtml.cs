@@ -67,13 +67,12 @@ namespace PRN222_Restaurant.Pages.Admin.Users
             if (IsNewUser)
             {
                 SuccessMessage = "Đã thêm người dùng mới thành công";
-            }
-            else
+            }            else
             {
                 SuccessMessage = $"Đã cập nhật người dùng {User.Name} thành công";
             }
 
-            return RedirectToPage("/Admin/Users");
+            return RedirectToPage("/admin/users");
         }
 
         private User? GetUserById(int id)
