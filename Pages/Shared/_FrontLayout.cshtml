@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ocean Delights</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+    <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true"/>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous" defer></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar bg-base-100 fixed top-0 z-50 shadow-md">
+        <div class="container mx-auto">
+            <div class="flex-1">
+                <a href="/" class="text-xl font-bold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                    </svg>
+                    Ocean Delights
+                </a>
+            </div>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex">
+                <ul class="menu menu-horizontal px-1">
+                    <li><a href="/" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Home</a></li>
+                    <li><a href="/menu" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Menu" ? "active" : "")">Menu</a></li>
+                    <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Reservations</a></li>
+                    <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">About Us</a></li>
+                    <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Contact</a></li>
+                </ul>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <div class="flex-none md:hidden">
+                <button class="btn btn-square btn-ghost" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Order Now Button -->
+            <div class="flex-none ml-4">
+                <a href="/menu" class="btn btn-primary">Order Now</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu (Hidden by default) -->
+    <div id="mobile-menu" class="fixed top-16 left-0 right-0 z-40 bg-base-100 shadow-lg rounded-b-lg p-4 hidden">
+        <ul class="menu w-full">
+            <li><a href="/" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Home</a></li>
+            <li><a href="/menu" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Menu" ? "active" : "")">Menu</a></li>
+            <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Reservations</a></li>
+            <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">About Us</a></li>
+            <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Contact</a></li>
+        </ul>
+    </div>
+
+    <!-- Page Content -->
+    <div class="pt-16"> <!-- Adding padding to account for fixed navbar -->
+        @RenderBody()
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white">
+        <div class="container mx-auto px-4 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Logo & Description -->
+                <div class="md:col-span-1">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                        </svg>
+                        Ocean Delights
+                    </h2>
+                    <p class="text-slate-400 mb-4">
+                        Bringing the freshest seafood from the ocean to your table since 2010.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-slate-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" />
+                            </svg>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+                            </svg>
+                        </a>
+                        <a href="#" class="text-slate-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/" class="text-slate-400 hover:text-white">Home</a></li>
+                        <li><a href="/menu" class="text-slate-400 hover:text-white">Menu</a></li>
+                        <li><a href="/reservation" class="text-slate-400 hover:text-white">Reservations</a></li>
+                        <li><a href="/about" class="text-slate-400 hover:text-white">About Us</a></li>
+                        <li><a href="/contact" class="text-slate-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold mb-4">Contact Us</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-slate-400">123 Seaside Avenue, Coastal City</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                            </svg>
+                            <span class="text-slate-400">(123) 456-7890</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <span class="text-slate-400">info@oceandelights.com</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Hours -->
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold mb-4">Hours</h3>
+                    <ul class="space-y-2">
+                        <li class="flex justify-between">
+                            <span class="text-slate-400">Monday - Thursday</span>
+                            <span class="text-slate-400">11:00 AM - 10:00 PM</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-slate-400">Friday - Saturday</span>
+                            <span class="text-slate-400">11:00 AM - 11:00 PM</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-slate-400">Sunday</span>
+                            <span class="text-slate-400">12:00 PM - 9:00 PM</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-800 mt-12 pt-8">
+                <p class="text-center text-slate-400">
+                    © 2023 Ocean Delights. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

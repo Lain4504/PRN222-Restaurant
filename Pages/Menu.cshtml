@@ -1,0 +1,683 @@
+@page "/menu"
+@model PRN222_Restaurant.Pages.MenuModel
+@{
+    ViewData["Title"] = "Our Menu";
+}
+
+<!-- Menu Hero Section -->
+<section class="relative py-16 md:py-24">
+    <!-- Background Image with Overlay -->
+    <div class="absolute inset-0 z-0">
+        <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=2070" 
+             alt="Seafood Platter" 
+             class="w-full h-full object-cover" />
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900/80"></div>
+    </div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Our Menu</h1>
+            <p class="text-xl text-slate-200 max-w-2xl mx-auto">
+                Explore our selection of fresh seafood dishes prepared daily by our expert chefs
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Menu Navigation and Filters -->
+<section class="bg-white py-8 sticky top-0 z-30 shadow-md">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <!-- Category Tabs -->
+            <div class="tabs tabs-boxed flex-1 justify-start overflow-x-auto max-w-full">
+                <a class="tab tab-active" id="all-tab" onclick="filterCategory('all')">All</a>
+                <a class="tab" id="starters-tab" onclick="filterCategory('starters')">Starters</a>
+                <a class="tab" id="main-courses-tab" onclick="filterCategory('main-courses')">Main Courses</a>
+                <a class="tab" id="sides-tab" onclick="filterCategory('sides')">Sides</a>
+                <a class="tab" id="desserts-tab" onclick="filterCategory('desserts')">Desserts</a>
+                <a class="tab" id="beverages-tab" onclick="filterCategory('beverages')">Beverages</a>
+            </div>
+            
+            <!-- Search and Filters -->
+            <div class="flex items-center gap-2">
+                <div class="form-control">
+                    <div class="input-group">
+                        <input type="text" id="menu-search" placeholder="Search menu..." 
+                               class="input input-bordered w-full max-w-xs" 
+                               oninput="searchMenu()"/>
+                        <button class="btn btn-square">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- View Cart Button -->
+                <div class="dropdown dropdown-end">
+                    <label tabindex="0" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span id="cart-count">0</span>
+                    </label>
+                    <div tabindex="0" class="dropdown-content z-[1] card card-compact w-96 p-2 shadow bg-base-100">
+                        <div class="card-body">
+                            <h3 class="font-bold text-lg">Your Order</h3>
+                            <div id="cart-items" class="py-4">
+                                <p class="text-center text-gray-500 py-4">Your cart is empty</p>
+                            </div>
+                            <div class="flex justify-between font-bold text-lg">
+                                <span>Total:</span>
+                                <span id="cart-total">$0.00</span>
+                            </div>
+                            <div class="card-actions">
+                                <button id="checkout-btn" class="btn btn-primary btn-block" onclick="goToCheckout()" disabled>
+                                    Proceed to Checkout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Menu Items Section -->
+<section class="py-12 bg-slate-50">
+    <div class="container mx-auto px-4">
+        <!-- Starters Section -->
+        <div class="mb-12" id="starters-section">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Starters</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Starter Item 1 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="starters">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=2071" 
+                             alt="Seafood Platter" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Seafood Sampler</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-secondary">Popular</div>
+                            <div class="badge badge-outline">Shareable</div>
+                        </div>
+                        <p class="text-slate-600">A delightful assortment of shrimp cocktail, crab cakes, and calamari served with house-made sauces</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$24.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Seafood Sampler', 24.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Starter Item 2 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="starters">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?q=80&w=1974" 
+                             alt="Oysters" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Fresh Oysters</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-accent">Chef's Choice</div>
+                        </div>
+                        <p class="text-slate-600">Half dozen fresh oysters on ice served with mignonette sauce and lemon wedges</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$18.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Fresh Oysters', 18.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Starter Item 3 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="starters">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1593247035809-eedff0962973?q=80&w=2070" 
+                             alt="Crab Cakes" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Maryland Crab Cakes</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-secondary">Popular</div>
+                        </div>
+                        <p class="text-slate-600">Two jumbo lump crab cakes with minimal filler, pan-seared and served with remoulade sauce</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$16.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Maryland Crab Cakes', 16.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Courses Section -->
+        <div class="mb-12" id="main-courses-section">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Main Courses</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Main Course Item 1 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="main-courses">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=2070" 
+                             alt="Seared Scallops" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Seared Sea Scallops</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-accent">Chef's Choice</div>
+                            <div class="badge badge-outline">Keto Friendly</div>
+                        </div>
+                        <p class="text-slate-600">Jumbo scallops pan-seared to golden perfection, served with cauliflower purée and microgreens</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$32.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Seared Sea Scallops', 32.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Course Item 2 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="main-courses">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1553557202-e8e60732b8fd?q=80&w=2070" 
+                             alt="Grilled Salmon" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Grilled Atlantic Salmon</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-secondary">Popular</div>
+                            <div class="badge badge-outline">Gluten-Free</div>
+                        </div>
+                        <p class="text-slate-600">Perfectly grilled salmon fillet with lemon dill sauce, served with roasted vegetables and wild rice</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$28.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Grilled Atlantic Salmon', 28.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Course Item 3 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="main-courses">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1560963689-b5682b6440f8?q=80&w=2070" 
+                             alt="Lobster Pasta" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Lobster Linguine</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-accent">Chef's Choice</div>
+                        </div>
+                        <p class="text-slate-600">Linguine pasta tossed with chunks of Maine lobster in a rich creamy sauce with a hint of saffron</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$36.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Lobster Linguine', 36.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sides Section -->
+        <div class="mb-12" id="sides-section">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Sides</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Side Item 1 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="sides">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1594046243098-0fceea9d451e?q=80&w=1974" 
+                             alt="Garlic Bread" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Garlic Bread</h3>
+                        <p class="text-slate-600">Crusty French bread topped with our house-made garlic butter and herbs</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$6.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Garlic Bread', 6.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Side Item 2 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="sides">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=2084" 
+                             alt="Seasonal Vegetables" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Seasonal Vegetables</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-outline">Vegan</div>
+                            <div class="badge badge-outline">Gluten-Free</div>
+                        </div>
+                        <p class="text-slate-600">Chef's selection of seasonal vegetables, lightly seasoned and roasted</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$7.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Seasonal Vegetables', 7.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Side Item 3 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="sides">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1623238913973-21e186a7c8a5?q=80&w=2012" 
+                             alt="Truffle Fries" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Truffle Fries</h3>
+                        <p class="text-slate-600">Crispy hand-cut fries tossed with truffle oil, parmesan cheese, and fresh herbs</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$8.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Truffle Fries', 8.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Desserts Section -->
+        <div class="mb-12" id="desserts-section">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Desserts</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dessert Item 1 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="desserts">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?q=80&w=1974" 
+                             alt="Cheesecake" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">New York Cheesecake</h3>
+                        <p class="text-slate-600">Creamy classic New York style cheesecake with a graham cracker crust, topped with fresh berries</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$9.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('New York Cheesecake', 9.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dessert Item 2 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="desserts">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1517427294546-5aa121f68e8a?q=80&w=1964" 
+                             alt="Chocolate Lava Cake" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Chocolate Lava Cake</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-secondary">Popular</div>
+                        </div>
+                        <p class="text-slate-600">Warm chocolate cake with a molten center, served with vanilla ice cream and fresh berries</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$10.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Chocolate Lava Cake', 10.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dessert Item 3 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="desserts">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?q=80&w=1974" 
+                             alt="Key Lime Pie" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Key Lime Pie</h3>
+                        <p class="text-slate-600">Refreshing key lime pie with a buttery graham cracker crust, topped with whipped cream</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$8.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Key Lime Pie', 8.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Beverages Section -->
+        <div class="mb-12" id="beverages-section">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Beverages</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Beverage Item 1 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="beverages">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1525373698358-041e3a460346?q=80&w=1964" 
+                             alt="Signature Cocktail" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Ocean Breeze Cocktail</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-accent">Signature</div>
+                        </div>
+                        <p class="text-slate-600">Our signature blue cocktail with rum, blue curaçao, pineapple juice, and coconut cream</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$12.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Ocean Breeze Cocktail', 12.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Beverage Item 2 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="beverages">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?q=80&w=2070" 
+                             alt="White Wine" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">House White Wine</h3>
+                        <p class="text-slate-600">Glass of our house Chardonnay, perfect pairing with seafood dishes</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$9.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('House White Wine', 9.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Beverage Item 3 -->
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="beverages">
+                    <figure class="h-48">
+                        <img src="https://images.unsplash.com/photo-1499638673689-79a0b5115d87?q=80&w=1964" 
+                             alt="Fresh Lemonade" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Fresh Lemonade</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="badge badge-outline">Non-Alcoholic</div>
+                        </div>
+                        <p class="text-slate-600">Freshly squeezed lemonade with a hint of mint, served over ice</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$4.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Fresh Lemonade', 4.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recommendations Section -->
+<section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-slate-800 mb-4">Chef's Recommendations</h2>
+            <p class="text-lg text-slate-600 max-w-3xl mx-auto">
+                Our chef's picks for a perfectly balanced seafood dining experience
+            </p>
+        </div>
+        
+        <div class="carousel carousel-center w-full p-4 space-x-4 rounded-box">
+            <!-- Recommendation 1 -->
+            <div class="carousel-item w-full md:w-1/2 lg:w-1/3">
+                <div class="card bg-base-100 shadow-xl">
+                    <figure class="h-64">
+                        <img src="https://images.unsplash.com/photo-1579631542720-3a87824fff86?q=80&w=1964" 
+                             alt="Seafood Feast" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Ultimate Seafood Feast</h3>
+                        <p class="text-slate-600">A premium seafood tower with lobster, crab, shrimp, oysters, and clams. Perfect for sharing!</p>
+                        <div class="badge badge-secondary mb-2">Most Popular</div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$89.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Ultimate Seafood Feast', 89.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommendation 2 -->
+            <div class="carousel-item w-full md:w-1/2 lg:w-1/3">
+                <div class="card bg-base-100 shadow-xl">
+                    <figure class="h-64">
+                        <img src="https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?q=80&w=2070" 
+                             alt="Lobster Roll" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Connecticut Lobster Roll</h3>
+                        <p class="text-slate-600">Warm buttered Maine lobster meat served on a toasted split-top bun with a side of crispy fries</p>
+                        <div class="badge badge-accent mb-2">Chef's Favorite</div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$26.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Connecticut Lobster Roll', 26.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommendation 3 -->
+            <div class="carousel-item w-full md:w-1/2 lg:w-1/3">
+                <div class="card bg-base-100 shadow-xl">
+                    <figure class="h-64">
+                        <img src="https://images.unsplash.com/photo-1559847844-5315695dadae?q=80&w=2058" 
+                             alt="Seafood Paella" 
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">Seafood Paella</h3>
+                        <p class="text-slate-600">Traditional Spanish rice dish with shrimp, mussels, clams, and calamari, flavored with saffron</p>
+                        <div class="badge badge-secondary mb-2">Popular</div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$34.99</span>
+                            <button class="btn btn-primary btn-sm" onclick="addToCart('Seafood Paella', 34.99)">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- JavaScript for Menu Functionality -->
+<script>
+    // Shopping Cart Data
+    let cartItems = [];
+    let cartTotal = 0;
+    
+    // Add to Cart Function
+    function addToCart(itemName, price) {
+        // Check if item already exists
+        const existingItem = cartItems.find(item => item.name === itemName);
+        
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cartItems.push({
+                name: itemName,
+                price: price,
+                quantity: 1
+            });
+        }
+        
+        updateCart();
+        
+        // Show toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-center toast-top';
+        toast.innerHTML = `
+            <div class="alert alert-success">
+                <span>${itemName} added to cart!</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        // Remove toast after 3 seconds
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 3000);
+    }
+    
+    // Update Cart UI
+    function updateCart() {
+        const cartContainer = document.getElementById('cart-items');
+        const cartCount = document.getElementById('cart-count');
+        const cartTotalElement = document.getElementById('cart-total');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        
+        // Reset cart
+        cartContainer.innerHTML = '';
+        
+        // Update cart total
+        cartTotal = 0;
+        
+        if (cartItems.length === 0) {
+            cartContainer.innerHTML = '<p class="text-center text-gray-500 py-4">Your cart is empty</p>';
+            checkoutBtn.disabled = true;
+        } else {
+            checkoutBtn.disabled = false;
+            
+            // Add each item to cart
+            cartItems.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                cartTotal += itemTotal;
+                
+                const itemElement = document.createElement('div');
+                itemElement.className = 'flex justify-between items-center mb-3 pb-3 border-b';
+                itemElement.innerHTML = `
+                    <div>
+                        <h4 class="font-medium">${item.name}</h4>
+                        <p class="text-sm text-gray-500">$${item.price.toFixed(2)} × ${item.quantity}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-medium">$${itemTotal.toFixed(2)}</span>
+                        <button onclick="removeFromCart(${index})" class="btn btn-sm btn-circle btn-ghost">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                cartContainer.appendChild(itemElement);
+            });
+        }
+        
+        // Update cart count and total
+        cartCount.textContent = cartItems.reduce((total, item) => total + item.quantity, 0);
+        cartTotalElement.textContent = `$${cartTotal.toFixed(2)}`;
+    }
+    
+    // Remove Item from Cart
+    function removeFromCart(index) {
+        cartItems.splice(index, 1);
+        updateCart();
+    }
+    
+    // Go to Checkout
+    function goToCheckout() {
+        // Store cart data in localStorage
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+        localStorage.setItem('cartTotal', cartTotal.toString());
+        
+        // Redirect to checkout page
+        window.location.href = '/checkout';
+    }
+    
+    // Filter Menu by Category
+    function filterCategory(category) {
+        // Update active tab
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('tab-active');
+        });
+        document.getElementById(`${category}-tab`).classList.add('tab-active');
+        
+        // Show/hide sections based on category
+        if (category === 'all') {
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.style.display = 'block';
+            });
+            document.querySelectorAll('[id$="-section"]').forEach(section => {
+                section.style.display = 'block';
+            });
+        } else {
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (item.getAttribute('data-category') === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Hide section headers not matching the category
+            document.querySelectorAll('[id$="-section"]').forEach(section => {
+                if (section.id === `${category}-section`) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+    }
+    
+    // Search Menu Items
+    function searchMenu() {
+        const searchTerm = document.getElementById('menu-search').value.toLowerCase();
+        const menuItems = document.querySelectorAll('.menu-item');
+        
+        if (searchTerm === '') {
+            // Reset to show all items
+            filterCategory('all');
+            return;
+        }
+        
+        // Reset category tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('tab-active');
+        });
+        document.getElementById('all-tab').classList.add('tab-active');
+        
+        // Show all sections but filter items
+        document.querySelectorAll('[id$="-section"]').forEach(section => {
+            section.style.display = 'block';
+        });
+        
+        let hasResults = false;
+        
+        menuItems.forEach(item => {
+            const itemName = item.querySelector('.card-title').textContent.toLowerCase();
+            const itemDescription = item.querySelector('p').textContent.toLowerCase();
+            
+            if (itemName.includes(searchTerm) || itemDescription.includes(searchTerm)) {
+                item.style.display = 'block';
+                hasResults = true;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Hide sections without visible items
+        document.querySelectorAll('[id$="-section"]').forEach(section => {
+            const visibleItems = section.querySelectorAll('.menu-item[style="display: block;"]');
+            if (visibleItems.length === 0) {
+                section.style.display = 'none';
+            }
+        });
+        
+        // Show message if no results
+        if (!hasResults) {
+            // TODO: Show no results message
+        }
+    }
+    
+    // Initialize cart from localStorage (if navigating back from checkout)
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedCartItems = localStorage.getItem('cartItems');
+        if (savedCartItems) {
+            cartItems = JSON.parse(savedCartItems);
+            updateCart();
+        }
+    });
+</script>
