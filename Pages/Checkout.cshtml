@@ -155,49 +155,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Payment Method -->
-                            <div class="mb-6">
-                                <h3 class="font-bold text-lg mb-3">Payment Method</h3>
-                                
-                                <div class="tabs tabs-boxed justify-center mb-4">
-                                    <a class="tab tab-active" id="card-tab" onclick="setPaymentMethod('card')">Credit Card</a>
-                                    <a class="tab" id="cash-tab" onclick="setPaymentMethod('cash')">Cash on Delivery</a>
-                                </div>
-                                
-                                <div id="card-payment-info">
-                                    <div class="form-control mb-4">
-                                        <label class="label">
-                                            <span class="label-text">Card Number</span>
-                                        </label>
-                                        <input type="text" class="input input-bordered" placeholder="1234 5678 9012 3456" required />
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-2 gap-4 mb-4">
-                                        <div class="form-control">
-                                            <label class="label">
-                                                <span class="label-text">Expiration Date</span>
-                                            </label>
-                                            <input type="text" class="input input-bordered" placeholder="MM/YY" required />
-                                        </div>
-                                        
-                                        <div class="form-control">
-                                            <label class="label">
-                                                <span class="label-text">CVV</span>
-                                            </label>
-                                            <input type="text" class="input input-bordered" placeholder="123" required />
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-control mb-4">
-                                        <label class="label">
-                                            <span class="label-text">Name on Card</span>
-                                        </label>
-                                        <input type="text" class="input input-bordered" required />
-                                    </div>
-                                </div>
-                                
-                                <div id="cash-payment-info" class="hidden">
-                                    <div class="alert alert-info">
+                                                        <!-- Payment Method -->                            <div class="mb-6">                                <h3 class="font-bold text-lg mb-3">Payment Method</h3>                                                                <div class="tabs tabs-boxed justify-center mb-4">                                    <a class="tab" id="card-tab" onclick="setPaymentMethod('card')">Credit Card</a>                                    <a class="tab" id="cash-tab" onclick="setPaymentMethod('cash')">Cash on Delivery</a>                                    <a class="tab tab-active" id="vnpay-tab" onclick="setPaymentMethod('vnpay')">VNPay</a>                                </div>                                                                <div id="card-payment-info" class="hidden">                                    <div class="form-control mb-4">                                        <label class="label">                                            <span class="label-text">Card Number</span>                                        </label>                                        <input type="text" class="input input-bordered" placeholder="1234 5678 9012 3456" required />                                    </div>                                                                        <div class="grid grid-cols-2 gap-4 mb-4">                                        <div class="form-control">                                            <label class="label">                                                <span class="label-text">Expiration Date</span>                                            </label>                                            <input type="text" class="input input-bordered" placeholder="MM/YY" required />                                        </div>                                                                                <div class="form-control">                                            <label class="label">                                                <span class="label-text">CVV</span>                                            </label>                                            <input type="text" class="input input-bordered" placeholder="123" required />                                        </div>                                    </div>                                                                        <div class="form-control mb-4">                                        <label class="label">                                            <span class="label-text">Name on Card</span>                                        </label>                                        <input type="text" class="input input-bordered" required />                                    </div>                                </div>                                                                <div id="cash-payment-info" class="hidden">                                    <div class="alert alert-info">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>

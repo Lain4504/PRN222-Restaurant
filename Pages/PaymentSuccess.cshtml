@@ -1,0 +1,35 @@
+@page
+@model PRN222_Restaurant.Pages.PaymentSuccessModel
+@{
+    ViewData["Title"] = "Thanh toán thành công";
+}
+
+<div class="min-h-screen bg-base-200 py-12">
+    <div class="max-w-2xl mx-auto px-4">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body text-center">
+                <div class="mb-6">
+                    <svg class="mx-auto h-24 w-24 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+
+                <h1 class="text-3xl font-bold mb-4">Thanh toán thành công!</h1>
+                <p class="text-lg mb-6">Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn đã được xác nhận.</p>
+
+                @if (TempData["TransactionId"] != null)
+                {
+                    <div class="bg-base-200 rounded-lg p-4 mb-6">
+                        <p class="text-sm mb-2">Mã giao dịch:</p>
+                        <p class="font-mono font-bold">@TempData["TransactionId"]</p>
+                    </div>
+                }
+
+                <div class="flex flex-col gap-4">
+                    <a href="/" class="btn btn-primary">Về trang chủ</a>
+                    <a href="/menu" class="btn btn-outline">Tiếp tục mua hàng</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

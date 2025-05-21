@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Repositories.IRepository;
 using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Services.IService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,8 @@ builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Add HttpClient
 builder.Services.AddHttpClient();
