@@ -14,7 +14,7 @@
                 Thêm người dùng
             </a>
         </div>
-        
+
         <!-- Search and filters -->
         <div class="mb-4">
             <div class="join w-full md:w-1/3">
@@ -57,11 +57,11 @@
                                 <div class="flex items-center gap-3">
                                     <div class="avatar">
                                         <div class="mask mask-squircle w-8 h-8">
-                                            <img src="@(string.IsNullOrEmpty(user.AvatarUrl) ? "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(user.Name) + "&background=random" : user.AvatarUrl)" alt="@user.Name" />
+                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(user.FullName)&background=random" alt="@user.FullName" />
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="font-bold">@user.Name</div>
+                                        <div class="font-bold">@user.FullName</div>
                                     </div>
                                 </div>
                             </td>
@@ -83,7 +83,7 @@
                             </td>
                             <td>
                                 <div class="flex gap-1">
-                                    <a href="/admin/users/details/@user.Id" class="btn btn-xs btn-square btn-info">
+                                    <a href="/Admin/Users/Details/@(user.Id)" class="btn btn-xs btn-square btn-info">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -94,7 +94,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
                                     </a>
-                                    <button onclick="confirmDelete(@user.Id, '@user.Name')" class="btn btn-xs btn-square btn-error">
+                                    <button onclick="confirmDelete(@user.Id, '@user.FullName')" class="btn btn-xs btn-square btn-error">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
@@ -106,13 +106,13 @@
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Pagination -->
         <div class="mt-4 flex justify-between items-center flex-wrap">
             <div class="text-sm text-gray-500 mb-2 md:mb-0">
                 Showing <span class="font-medium">1</span> to <span class="font-medium">@Model.Users.Count</span> of <span class="font-medium">@Model.TotalUsers</span> entries
             </div>
-            
+
             <div class="join">
                 <button class="join-item btn btn-sm @(Model.CurrentPage == 1 ? "btn-disabled" : "")" onclick="changePage(@(Model.CurrentPage - 1))">«</button>
                 @for (int i = 1; i <= Model.TotalPages; i++)
@@ -146,29 +146,30 @@
         document.addEventListener('DOMContentLoaded', function() {
             @if (!string.IsNullOrEmpty(Model.SuccessMessage))
             {
-                <text>showToast('@Model.SuccessMessage', 'success');</text>
+                    <text>showToast('@Model.SuccessMessage', 'success');</text>
             }
-            
+
             // Hide loading skeleton and show table
             setTimeout(() => {
                 document.getElementById('loading-skeleton').classList.add('hidden');
                 document.getElementById('users-table-container').classList.remove('hidden');
             }, 500);
         });
-        
+
         // Confirmation modal functions
         function confirmDelete(userId, userName) {
             document.getElementById('delete-user-id').value = userId;
             document.getElementById('delete-user-name').textContent = userName;
             document.getElementById('delete-modal').showModal();
         }
-        
+
         function closeDeleteModal() {
             document.getElementById('delete-modal').close();
         }
-        
-        // Pagination function        function changePage(page) {
-            window.location.href = '/admin/users?page=' + page;
+
+        // Pagination function
+        function changePage(page) {
+            window.location.href = '/Admin/Users?page=' + page;
         }
     </script>
 }

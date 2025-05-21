@@ -2,6 +2,13 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ActiveDebugProfile>http</ActiveDebugProfile>
+    <_SelectedScaffolderID>ModelBasedCrudRazorPageScaffolder</_SelectedScaffolderID>
+    <_SelectedScaffolderCategoryPath>root/Common</_SelectedScaffolderCategoryPath>
+    <WebStackScaffolding_DependencyDialogWidth>650.4</WebStackScaffolding_DependencyDialogWidth>
+    <WebStackScaffolding_ControllerDialogWidth>650.4</WebStackScaffolding_ControllerDialogWidth>
+    <WebStackScaffolding_ViewDialogWidth>650.4</WebStackScaffolding_ViewDialogWidth>
+    <RazorPage_SelectedScaffolderID>RazorPageScaffolder</RazorPage_SelectedScaffolderID>
+    <RazorPage_SelectedScaffolderCategoryPath>root/Common/RazorPage</RazorPage_SelectedScaffolderCategoryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
