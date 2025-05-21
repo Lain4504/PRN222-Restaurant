@@ -1,0 +1,52 @@
+﻿@page "/admin/feedback"
+@model PRN222_Restaurant.Pages.Admin.FeedbackModel
+
+
+<h2>Danh sách Feedback</h2>
+
+<table class="table w-full">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Người dùng</th>
+            <th>Nhận xét</th>
+            <th>Đánh giá</th>
+            <th>Ngày tạo</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var fb in Model.Feedbacks)
+    {
+        <tr>
+            <td>@fb.Id</td>
+            <td>@fb.User.FullName</td>
+            <td>@fb.Comment</td>
+            <td>@fb.Rating</td>
+            <td>@fb.CreatedAt.ToString("dd/MM/yyyy")</td>
+            <td>
+                <form method="post" asp-page-handler="Delete" asp-route-id="@fb.Id" class="inline-block" onsubmit="return confirm('Bạn có chắc muốn xóa phản hồi này?');">
+                    <button type="submit" class="btn btn-xs btn-error">Xóa</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<div class="mt-4">
+    <nav class="btn-group">
+        @if (Model.CurrentPage > 1)
+        {
+            <a asp-page="./Index" asp-route-pageNumber="@(Model.CurrentPage - 1)" class="btn">« Prev</a>
+        }
+        @for (var i = 1; i <= Model.TotalPages; i++)
+        {
+            <a asp-page="./Index" asp-route-pageNumber="@i" class="btn @(i == Model.CurrentPage ? "btn-primary" : "")">@i</a>
+        }
+        @if (Model.CurrentPage < Model.TotalPages)
+        {
+            <a asp-page="./Index" asp-route-pageNumber="@(Model.CurrentPage + 1)" class="btn">Next »</a>
+        }
+    </nav>
+</div>

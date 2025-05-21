@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
+using PRN222_Restaurant.Repositories.IRepository;
+using PRN222_Restaurant.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +14,15 @@ builder.Services.AddSignalR();
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 // Add Services
+builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 
 // Add HttpClient
 builder.Services.AddHttpClient();

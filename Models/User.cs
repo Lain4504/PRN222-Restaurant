@@ -3,13 +3,21 @@
 public class User
 {
     public int Id { get; set; }
+
     public string FullName { get; set; } = null!;
+
     public string Email { get; set; } = null!;
-    public string PasswordHash { get; set; } = null!;
-    public string Role { get; set; } = "Customer"; // Admin, Staff, Customer
+
+    // Không đánh dấu [Required] vì bạn không nhập mật khẩu từ form
+    public string? PasswordHash { get; set; }
+
+    public string Role { get; set; } = "Customer";
+
     public bool IsActive { get; set; } = true;
 
-    public ICollection<Reservation> Reservations { get; set; }
-    public ICollection<Order> Orders { get; set; }
+    // Khởi tạo để không bị null
+    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+
+    public ICollection<Order> Orders { get; set; } = new List<Order>();
 }
 

@@ -1,0 +1,42 @@
+﻿@page "{id:int}"
+@model PRN222_Restaurant.Pages.Admin.Users.DetailsModel
+@{
+    ViewData["Title"] = "Chi tiết người dùng";
+}
+
+<div class="card bg-base-100 shadow-md max-w-2xl mx-auto mt-8">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-6">Chi tiết người dùng</h2>
+
+        @if (Model.User == null)
+        {
+            <div class="alert alert-error">Không tìm thấy người dùng.</div>
+        }
+        else
+        {
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <dt class="font-semibold">Họ và tên</dt>
+                    <dd>@Model.User.FullName</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold">Email</dt>
+                    <dd>@Model.User.Email</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold">Vai trò</dt>
+                    <dd>@Model.User.Role</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold">Trạng thái</dt>
+                    <dd>@(Model.User.IsActive ? "Hoạt động" : "Không hoạt động")</dd>
+                </div>
+            </dl>
+
+            <div class="mt-6 flex gap-2">
+                <a asp-page="Edit" asp-route-id="@Model.User.Id" class="btn btn-primary">Chỉnh sửa</a>
+                <a asp-page="Index" class="btn btn-outline">Quay lại danh sách</a>
+            </div>
+        }
+    </div>
+</div>

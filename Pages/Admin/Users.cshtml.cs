@@ -1,74 +1,87 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Services;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PRN222_Restaurant.Pages.Admin
 {
     public class UsersModel : PageModel
     {
-        [TempData]
-        public string? SuccessMessage { get; set; }
+        private readonly IUserService _userService;
 
-        public List<User> Users { get; set; } = new List<User>();
-        public int TotalUsers { get; set; }
-        public int CurrentPage { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-        public int TotalPages => (TotalUsers + PageSize - 1) / PageSize;
-
-        public void OnGet(int page = 1)
+        public UsersModel(IUserService userService)
         {
-            CurrentPage = page < 1 ? 1 : page;
+            _userService = userService;
+        }
 
-            // Mock data - in a real application, this would come from your database
-            var allUsers = GetMockUsers();
-            TotalUsers = allUsers.Count;
+        // Dữ liệu sẽ được bind vào view
+        public IList<User> Users { get; set; } = new List<User>();
 
-            // Simple pagination logic
+        // Tổng số user (dùng để hiển thị phân trang)
+        public int TotalUsers { get; set; }
+
+        // Tổng số trang (phân trang)
+        public int TotalPages { get; set; }
+
+        // Trang hiện tại
+        [BindProperty(SupportsGet = true)]
+        public int CurrentPage { get; set; } = 1;
+
+        // Số user mỗi trang
+        private const int PageSize = 10;
+
+        // Dùng để hiển thị thông báo thành công (nếu có)
+        [TempData]
+        public string SuccessMessage { get; set; }
+
+        // Xử lý GET: load danh sách user theo phân trang
+        public async Task<IActionResult> OnGetAsync()
+        {
+            // Lấy tất cả user
+            var allUsers = await _userService.GetAllUsersAsync();
+
+            TotalUsers = allUsers.Count();
+
+            // Tính tổng số trang
+            TotalPages = (TotalUsers + PageSize - 1) / PageSize;
+
+            // Giới hạn current page trong khoảng hợp lệ
+            if (CurrentPage < 1)
+                CurrentPage = 1;
+            if (CurrentPage > TotalPages)
+                CurrentPage = TotalPages;
+
+            // Lấy danh sách user theo phân trang
             Users = allUsers
                 .Skip((CurrentPage - 1) * PageSize)
                 .Take(PageSize)
                 .ToList();
+
+            return Page();
         }
 
-        public IActionResult OnPostDelete(int userId)
+        // Xử lý POST khi xóa user
+        public async Task<IActionResult> OnPostDeleteAsync(int userId)
         {
-            // Mock deletion - in a real application, you would delete from your database
-            // For demo purposes, we'll just show a success message
-            SuccessMessage = $"Người dùng ID {userId} đã được xóa thành công";
-            return RedirectToPage();
-        }
+            if (userId <= 0)
+                return BadRequest();
 
-        private List<User> GetMockUsers()
-        {
-            // Generate 25 mock users for demonstration
-            var roles = new[] { "Admin", "Manager", "Staff", "User" };
-            var users = new List<User>();
+            bool deleted = await _userService.DeleteUserAsync(userId);
 
-            for (int i = 1; i <= 25; i++)
+            if (deleted)
             {
-                users.Add(new User
-                {
-                    Id = i,
-                    Name = $"Người dùng {i}",
-                    Email = $"user{i}@example.com",
-                    Role = roles[i % roles.Length],
-                    IsActive = i % 5 != 0, // Every 5th user is inactive
-                    AvatarUrl = "" // Using UI Avatars API in the view
-                });
+                SuccessMessage = "Xóa người dùng thành công!";
+            }
+            else
+            {
+                // Xử lý trường hợp xóa thất bại nếu cần
+                SuccessMessage = "Xóa người dùng thất bại!";
             }
 
-            return users;
+            return RedirectToPage(); // Reload lại trang
         }
-    }
-
-    public class User
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
-        public string AvatarUrl { get; set; } = string.Empty;
     }
 }
