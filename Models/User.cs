@@ -1,7 +1,10 @@
-﻿namespace PRN222_Restaurant.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PRN222_Restaurant.Models;
 
 public class User
 {
+    [Key]
     public int Id { get; set; }
 
     public string FullName { get; set; } = null!;
@@ -19,5 +22,7 @@ public class User
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 
     public ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public BalancePoint? BalancePoint { get; set; } 
 }
 

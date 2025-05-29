@@ -19,7 +19,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Add Services
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+builder.Services.AddScoped<IBalancePointRepository, BalancePointRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<IBalancePointService, BalancePointService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
@@ -50,4 +52,13 @@ app.MapBlazorHub();
 app.MapControllers();
 app.MapFallbackToPage("/blazor/{*clientPath}", "/Blazor/_Host");
 
+// Seed data in development environment
+if (app.Environment.IsDevelopment())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        await DataSeeder.SeedAsync(context);
+    }
+}
 app.Run();

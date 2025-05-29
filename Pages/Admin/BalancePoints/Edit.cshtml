@@ -1,0 +1,201 @@
+@page "{id:int}"
+@model PRN222_Restaurant.Pages.Admin.BalancePoints.EditModel
+@{
+    ViewData["Title"] = "Edit Balance Point";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-edit mr-2"></i>
+                        Edit Balance Point
+                    </h3>
+                    <div class="card-tools">
+                        <a href="/Admin/BalancePoints" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.BalancePoint != null)
+                    {
+                        <form method="post">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                            
+                            <input type="hidden" asp-for="BalancePoint.Id" />
+                            <input type="hidden" asp-for="BalancePoint.UserId" />
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title">Balance Point Information</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label asp-for="BalancePoint.Id" class="form-label">Balance Point ID</label>
+                                                <input asp-for="BalancePoint.Id" class="form-control" readonly />
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label asp-for="BalancePoint.Point" class="form-label">Points Amount</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">$</span>
+                                                    </div>
+                                                    <input asp-for="BalancePoint.Point" class="form-control" 
+                                                           type="number" step="0.01" min="0" max="999999.99" 
+                                                           placeholder="0.00" />
+                                                </div>
+                                                <span asp-validation-for="BalancePoint.Point" class="text-danger"></span>
+                                                <small class="form-text text-muted">
+                                                    Enter the new balance point amount (minimum: $0.00, maximum: $999,999.99)
+                                                </small>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label asp-for="BalancePoint.UserId" class="form-label">User ID</label>
+                                                <input asp-for="BalancePoint.UserId" class="form-control" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    @if (Model.User != null)
+                                    {
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="card-title">User Information</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-borderless">
+                                                    <tr>
+                                                        <td><strong>Full Name:</strong></td>
+                                                        <td>@Model.User.FullName</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Email:</strong></td>
+                                                        <td>@Model.User.Email</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Role:</strong></td>
+                                                        <td>
+                                                            <span class="badge badge-@(Model.User.Role == "Admin" ? "danger" : "primary")">
+                                                                @Model.User.Role
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><strong>Status:</strong></td>
+                                                        <td>
+                                                            <span class="badge badge-@(Model.User.IsActive ? "success" : "danger")">
+                                                                @(Model.User.IsActive ? "Active" : "Inactive")
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="card-title">User Information</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="alert alert-warning">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    User information not found for User ID: @Model.BalancePoint.UserId
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="form-group mb-0">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-save"></i> Save Changes
+                                                </button>
+                                                <a href="/Admin/BalancePoints/Details/@Model.BalancePoint.Id" class="btn btn-info">
+                                                    <i class="fas fa-eye"></i> View Details
+                                                </a>
+                                                <a href="/Admin/BalancePoints" class="btn btn-secondary">
+                                                    <i class="fas fa-times"></i> Cancel
+                                                </a>
+                                                @if (Model.BalancePoint.Point > 0)
+                                                {
+                                                    <button type="button" class="btn btn-danger float-right" 
+                                                            onclick="confirmReset(@Model.BalancePoint.Id, '@Model.User?.FullName')">
+                                                        <i class="fas fa-undo"></i> Reset to Zero
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger text-center">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                            <h5>Balance Point Not Found</h5>
+                            <p>The requested balance point could not be found.</p>
+                            <a href="/Admin/BalancePoints" class="btn btn-primary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div class="modal fade" id="resetModal" tabindex="-1" role="dialog" aria-labelledby="resetModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetModalLabel">Confirm Reset</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reset the balance points for <strong id="userName"></strong> to zero?</p>
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <form method="post" style="display: inline;" asp-page-handler="Reset">
+                    <input type="hidden" name="balancePointId" value="@Model.BalancePoint?.Id" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-undo"></i> Reset to Zero
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function confirmReset(id, userName) {
+            document.getElementById('userName').textContent = userName || 'Unknown User';
+            $('#resetModal').modal('show');
+        }
+    </script>
+}

@@ -20,4 +20,5 @@ public class ApplicationDbContext : DbContext
     public DbSet<Payment> Payments { get; set; }
     public DbSet<Promotion> Promotions { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
+    public DbSet<BalancePoint> BalancePoints { get; set; }
 }
