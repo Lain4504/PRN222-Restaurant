@@ -1,32 +1,27 @@
-@page
+@page "/payment-failed"
 @model PRN222_Restaurant.Pages.PaymentFailedModel
 @{
     ViewData["Title"] = "Thanh toán thất bại";
 }
 
-<div class="min-h-screen bg-base-200 py-12">
-    <div class="max-w-2xl mx-auto px-4">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body text-center">
-                <div class="mb-6">
-                    <svg class="mx-auto h-24 w-24 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                </div>
-
-                <h1 class="text-3xl font-bold mb-4">Thanh toán thất bại</h1>
-                <p class="text-lg mb-6">Rất tiếc, đã có lỗi xảy ra trong quá trình thanh toán.</p>
-
-                @if (TempData["PaymentError"] != null)
-                {
-                    <div class="alert alert-error mb-6">
-                        <p>Mã lỗi: @TempData["PaymentError"]</p>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle text-danger" style="font-size: 4rem;"></i>
                     </div>
-                }
-
-                <div class="flex flex-col gap-4">
-                    <a href="/checkout" class="btn btn-primary">Thử lại</a>
-                    <a href="/menu" class="btn btn-outline">Quay lại menu</a>
+                    <h2 class="card-title">Thanh toán thất bại!</h2>
+                    <p class="card-text">Đã có lỗi xảy ra trong quá trình thanh toán.</p>
+                    @if (TempData["PaymentError"] != null)
+                    {
+                        <p class="card-text text-danger">Mã lỗi: @TempData["PaymentError"]</p>
+                    }
+                    <div class="mt-4">
+                        <a href="/checkout" class="btn btn-primary">Thử lại</a>
+                        <a href="/" class="btn btn-outline-primary ms-2">Về trang chủ</a>
+                    </div>
                 </div>
             </div>
         </div>
