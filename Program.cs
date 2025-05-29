@@ -3,6 +3,7 @@ using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Repositories.IRepository;
 using PRN222_Restaurant.Services;
 using PRN222_Restaurant.Services.IService;
+using PRN222_Restaurant.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+// Configure VNPay
+builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("Vnpay"));
+builder.Services.AddScoped<IVNPayService, VNPayService>();
 
 // Add Services
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
@@ -28,6 +32,9 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Add HttpClient
 builder.Services.AddHttpClient();
+
+builder.Services.AddSession();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -45,6 +52,18 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.UseSession();
+
+// Fake login middleware: luôn gán UserId = 1 vào session nếu chưa có
+app.Use(async (context, next) =>
+{
+    if (context.Session.GetInt32("UserId") == null)
+    {
+        context.Session.SetInt32("UserId", 1);
+    }
+    await next();
+});
 
 // Map endpoints
 app.MapRazorPages();
