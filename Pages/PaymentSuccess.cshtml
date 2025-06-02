@@ -1,0 +1,28 @@
+@page "/payment-success"
+@model PRN222_Restaurant.Pages.PaymentSuccessModel
+@{
+    ViewData["Title"] = "Thanh toán thành công";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="card-title">Thanh toán thành công!</h2>
+                    <p class="card-text">Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
+                    @if (TempData["TransactionId"] != null)
+                    {
+                        <p class="card-text">Mã giao dịch: @TempData["TransactionId"]</p>
+                    }
+                    <div class="mt-4">
+                        <a href="/" class="btn btn-primary">Về trang chủ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

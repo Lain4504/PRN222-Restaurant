@@ -1,0 +1,29 @@
+@page "/payment-failed"
+@model PRN222_Restaurant.Pages.PaymentFailedModel
+@{
+    ViewData["Title"] = "Thanh toán thất bại";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="card-title">Thanh toán thất bại!</h2>
+                    <p class="card-text">Đã có lỗi xảy ra trong quá trình thanh toán.</p>
+                    @if (TempData["PaymentError"] != null)
+                    {
+                        <p class="card-text text-danger">Mã lỗi: @TempData["PaymentError"]</p>
+                    }
+                    <div class="mt-4">
+                        <a href="/checkout" class="btn btn-primary">Thử lại</a>
+                        <a href="/" class="btn btn-outline-primary ms-2">Về trang chủ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

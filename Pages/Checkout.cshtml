@@ -1,299 +1,124 @@
 @page "/checkout"
 @model PRN222_Restaurant.Pages.CheckoutModel
 @{
-    ViewData["Title"] = "Checkout";
+    ViewData["Title"] = "Thanh toán";
 }
 
-<!-- Checkout Hero Section -->
-<section class="relative py-16 md:py-20">
-    <!-- Background Image with Overlay -->
-    <div class="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=1932" 
-             alt="Seafood Restaurant" 
-             class="w-full h-full object-cover" />
-        <div class="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900/80"></div>
-    </div>
-    
-    <div class="container mx-auto px-4 relative z-10">
-        <div class="text-center mb-6">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Checkout</h1>
-            <p class="text-xl text-slate-200 max-w-2xl mx-auto">
-                Complete your order and get ready for an amazing seafood experience
-            </p>
-        </div>
-    </div>
-</section>
-
-<!-- Checkout Form Section -->
-<section class="py-16 bg-white">
-    <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Order Summary -->
-            <div class="lg:col-span-5 lg:order-2">
-                <div class="card bg-base-100 shadow-xl">
-                    <div class="card-body">
-                        <h2 class="card-title text-2xl mb-6">Order Summary</h2>
-                        
-                        <div id="checkout-items" class="mb-6">
-                            <!-- Order items will be populated here with JavaScript -->
-                            <div class="flex justify-between text-gray-500 py-4">
-                                <span>Your cart is empty</span>
-                            </div>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <!-- Order Summary -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Đơn hàng của bạn</h3>
+                </div>
+                <div class="card-body">
+                    <div id="checkout-items" class="text-center">
+                        <!-- Order items will be populated here with JavaScript -->
+                        <div class="text-center text-muted py-4">
+                            <span>Đang tải thông tin đơn hàng...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="space-y-2 text-center">
+                        <div class="d-flex justify-content-between">
+                            <span>Tạm tính</span>
+                            <span id="subtotal">0 VNĐ</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Thuế (10%)</span>
+                            <span id="tax">0 VNĐ</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Phí vận chuyển</span>
+                            <span id="delivery-fee">0 VNĐ</span>
                         </div>
                         
                         <div class="divider"></div>
                         
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span>Subtotal</span>
-                                <span id="subtotal">$0.00</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Tax (7%)</span>
-                                <span id="tax">$0.00</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Delivery Fee</span>
-                                <span id="delivery-fee">$4.99</span>
-                            </div>
-                            
-                            <!-- Promo Code Input -->
-                            <div class="form-control mt-4">
-                                <div class="input-group">
-                                    <input type="text" id="promo-code" placeholder="Promo code" class="input input-bordered w-full" />
-                                    <button class="btn btn-outline" onclick="applyPromoCode()">Apply</button>
-                                </div>
-                                <div id="promo-message" class="text-sm mt-1 hidden"></div>
-                            </div>
-                            
-                            <div class="divider"></div>
-                            
-                            <div class="flex justify-between font-bold text-lg">
-                                <span>Total</span>
-                                <span id="total">$4.99</span>
-                            </div>
+                        <div class="d-flex justify-content-between font-bold text-lg">
+                            <span>Tổng cộng</span>
+                            <span id="total">0 VNĐ</span>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Order Type Selection -->
-                <div class="card bg-base-100 shadow-xl mt-6">
-                    <div class="card-body">
-                        <h3 class="card-title text-xl mb-4">Order Type</h3>
-                        
-                        <div class="tabs tabs-boxed justify-center mb-4">
-                            <a class="tab tab-active" id="delivery-tab" onclick="setOrderType('delivery')">Delivery</a>
-                            <a class="tab" id="pickup-tab" onclick="setOrderType('pickup')">Pickup</a>
-                        </div>
-                        
-                        <div id="delivery-info">
-                            <p class="text-sm text-gray-500 mb-4">Estimated delivery time: 30-45 minutes</p>
-                            
-                            <div class="form-control mb-4">
-                                <label class="label">
-                                    <span class="label-text">Delivery Address</span>
-                                </label>
-                                <textarea class="textarea textarea-bordered h-20" placeholder="Enter your full address"></textarea>
-                            </div>
-                            
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Delivery Instructions (Optional)</span>
-                                </label>
-                                <textarea class="textarea textarea-bordered h-20" placeholder="Any special instructions for delivery"></textarea>
-                            </div>
-                        </div>
-                        
-                        <div id="pickup-info" class="hidden">
-                            <p class="text-sm text-gray-500 mb-4">Estimated pickup time: 15-20 minutes</p>
-                            
-                            <div class="text-center p-4 bg-base-200 rounded-box">
-                                <h4 class="font-medium mb-2">Ocean Delights Restaurant</h4>
-                                <p class="text-sm mb-2">123 Seaside Avenue, Coastal City</p>
-                                <p class="text-sm">Open: 11:00 AM - 10:00 PM</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Customer Information Form -->
-            <div class="lg:col-span-7 lg:order-1">
-                <div class="card bg-base-100 shadow-xl">
-                    <div class="card-body">
-                        <h2 class="card-title text-2xl mb-6">Customer Information</h2>
-                        
-                        <form id="checkout-form">
-                            <!-- Personal Information -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">First Name</span>
-                                    </label>
-                                    <input type="text" class="input input-bordered" required />
-                                </div>
-                                
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">Last Name</span>
-                                    </label>
-                                    <input type="text" class="input input-bordered" required />
-                                </div>
-                                
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">Email</span>
-                                    </label>
-                                    <input type="email" class="input input-bordered" required />
-                                </div>
-                                
-                                <div class="form-control">
-                                    <label class="label">
-                                        <span class="label-text">Phone Number</span>
-                                    </label>
-                                    <input type="tel" class="input input-bordered" required />
-                                </div>
-                            </div>
-                            
-                            <!-- Payment Method -->
-                            <div class="mb-6">
-                                <h3 class="font-bold text-lg mb-3">Payment Method</h3>
-                                
-                                <div class="tabs tabs-boxed justify-center mb-4">
-                                    <a class="tab tab-active" id="card-tab" onclick="setPaymentMethod('card')">Credit Card</a>
-                                    <a class="tab" id="cash-tab" onclick="setPaymentMethod('cash')">Cash on Delivery</a>
-                                </div>
-                                
-                                <div id="card-payment-info">
-                                    <div class="form-control mb-4">
-                                        <label class="label">
-                                            <span class="label-text">Card Number</span>
-                                        </label>
-                                        <input type="text" class="input input-bordered" placeholder="1234 5678 9012 3456" required />
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-2 gap-4 mb-4">
-                                        <div class="form-control">
-                                            <label class="label">
-                                                <span class="label-text">Expiration Date</span>
-                                            </label>
-                                            <input type="text" class="input input-bordered" placeholder="MM/YY" required />
-                                        </div>
-                                        
-                                        <div class="form-control">
-                                            <label class="label">
-                                                <span class="label-text">CVV</span>
-                                            </label>
-                                            <input type="text" class="input input-bordered" placeholder="123" required />
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-control mb-4">
-                                        <label class="label">
-                                            <span class="label-text">Name on Card</span>
-                                        </label>
-                                        <input type="text" class="input input-bordered" required />
-                                    </div>
-                                </div>
-                                
-                                <div id="cash-payment-info" class="hidden">
-                                    <div class="alert alert-info">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span>You will pay in cash when your order is delivered. Please have the exact amount ready.</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Special Requests -->
-                            <div class="form-control mb-6">
-                                <label class="label">
-                                    <span class="label-text">Special Requests (Optional)</span>
-                                </label>
-                                <textarea class="textarea textarea-bordered h-24" placeholder="Any dietary restrictions, allergies, or special requests"></textarea>
-                            </div>
-                            
-                            <!-- Terms and Conditions -->
-                            <div class="form-control mb-6">
-                                <label class="label cursor-pointer justify-start gap-2">
-                                    <input type="checkbox" class="checkbox" required />
-                                    <span class="label-text">I agree to the <a href="#" class="link link-primary">Terms & Conditions</a></span>
-                                </label>
-                            </div>
-                            
-                            <!-- Place Order Button -->
-                            <button type="button" class="btn btn-primary btn-block" onclick="placeOrder()">Place Order</button>
-                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
 
-<!-- Order Confirmation Modal -->
-<div class="modal" id="order-modal">
-    <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">Order Confirmation</h3>
-        <p class="py-4">Thank you for your order! Your delicious seafood is on its way.</p>
-        <p class="mb-4"><strong>Order Number:</strong> <span id="order-number"></span></p>
-        <p class="mb-4"><strong>Estimated Time:</strong> <span id="estimated-time"></span></p>
-        <div class="modal-action">
-            <a href="/" class="btn btn-primary">Back to Home</a>
+        <!-- Payment Section -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Thanh toán</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="text-center">
+                        <input type="hidden" asp-for="PaymentInfo.OrderType" value="other" />
+                        <input type="hidden" asp-for="PaymentInfo.OrderId" value="@DateTime.Now.Ticks" />
+                        <input type="hidden" asp-for="PaymentInfo.Name" value="Khách hàng" />
+                        <input type="hidden" asp-for="PaymentInfo.OrderDescription" value="Thanh toan don hang" />
+                        <input type="hidden" asp-for="PaymentInfo.Amount" value="100000" />
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Thanh toán với VNPay
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- JavaScript for Checkout Functionality -->
 <script>
     // Variables
     let cartItems = [];
     let cartTotal = 0;
     let tax = 0;
-    let deliveryFee = 4.99;
+    let deliveryFee = 0;
     let subtotal = 0;
-    let orderType = 'delivery';
-    let paymentMethod = 'card';
     
     // Initialize checkout page
     document.addEventListener('DOMContentLoaded', function() {
-        loadCart();
-        updateOrderSummary();
+        loadOrderItems();
     });
     
-    // Load cart from localStorage
-    function loadCart() {
-        const savedCartItems = localStorage.getItem('cartItems');
-        if (savedCartItems) {
-            cartItems = JSON.parse(savedCartItems);
+    // Load order items from server
+    async function loadOrderItems() {
+        try {
+            const response = await fetch('/api/orders/current');
+            const order = await response.json();
             
-            // Update checkout items display
-            const checkoutItemsContainer = document.getElementById('checkout-items');
-            checkoutItemsContainer.innerHTML = '';
-            
-            if (cartItems.length === 0) {
-                checkoutItemsContainer.innerHTML = '<div class="flex justify-between text-gray-500 py-4"><span>Your cart is empty</span></div>';
-                return;
-            }
-            
-            subtotal = 0;
-            
-            cartItems.forEach(item => {
-                const itemTotal = item.price * item.quantity;
-                subtotal += itemTotal;
+            if (order && order.orderItems) {
+                const checkoutItemsContainer = document.getElementById('checkout-items');
+                checkoutItemsContainer.innerHTML = '';
                 
-                const itemElement = document.createElement('div');
-                itemElement.className = 'flex justify-between items-center mb-4';
-                itemElement.innerHTML = `
-                    <div>
-                        <h4 class="font-medium">${item.name}</h4>
-                        <p class="text-sm text-gray-500">$${item.price.toFixed(2)} × ${item.quantity}</p>
-                    </div>
-                    <span class="font-medium">$${itemTotal.toFixed(2)}</span>
-                `;
-                checkoutItemsContainer.appendChild(itemElement);
-            });
+                subtotal = 0;
+                
+                order.orderItems.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    subtotal += itemTotal;
+                    
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'd-flex justify-content-between align-items-center mb-4';
+                    itemElement.innerHTML = `
+                        <div class="text-start">
+                            <h4 class="font-medium">${item.menuItem.name}</h4>
+                            <p class="text-sm text-gray-500">${item.price.toLocaleString('vi-VN')} VNĐ × ${item.quantity}</p>
+                        </div>
+                        <span class="font-medium">${itemTotal.toLocaleString('vi-VN')} VNĐ</span>
+                    `;
+                    checkoutItemsContainer.appendChild(itemElement);
+                });
+                
+                updateOrderSummary();
+            }
+        } catch (error) {
+            console.error('Error loading order items:', error);
         }
     }
     
@@ -305,140 +130,21 @@
         const totalElement = document.getElementById('total');
         
         // Calculate tax
-        tax = subtotal * 0.07;
+        tax = subtotal * 0.1;
+        
+        // Calculate delivery fee
+        deliveryFee = subtotal > 0 ? 30000 : 0; // 30,000 VNĐ delivery fee if there are items
         
         // Update display
-        subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
-        taxElement.textContent = `$${tax.toFixed(2)}`;
-        
-        if (orderType === 'pickup') {
-            deliveryFee = 0;
-            deliveryFeeElement.textContent = 'Free';
-        } else {
-            deliveryFee = 4.99;
-            deliveryFeeElement.textContent = `$${deliveryFee.toFixed(2)}`;
-        }
+        subtotalElement.textContent = `${subtotal.toLocaleString('vi-VN')} VNĐ`;
+        taxElement.textContent = `${tax.toLocaleString('vi-VN')} VNĐ`;
+        deliveryFeeElement.textContent = `${deliveryFee.toLocaleString('vi-VN')} VNĐ`;
         
         // Calculate total
         cartTotal = subtotal + tax + deliveryFee;
-        totalElement.textContent = `$${cartTotal.toFixed(2)}`;
-    }
-    
-    // Set order type (delivery or pickup)
-    function setOrderType(type) {
-        orderType = type;
+        totalElement.textContent = `${cartTotal.toLocaleString('vi-VN')} VNĐ`;
         
-        // Update UI
-        if (type === 'delivery') {
-            document.getElementById('delivery-tab').classList.add('tab-active');
-            document.getElementById('pickup-tab').classList.remove('tab-active');
-            document.getElementById('delivery-info').classList.remove('hidden');
-            document.getElementById('pickup-info').classList.add('hidden');
-        } else {
-            document.getElementById('delivery-tab').classList.remove('tab-active');
-            document.getElementById('pickup-tab').classList.add('tab-active');
-            document.getElementById('delivery-info').classList.add('hidden');
-            document.getElementById('pickup-info').classList.remove('hidden');
-        }
-        
-        // Update order summary
-        updateOrderSummary();
-    }
-    
-    // Set payment method (card or cash)
-    function setPaymentMethod(method) {
-        paymentMethod = method;
-        
-        // Update UI
-        if (method === 'card') {
-            document.getElementById('card-tab').classList.add('tab-active');
-            document.getElementById('cash-tab').classList.remove('tab-active');
-            document.getElementById('card-payment-info').classList.remove('hidden');
-            document.getElementById('cash-payment-info').classList.add('hidden');
-        } else {
-            document.getElementById('card-tab').classList.remove('tab-active');
-            document.getElementById('cash-tab').classList.add('tab-active');
-            document.getElementById('card-payment-info').classList.add('hidden');
-            document.getElementById('cash-payment-info').classList.remove('hidden');
-        }
-    }
-    
-    // Apply promo code
-    function applyPromoCode() {
-        const promoCode = document.getElementById('promo-code').value.trim().toUpperCase();
-        const promoMessage = document.getElementById('promo-message');
-        
-        // Show message element
-        promoMessage.classList.remove('hidden');
-        
-        // Check promo code
-        if (promoCode === 'SEAFOOD10') {
-            // Apply 10% discount
-            const discount = subtotal * 0.1;
-            cartTotal -= discount;
-            
-            // Update UI
-            promoMessage.textContent = 'Promo code applied! 10% discount';
-            promoMessage.classList.add('text-success');
-            promoMessage.classList.remove('text-error');
-            document.getElementById('total').textContent = `$${cartTotal.toFixed(2)}`;
-            
-            // Disable input and button
-            document.getElementById('promo-code').disabled = true;
-            document.querySelector('.input-group .btn').disabled = true;
-        } else {
-            // Invalid promo code
-            promoMessage.textContent = 'Invalid promo code';
-            promoMessage.classList.add('text-error');
-            promoMessage.classList.remove('text-success');
-        }
-    }
-    
-    // Place order
-    function placeOrder() {
-        // Check if cart is empty
-        if (cartItems.length === 0) {
-            alert('Your cart is empty. Please add some items before placing an order.');
-            return;
-        }
-        
-        // Validate form
-        const form = document.getElementById('checkout-form');
-        if (!validateForm(form)) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-        
-        // Generate random order number
-        const orderNumber = 'OD-' + Math.floor(100000 + Math.random() * 900000);
-        document.getElementById('order-number').textContent = orderNumber;
-        
-        // Set estimated time
-        const estimatedTime = orderType === 'delivery' ? '30-45 minutes' : '15-20 minutes';
-        document.getElementById('estimated-time').textContent = estimatedTime;
-        
-        // Show confirmation modal
-        document.getElementById('order-modal').classList.add('modal-open');
-        
-        // Clear cart
-        localStorage.removeItem('cartItems');
-        localStorage.removeItem('cartTotal');
-    }
-    
-    // Basic form validation
-    function validateForm(form) {
-        const requiredInputs = form.querySelectorAll('input[required]');
-        let isValid = true;
-        
-        requiredInputs.forEach(input => {
-            if (!input.value.trim()) {
-                isValid = false;
-                input.classList.add('input-error');
-            } else {
-                input.classList.remove('input-error');
-            }
-        });
-        
-        return isValid;
+        // Update hidden amount field
+        document.querySelector('input[name="PaymentInfo.Amount"]').value = cartTotal;
     }
 </script>
