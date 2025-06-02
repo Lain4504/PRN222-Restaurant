@@ -1,9 +1,12 @@
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Repositories.IRepository;
 using PRN222_Restaurant.Services;
-using PRN222_Restaurant.Services.IService;
+using System.Text;
 using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Services.IService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,23 +15,63 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+builder.Services.AddDistributedMemoryCache();
 
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// Configure VNPay
+// Cấu hình Session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// Cấu hình Authentication với JwtBearer
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+            ClockSkew = TimeSpan.Zero
+        };
+
+        // Lấy token từ Session thay vì header
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.HttpContext.Session.GetString("AuthToken");
+                if (!string.IsNullOrEmpty(token))
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+// Add your services
 builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("Vnpay"));
 builder.Services.AddScoped<IVNPayService, VNPayService>();
-
-// Add Services
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add HttpClient
 builder.Services.AddHttpClient();
@@ -38,11 +81,10 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -51,19 +93,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthorization();
-
+// Session phải đứng trước Authentication & Authorization
 app.UseSession();
 
-// Fake login middleware: luôn gán UserId = 1 vào session nếu chưa có
-app.Use(async (context, next) =>
-{
-    if (context.Session.GetInt32("UserId") == null)
-    {
-        context.Session.SetInt32("UserId", 1);
-    }
-    await next();
-});
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Map endpoints
 app.MapRazorPages();

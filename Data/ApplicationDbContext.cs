@@ -21,6 +21,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<Promotion> Promotions { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
+    public DbSet<VerificationCode> VerificationCodes { get; set; }
+
+
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,13 +50,5 @@ public class ApplicationDbContext : DbContext
             new Table { Id = 2, TableNumber = 2, Capacity = 6, Status = "Available" },
             new Table { Id = 3, TableNumber = 3, Capacity = 2, Status = "Available" }
         );
-
-        // Seed Users
-        modelBuilder.Entity<User>().HasData(
-            new User { Id = 1, FullName = "Test User", PasswordHash = "123456", Role = "Customer", Email = "test@example.com" }
-        );
     }
 }
-
-
-///http://localhost:5156/payment-success?vnp_Amount=11000000&vnp_BankCode=NCB&vnp_BankTranNo=VNP14986790&vnp_CardType=ATM&vnp_OrderInfo=Thanh+toan+don+hang+%233+3&vnp_PayDate=20250529090359&vnp_ResponseCode=00&vnp_TmnCode=RFFX5K0F&vnp_TransactionNo=14986790&vnp_TransactionStatus=00&vnp_TxnRef=638841061617924319&vnp_SecureHash=386be9a4ce67da831cb6f8b109ea29445020e871a2b04e944afe92eeeab832955ce06ba5cb3a5996fc2cdfd4d25605e4f2834b29f0de2888f5dc2f1eb05cc024
