@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Repositories.IRepository;
+using PRN222_Restaurant.Repositories.Repository;
 using PRN222_Restaurant.Services;
 using PRN222_Restaurant.Services.IService;
+using PRN222_Restaurant.Services.Service;
+using PRN222_Restaurant.Hubs;
 using PRN222_Restaurant.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +32,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 // Add HttpClient
 builder.Services.AddHttpClient();
@@ -69,6 +74,7 @@ app.Use(async (context, next) =>
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
 app.MapFallbackToPage("/blazor/{*clientPath}", "/Blazor/_Host");
 
 app.Run();

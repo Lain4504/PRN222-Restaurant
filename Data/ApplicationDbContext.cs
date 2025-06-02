@@ -21,6 +21,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Promotion> Promotions { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
+    public DbSet<ChatRoom> ChatRooms { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
+    public DbSet<UserConnection> UserConnections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,6 +54,37 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>().HasData(
             new User { Id = 1, FullName = "Test User", PasswordHash = "123456", Role = "Customer", Email = "test@example.com" }
         );
+
+        // Configure Chat relationships
+        modelBuilder.Entity<ChatRoom>()
+            .HasOne(cr => cr.Customer)
+            .WithMany()
+            .HasForeignKey(cr => cr.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ChatRoom>()
+            .HasOne(cr => cr.Staff)
+            .WithMany()
+            .HasForeignKey(cr => cr.StaffId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<ChatMessage>()
+            .HasOne(cm => cm.ChatRoom)
+            .WithMany(cr => cr.Messages)
+            .HasForeignKey(cm => cm.ChatRoomId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChatMessage>()
+            .HasOne(cm => cm.Sender)
+            .WithMany()
+            .HasForeignKey(cm => cm.SenderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<UserConnection>()
+            .HasOne(uc => uc.User)
+            .WithMany()
+            .HasForeignKey(uc => uc.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 
