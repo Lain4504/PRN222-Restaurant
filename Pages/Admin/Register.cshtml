@@ -1,8 +1,8 @@
-﻿@page "/login"
-@model PRN222_Restaurant.Pages.Admin.LoginModel
+﻿@page "/register"
+@model PRN222_Restaurant.Pages.Admin.RegisterModel
 @{
     Layout = null;
-    ViewData["Title"] = "Admin Login";
+    ViewData["Title"] = "Admin Register";
 }
 
 <!DOCTYPE html>
@@ -27,13 +27,22 @@
         border-radius: 1rem;
     }
 </style>
+
 <body class="bg-base-200 min-h-screen flex items-center justify-center">
     <div class="max-w-md w-full">
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
-                <h2 class="card-title text-2xl font-bold text-center mb-6">Order Login with OTP</h2>
+                <h2 class="card-title text-2xl font-bold text-center mb-6">Order sign up</h2>
 
-                <form method="post" id="loginForm" novalidate>
+                <form method="post" novalidate>
+                    <div class="form-control w-full mb-4">
+                        <label class="label">
+                            <span class="label-text">Full Name</span>
+                        </label>
+                        <input asp-for="Input.FullName" type="text" placeholder="Enter your full name" class="input input-bordered w-full" required />
+                        <span asp-validation-for="Input.FullName" class="text-error"></span>
+                    </div>
+
                     <div class="form-control w-full mb-4">
                         <label class="label">
                             <span class="label-text">Email</span>
@@ -42,30 +51,21 @@
                         <span asp-validation-for="Input.Email" class="text-error"></span>
                     </div>
 
-                    <div class="form-control w-full mb-4">
-                        <label class="label">
-                            <span class="label-text">OTP Code</span>
-                        </label>
-                        <input asp-for="Input.Code" type="text" placeholder="Enter the code sent to your email" class="input input-bordered w-full" />
-                        <span asp-validation-for="Input.Code" class="text-error"></span>
+                    <div class="form-control mt-6">
+                        <button type="submit" class="btn btn-primary w-full">Register</button>
                     </div>
-
-                    <div class="flex justify-between mb-4">
-                        <button type="submit" name="action" value="sendCode" class="btn btn-secondary">Send OTP Code</button>
-                        <button type="submit" name="action" value="login" class="btn btn-primary">Login</button>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(Model.Message))
-                    {
-                        <div class="alert alert-info mt-4">
-                            <span>@Model.Message</span>
-                        </div>
-                    }
 
                     @if (!string.IsNullOrEmpty(Model.ErrorMessage))
                     {
                         <div class="alert alert-error mt-4">
                             <span>@Model.ErrorMessage</span>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+                    {
+                        <div class="alert alert-success mt-4">
+                            <span>@Model.SuccessMessage</span>
                         </div>
                     }
                 </form>
