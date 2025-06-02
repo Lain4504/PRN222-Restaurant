@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
@@ -52,6 +53,27 @@ namespace PRN222_Restaurant.Pages.Admin
                 return Page();
             }
 
+
+            var user = await _userService.GetUserByEmailAsync(Input.Email);
+            if (user == null)
+            {
+                // Tạo user mới ngầm
+                user = new User
+                {
+                    Email = Input.Email,
+                    FullName = "",
+                    Role = "Customer",
+                    IsActive = true
+                };
+                var created = await _userService.CreateUserAsync(user);
+                if (!created)
+                {
+                    ErrorMessage = "Failed to create user account. Please try again.";
+                    return Page();
+                }
+            }
+
+
             var sent = await _userService.SendVerificationCodeAsync(Input.Email);
             if (sent)
             {
@@ -63,6 +85,7 @@ namespace PRN222_Restaurant.Pages.Admin
             }
             return Page();
         }
+
 
         private async Task<IActionResult> OnPostLoginAsync()
         {
