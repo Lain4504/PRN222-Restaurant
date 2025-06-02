@@ -19,58 +19,166 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     .card {
-        background-color: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(5px);
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
         border-radius: 1rem;
+        padding: 2rem 2.5rem;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+        max-width: 420px;
+        margin: auto;
+    }
+
+    h2.card-title {
+        text-align: center;
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 1.75rem;
+        color: #222;
+    }
+
+    form .form-control {
+        margin-bottom: 1.25rem;
+    }
+
+    label .label-text {
+        font-weight: 600;
+        color: #444;
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    input.input-bordered {
+        width: 100%;
+        padding: 0.55rem 0.85rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1.8px solid #ccc;
+        transition: border-color 0.3s ease;
+    }
+
+        input.input-bordered:focus {
+            outline: none;
+            border-color: #3b82f6; /* blue */
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+
+    .btn {
+        cursor: pointer;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        padding: 0.55rem 1.25rem;
+        font-size: 1rem;
+        transition: background-color 0.25s ease;
+        border: none;
+    }
+
+    .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+    .btn-secondary {
+        background-color: #6b7280;
+        color: white;
+    }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+    .btn-send-otp-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+    }
+
+    .text-error {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .alert {
+        border-radius: 0.5rem;
+        padding: 1rem 1.25rem;
+        font-size: 0.95rem;
+        margin-top: 1rem;
+    }
+
+    .alert-info {
+        background-color: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #3b82f6;
+    }
+
+    .alert-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #dc2626;
+    }
+
+    .btn-group {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 1rem;
     }
 </style>
 <body class="bg-base-200 min-h-screen flex items-center justify-center">
-    <div class="max-w-md w-full">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h2 class="card-title text-2xl font-bold text-center mb-6">Order Login with OTP</h2>
+    <div class="card">
+        <h2 class="card-title">Order Login with OTP</h2>
 
-                <form method="post" id="loginForm" novalidate>
-                    <div class="form-control w-full mb-4">
-                        <label class="label">
-                            <span class="label-text">Email</span>
-                        </label>
-                        <input asp-for="Input.Email" type="email" placeholder="Enter your email" class="input input-bordered w-full" required />
-                        <span asp-validation-for="Input.Email" class="text-error"></span>
-                    </div>
+        <form method="post" id="loginForm" novalidate>
+            <div class="form-control">
+                <label class="label" style="margin-bottom: 0.5rem;">
+                    <span class="label-text">Email</span>
+                </label>
 
-                    <div class="form-control w-full mb-4">
-                        <label class="label">
-                            <span class="label-text">OTP Code</span>
-                        </label>
-                        <input asp-for="Input.Code" type="text" placeholder="Enter the code sent to your email" class="input input-bordered w-full" />
-                        <span asp-validation-for="Input.Code" class="text-error"></span>
-                    </div>
-
-                    <div class="flex justify-between mb-4">
-                        <button type="submit" name="action" value="sendCode" class="btn btn-secondary">Send OTP Code</button>
-                        <button type="submit" name="action" value="login" class="btn btn-primary">Login</button>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(Model.Message))
-                    {
-                        <div class="alert alert-info mt-4">
-                            <span>@Model.Message</span>
-                        </div>
-                    }
-
-                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                    {
-                        <div class="alert alert-error mt-4">
-                            <span>@Model.ErrorMessage</span>
-                        </div>
-                    }
-                </form>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <input asp-for="Input.Email" type="email" placeholder="Enter your email" class="input input-bordered" style="flex-grow: 1;" required />
+                    <button type="submit" name="action" value="sendCode" class="btn btn-secondary" style="white-space: nowrap; padding: 0.5rem 1rem;">OTP Code</button>
+                </div>
             </div>
-        </div>
+
+            <span asp-validation-for="Input.Email" class="text-error" style="display: block; margin-top: 0.25rem;"></span>
+
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">OTP Code</span>
+                </label>
+                <input asp-for="Input.Code" type="text" placeholder="Enter the code sent to your email" class="input input-bordered" />
+                <span asp-validation-for="Input.Code" class="text-error"></span>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" name="action" value="login" class="btn btn-primary w-full">Login</button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Message))
+            {
+            <div class="alert alert-info">
+                <span>@Model.Message</span>
+            </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+            <div class="alert alert-error">
+                <span>@Model.ErrorMessage</span>
+            </div>
+            }
+        </form>
     </div>
 
     <partial name="_ValidationScriptsPartial" />
