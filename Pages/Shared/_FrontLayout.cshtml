@@ -28,15 +28,41 @@
             </div>
             
             <!-- Desktop Menu -->
-            <div class="hidden md:flex">
-                <ul class="menu menu-horizontal px-1">
+            <div class="hidden md:flex items-center w-full">
+                <ul class="menu menu-horizontal px-1 flex-grow">
                     <li><a href="/" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Home</a></li>
                     <li><a href="/menu" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Menu" ? "active" : "")">Menu</a></li>
                     <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Reservations</a></li>
                     <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">About Us</a></li>
                     <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Contact</a></li>
                 </ul>
+               
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <div class="flex items-center space-x-4">
+                        <!-- Avatar -->
+                        <div class="dropdown dropdown-end">
+                            <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                                <div class="w-10 rounded-full">
+                                    <img src="@(User.FindFirst("avatar_url")?.Value ?? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/2048px-User_icon_2.svg.png")" alt="User Avatar" />
+                                </div>
+                            </label>
+                            <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
+                                <li><a href="/profile">Profile</a></li>
+                                <li><a href="/admin/logout">Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="flex space-x-4">
+                        <a href="/register" class="btn btn-outline btn-sm">Register</a>
+                        <a href="/login" class="btn btn-primary btn-sm">Login</a>
+                    </div>
+                }
             </div>
+
             
             <!-- Mobile Menu Button -->
             <div class="flex-none md:hidden">
@@ -47,10 +73,7 @@
                 </button>
             </div>
             
-            <!-- Order Now Button -->
-            <div class="flex-none ml-4">
-                <a href="/menu" class="btn btn-primary">Order Now</a>
-            </div>
+           
         </div>
     </nav>
     
