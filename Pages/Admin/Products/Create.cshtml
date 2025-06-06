@@ -1,0 +1,50 @@
+﻿@page
+@model PRN222_Restaurant.Pages.Admin.Products.CreateModel
+@{
+    ViewData["Title"] = "Thêm món mới";
+}
+
+<h2 class="text-2xl mb-4">Thêm món mới</h2>
+
+<form method="post">
+    <div class="mb-4">
+        <label class="label">Tên món</label>
+        <input asp-for="MenuItem.Name" class="input input-bordered w-full" />
+        <span asp-validation-for="MenuItem.Name" class="text-red-500 text-sm"></span>
+    </div>
+
+    <div class="mb-4">
+        <label class="label">Mô tả</label>
+        <textarea asp-for="MenuItem.Description" class="textarea textarea-bordered w-full"></textarea>
+        <span asp-validation-for="MenuItem.Description" class="text-red-500 text-sm"></span>
+    </div>
+
+    <div class="mb-4">
+        <label class="label">Giá</label>
+        <input asp-for="MenuItem.Price" type="number" step="1000" class="input input-bordered w-full" />
+        <span asp-validation-for="MenuItem.Price" class="text-red-500 text-sm"></span>
+    </div>
+
+    <div class="mb-4">
+        <label class="label">URL Hình ảnh</label>
+        <input asp-for="MenuItem.ImageUrl" class="input input-bordered w-full" />
+        <span asp-validation-for="MenuItem.ImageUrl" class="text-red-500 text-sm"></span>
+    </div>
+
+    <div class="mb-4">
+        <label class="label">Danh mục</label>
+        <select asp-for="MenuItem.CategoryId" class="select select-bordered w-full" asp-items="Model.CategoryOptions">
+            <option value="">-- Chọn danh mục --</option>
+        </select>
+        <span asp-validation-for="MenuItem.CategoryId" class="text-red-500 text-sm"></span>
+    </div>
+
+    <div class="mt-6">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a href="/admin/products" class="btn btn-ghost ml-2">Hủy</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

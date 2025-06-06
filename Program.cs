@@ -7,6 +7,8 @@ using PRN222_Restaurant.Services;
 using System.Text;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services.IService;
+using PRN222_Restaurant.Repositories.Repository;
+using PRN222_Restaurant.Services.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +72,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+builder.Services.AddScoped<IMenuItemService, MenuItemService>();
+builder.Services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
+builder.Services.AddScoped<IMenuCategoryService, MenuCategoryService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
