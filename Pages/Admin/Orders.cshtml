@@ -199,7 +199,11 @@
                     
                     document.getElementById('status-order-id').value = orderId;
                     document.getElementById('status-value').value = status;
-                    document.getElementById('update-status-form').submit();
+                    
+                    // Set form action to lowercase URL
+                    const form = document.getElementById('update-status-form');
+                    form.action = '/admin/orders?handler=UpdateStatus';
+                    form.submit();
                 });
             });
             

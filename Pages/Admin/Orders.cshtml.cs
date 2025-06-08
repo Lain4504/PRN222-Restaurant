@@ -39,7 +39,7 @@ namespace PRN222_Restaurant.Pages.Admin
             if (string.IsNullOrEmpty(OrderStatus) || OrderId <= 0)
             {
                 StatusMessage = "Error: Invalid order information";
-                return RedirectToPage();
+                return RedirectToPage("/admin/orders", null, "admin/orders");
             }
 
             var success = await _orderService.UpdateOrderStatusAsync(OrderId, OrderStatus);
@@ -53,7 +53,8 @@ namespace PRN222_Restaurant.Pages.Admin
                 StatusMessage = $"Error: Failed to update order #{OrderId}";
             }
 
-            return RedirectToPage();
+            // Always redirect to lowercase URL
+            return Redirect("/admin/orders");
         }
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
@@ -69,7 +70,8 @@ namespace PRN222_Restaurant.Pages.Admin
                 StatusMessage = $"Error: Failed to cancel order #{id}";
             }
 
-            return RedirectToPage();
+            // Always redirect to lowercase URL
+            return Redirect("/admin/orders");
         }
     }
 } 
