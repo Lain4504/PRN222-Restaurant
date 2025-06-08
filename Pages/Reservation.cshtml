@@ -33,106 +33,65 @@
                     <h2 class="card-title text-2xl mb-6">Reservation Details</h2>
                     
                     <form id="reservationForm" class="space-y-6">
-                        <!-- Personal Information -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div asp-validation-summary="ModelOnly" class="text-red-500"></div>
+                        
+                        <!-- Date and Time Selection -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Full Name</span>
-                                    <span class="label-text-alt text-error">*Required</span>
+                                <label asp-for="ReservationDate" class="label">
+                                    <span class="label-text">Date</span>
                                 </label>
-                                <input type="text" id="fullName" placeholder="John Doe" class="input input-bordered" required />
+                                <input asp-for="ReservationDate" type="date" 
+                                       class="input input-bordered w-full" 
+                                       min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="ReservationDate" class="text-red-500"></span>
                             </div>
                             
                             <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Email Address</span>
-                                    <span class="label-text-alt text-error">*Required</span>
+                                <label asp-for="ReservationTime" class="label">
+                                    <span class="label-text">Time</span>
                                 </label>
-                                <input type="email" id="email" placeholder="john@example.com" class="input input-bordered" required />
-                            </div>
-                            
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Phone Number</span>
-                                    <span class="label-text-alt text-error">*Required</span>
-                                </label>
-                                <input type="tel" id="phone" placeholder="(123) 456-7890" class="input input-bordered" required />
-                            </div>
-                            
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Number of Guests</span>
-                                    <span class="label-text-alt text-error">*Required</span>
-                                </label>
-                                <select id="guests" class="select select-bordered" required>
-                                    <option value="" disabled selected>Select number of guests</option>
-                                    <option value="1">1 Person</option>
-                                    <option value="2">2 People</option>
-                                    <option value="3">3 People</option>
-                                    <option value="4">4 People</option>
-                                    <option value="5">5 People</option>
-                                    <option value="6">6 People</option>
-                                    <option value="7">7 People</option>
-                                    <option value="8">8+ People (Please call us)</option>
-                                </select>
+                                <input asp-for="ReservationTime" type="time" 
+                                       class="input input-bordered w-full" />
+                                <span asp-validation-for="ReservationTime" class="text-red-500"></span>
                             </div>
                         </div>
                         
-                        <!-- Date and Time -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Reservation Date</span>
-                                    <span class="label-text-alt text-error">*Required</span>
-                                </label>
-                                <input type="date" id="date" class="input input-bordered" required />
-                            </div>
-                            
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Reservation Time</span>
-                                    <span class="label-text-alt text-error">*Required</span>
-                                </label>
-                                <select id="time" class="select select-bordered" required>
-                                    <option value="" disabled selected>Select time</option>
-                                    <option value="12:00">12:00 PM</option>
-                                    <option value="12:30">12:30 PM</option>
-                                    <option value="13:00">1:00 PM</option>
-                                    <option value="13:30">1:30 PM</option>
-                                    <option value="14:00">2:00 PM</option>
-                                    <option value="14:30">2:30 PM</option>
-                                    <option value="17:00">5:00 PM</option>
-                                    <option value="17:30">5:30 PM</option>
-                                    <option value="18:00">6:00 PM</option>
-                                    <option value="18:30">6:30 PM</option>
-                                    <option value="19:00">7:00 PM</option>
-                                    <option value="19:30">7:30 PM</option>
-                                    <option value="20:00">8:00 PM</option>
-                                    <option value="20:30">8:30 PM</option>
-                                    <option value="21:00">9:00 PM</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <!-- Special Requests -->
+                        <!-- Number of Guests -->
                         <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Special Requests</span>
-                                <span class="label-text-alt">(Optional)</span>
+                            <label asp-for="NumberOfGuests" class="label">
+                                <span class="label-text">Number of Guests</span>
                             </label>
-                            <textarea id="specialRequests" class="textarea textarea-bordered h-24" placeholder="Any dietary restrictions, allergies, special occasions, or seating preferences"></textarea>
+                            <input asp-for="NumberOfGuests" type="number" min="1" max="20" 
+                                   class="input input-bordered w-full" />
+                            <span asp-validation-for="NumberOfGuests" class="text-red-500"></span>
                         </div>
                         
-                        <!-- Terms and Conditions -->
+                        <!-- Table Selection -->
                         <div class="form-control">
-                            <label class="label cursor-pointer">
-                                <span class="label-text">I agree to the <a href="#" class="link link-primary">terms and conditions</a></span> 
-                                <input type="checkbox" class="checkbox checkbox-primary" required />
+                            <label asp-for="TableId" class="label">
+                                <span class="label-text">Select Table</span>
                             </label>
+                            <select asp-for="TableId" asp-items="Model.AvailableTables" 
+                                    class="select select-bordered w-full">
+                                <option value="">-- Select a table --</option>
+                            </select>
+                            <span asp-validation-for="TableId" class="text-red-500"></span>
                         </div>
                         
-                        <div class="card-actions justify-end">
-                            <button type="button" onclick="openConfirmationModal()" class="btn btn-primary btn-lg">Make Reservation</button>
+                        <!-- Additional Notes -->
+                        <div class="form-control">
+                            <label asp-for="Note" class="label">
+                                <span class="label-text">Additional Notes (Optional)</span>
+                            </label>
+                            <textarea asp-for="Note" class="textarea textarea-bordered h-24" 
+                                      placeholder="Any special requests or requirements?"></textarea>
+                            <span asp-validation-for="Note" class="text-red-500"></span>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="form-control mt-6">
+                            <button type="submit" class="btn btn-primary">Continue to Menu Selection</button>
                         </div>
                     </form>
                 </div>
@@ -207,19 +166,20 @@
 </dialog>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.querySelector('input[type="date"]');
+            const timeInput = document.querySelector('input[type="time"]');
+            
             // Set minimum date to today
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            const formattedToday = `${yyyy}-${mm}-${dd}`;
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
             
-            document.getElementById('date').setAttribute('min', formattedToday);
-            
-            // Set default date to today
-            document.getElementById('date').value = formattedToday;
+            // Set default time to next available hour
+            const now = new Date();
+            const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
+            timeInput.value = nextHour.toTimeString().slice(0, 5);
             
             // Form validation
             document.getElementById('reservationForm').addEventListener('submit', function(e) {

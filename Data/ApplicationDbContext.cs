@@ -23,9 +23,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Feedback> Feedbacks { get; set; }
     public DbSet<VerificationCode> VerificationCodes { get; set; }
 
-
-
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -50,5 +47,40 @@ public class ApplicationDbContext : DbContext
             new Table { Id = 2, TableNumber = 2, Capacity = 6, Status = "Available" },
             new Table { Id = 3, TableNumber = 3, Capacity = 2, Status = "Available" }
         );
+
+        // Seed Users
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                Id = 1,
+                FullName = "John Doe",
+                Email = "john@example.com",
+                Role = "Customer",
+                PasswordHash = "password", // In a real app, should use password hashing
+                IsActive = true
+            },
+            new User
+            {
+                Id = 2,
+                FullName = "Jane Smith",
+                Email = "jane@example.com",
+                Role = "Customer",
+                PasswordHash = "password", // In a real app, should use password hashing
+                IsActive = true
+            },
+            new User
+            {
+                Id = 3,
+                FullName = "Admin User",
+                Email = "admin@example.com",
+                Role = "Admin",
+                PasswordHash = "admin123", // In a real app, should use password hashing
+                IsActive = true
+            }
+        );
+
+        // Note: We don't seed Orders and OrderItems in OnModelCreating because they have 
+        // navigation properties that EF Core can't handle well in HasData.
+        // Instead, these are seeded using the SeedData class during application startup.
     }
 }

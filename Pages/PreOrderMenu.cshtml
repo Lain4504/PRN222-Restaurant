@@ -1,0 +1,145 @@
+@page
+@model PRN222_Restaurant.Pages.PreOrderMenuModel
+@{
+    ViewData["Title"] = "Select Your Pre-Order Items";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">Select Your Pre-Order Items</h1>
+        
+        <!-- Reservation Summary -->
+        <div class="bg-base-200 p-6 rounded-lg mb-8">
+            <h2 class="text-xl font-semibold mb-4">Reservation Details</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p><span class="font-medium">Date:</span> @Model.ReservationDate.ToString("MMMM dd, yyyy")</p>
+                    <p><span class="font-medium">Time:</span> @Model.ReservationTime.ToString(@"hh\:mm tt")</p>
+                </div>
+                <div>
+                    <p><span class="font-medium">Table:</span> @Model.TableNumber</p>
+                    <p><span class="font-medium">Guests:</span> @Model.NumberOfGuests</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu Categories -->
+        <div class="tabs tabs-boxed mb-8">
+            <a class="tab tab-active" onclick="filterCategory('all')">All</a>
+            @foreach (var category in Model.Categories)
+            {
+                <a class="tab" onclick="filterCategory('@category.Name.ToLower()')">@category.Name</a>
+            }
+        </div>
+        
+        <!-- Menu Items Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var item in Model.MenuItems)
+            {
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="@item.Category.Name.ToLower()">
+                    <figure class="h-48">
+                        <img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title">@item.Name</h3>
+                        <p class="text-slate-600">@item.Description</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold">$@item.Price.ToString("F2")</span>
+                            <div class="flex items-center gap-2">
+                                <button class="btn btn-circle btn-sm" onclick="decrementQuantity(@item.Id)">-</button>
+                                <span id="quantity-@item.Id" class="w-8 text-center">0</span>
+                                <button class="btn btn-circle btn-sm" onclick="incrementQuantity(@item.Id)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="fixed bottom-0 left-0 right-0 bg-base-100 shadow-lg p-4">
+            <div class="container mx-auto max-w-6xl">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold">Total Items: <span id="total-items">0</span></h3>
+                        <h3 class="text-xl font-bold">Total: $<span id="total-price">0.00</span></h3>
+                    </div>
+                    <form method="post" id="preOrderForm">
+                        <input type="hidden" id="selectedItems" name="SelectedItems" />
+                        <button type="submit" class="btn btn-primary btn-lg">Confirm Pre-Order</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedItems = {};
+        
+        function filterCategory(category) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('tab-active');
+            });
+            event.target.classList.add('tab-active');
+            
+            // Show/hide menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        function incrementQuantity(itemId) {
+            const quantityElement = document.getElementById(`quantity-${itemId}`);
+            const currentQuantity = parseInt(quantityElement.textContent);
+            quantityElement.textContent = currentQuantity + 1;
+            updateSelectedItems(itemId, currentQuantity + 1);
+        }
+        
+        function decrementQuantity(itemId) {
+            const quantityElement = document.getElementById(`quantity-${itemId}`);
+            const currentQuantity = parseInt(quantityElement.textContent);
+            if (currentQuantity > 0) {
+                quantityElement.textContent = currentQuantity - 1;
+                updateSelectedItems(itemId, currentQuantity - 1);
+            }
+        }
+        
+        function updateSelectedItems(itemId, quantity) {
+            if (quantity > 0) {
+                selectedItems[itemId] = quantity;
+            } else {
+                delete selectedItems[itemId];
+            }
+            
+            // Update summary
+            updateOrderSummary();
+            
+            // Update hidden input
+            document.getElementById('selectedItems').value = JSON.stringify(selectedItems);
+        }
+        
+        function updateOrderSummary() {
+            const totalItems = Object.values(selectedItems).reduce((sum, qty) => sum + qty, 0);
+            document.getElementById('total-items').textContent = totalItems;
+            
+            // Calculate total price (this would need to be done with actual prices from the server)
+            // For now, we'll just show the number of items
+            document.getElementById('total-price').textContent = totalItems.toFixed(2);
+        }
+        
+        // Form submission
+        document.getElementById('preOrderForm').addEventListener('submit', function(e) {
+            if (Object.keys(selectedItems).length === 0) {
+                e.preventDefault();
+                alert('Please select at least one item');
+            }
+        });
+    </script>
+} 

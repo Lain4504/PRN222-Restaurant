@@ -1,0 +1,233 @@
+@page
+@model PRN222_Restaurant.Pages.Admin.OrdersModel
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+}
+
+<div class="flex flex-col space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Quản lý đơn hàng</h1>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="alert @(Model.StatusMessage.StartsWith("Error") ? "alert-error" : "alert-success") shadow-lg mb-4">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>@Model.StatusMessage</span>
+            </div>
+        </div>
+    }
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Loại đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Bàn</th>
+                            <th>Ngày đặt</th>
+                            <th>Thời gian đặt bàn</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td>@order.Id</td>
+                                <td>
+                                    <span class="badge @(order.OrderType == "Immediate" ? "badge-info" : "badge-warning")">
+                                        @(order.OrderType == "Immediate" ? "Tại chỗ" : "Đặt trước")
+                                    </span>
+                                </td>
+                                <td>@(order.User != null ? order.User.FullName : "Khách vãng lai")</td>
+                                <td>@(order.Table != null ? $"Bàn {order.Table.TableNumber}" : "N/A")</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@(order.ReservationTime.HasValue ? order.ReservationTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
+                                <td>@order.TotalPrice.ToString("N0") đ</td>
+                                <td>
+                                    <span class="badge 
+                                           @(order.Status == "Pending" ? "badge-warning" : 
+                                              order.Status == "Preparing" ? "badge-info" : 
+                                              order.Status == "Served" ? "badge-success" : 
+                                              order.Status == "Completed" ? "badge-success" : 
+                                              order.Status == "Cancelled" ? "badge-error" : "")">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="dropdown dropdown-left">
+                                        <div tabindex="0" role="button" class="btn btn-sm m-1">Thao tác</div>
+                                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Pending" class="update-status">
+                                                    Đánh dấu chờ xử lý
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Preparing" class="update-status">
+                                                    Đánh dấu đang chuẩn bị
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Served" class="update-status">
+                                                    Đánh dấu đã phục vụ
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Completed" class="update-status">
+                                                    Đánh dấu hoàn thành
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Cancelled" class="update-status">
+                                                    Đánh dấu đã hủy
+                                                </a>
+                                            </li>
+                                            <li class="divider"></li>
+                                            <li>
+                                                <a href="#" class="text-red-500 view-order-details" data-id="@order.Id">
+                                                    Xem chi tiết
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết đơn hàng -->
+<dialog id="order-details-modal" class="modal">
+    <div class="modal-box w-11/12 max-w-5xl">
+        <h3 class="font-bold text-lg mb-4">Chi tiết đơn hàng #<span id="order-id"></span></h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Loại đơn hàng</h4>
+                <p id="order-type" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Trạng thái</h4>
+                <p id="order-status" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Khách hàng</h4>
+                <p id="order-customer" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Bàn</h4>
+                <p id="order-table" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Ngày đặt</h4>
+                <p id="order-date" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Thời gian đặt bàn</h4>
+                <p id="order-reservation-time" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Số lượng khách</h4>
+                <p id="order-guests" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Ghi chú</h4>
+                <p id="order-note" class="text-lg"></p>
+            </div>
+        </div>
+        
+        <h4 class="font-medium text-lg mb-2">Danh sách món</h4>
+        <div class="overflow-x-auto mb-6">
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th>Tên món</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody id="order-items">
+                    <!-- Items will be loaded here -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-right font-bold">Tổng cộng:</td>
+                        <td class="font-bold" id="order-total"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn">Đóng</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<!-- Form ẩn để cập nhật trạng thái -->
+<form id="update-status-form" method="post" asp-page-handler="UpdateStatus">
+    <input type="hidden" asp-for="OrderId" id="status-order-id" />
+    <input type="hidden" asp-for="OrderStatus" id="status-value" />
+</form>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Xử lý cập nhật trạng thái
+            document.querySelectorAll('.update-status').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const orderId = this.getAttribute('data-id');
+                    const status = this.getAttribute('data-status');
+                    
+                    document.getElementById('status-order-id').value = orderId;
+                    document.getElementById('status-value').value = status;
+                    document.getElementById('update-status-form').submit();
+                });
+            });
+            
+            // Xử lý xem chi tiết đơn hàng
+            document.querySelectorAll('.view-order-details').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const orderId = this.getAttribute('data-id');
+                    const modal = document.getElementById('order-details-modal');
+                    
+                    // Lấy thông tin đơn hàng từ dữ liệu hiển thị trên bảng
+                    const row = this.closest('tr');
+                    const cells = row.querySelectorAll('td');
+                    
+                    document.getElementById('order-id').textContent = cells[0].textContent;
+                    document.getElementById('order-type').textContent = cells[1].textContent.trim();
+                    document.getElementById('order-customer').textContent = cells[2].textContent;
+                    document.getElementById('order-table').textContent = cells[3].textContent;
+                    document.getElementById('order-date').textContent = cells[4].textContent;
+                    document.getElementById('order-reservation-time').textContent = cells[5].textContent;
+                    document.getElementById('order-total').textContent = cells[6].textContent;
+                    document.getElementById('order-status').textContent = cells[7].textContent.trim();
+                    
+                    // TODO: Thêm API để lấy chi tiết đơn hàng hoặc truyền dữ liệu qua data attribute
+                    
+                    modal.showModal();
+                });
+            });
+        });
+    </script>
+} 
