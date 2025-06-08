@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Models.Response;
 using PRN222_Restaurant.Services.IService;
 
 namespace PRN222_Restaurant.Services.Service
@@ -29,6 +30,11 @@ namespace PRN222_Restaurant.Services.Service
         public async Task<List<Order>> GetAllOrdersAsync()
         {
             return await _orderRepository.GetAllAsync();
+        }
+
+        public async Task<PagedResult<Order>> GetPagedOrdersAsync(int page, int pageSize)
+        {
+            return await _orderRepository.GetPagedAsync(page, pageSize);
         }
 
         public async Task<Order> CreateImmediateOrderAsync(Order order, Dictionary<int, int> selectedItems)

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Models.Response;
 using PRN222_Restaurant.Services.IService;
 
 namespace PRN222_Restaurant.Services.Service
@@ -44,6 +45,34 @@ namespace PRN222_Restaurant.Services.Service
                 .Include(o => o.User)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
+        }
+
+        public async Task<PagedResult<Order>> GetPagedAsync(int page, int pageSize)
+        {
+            var query = _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(i => i.MenuItem)
+                .Include(o => o.Table)
+                .Include(o => o.User)
+                .OrderByDescending(o => o.OrderDate);
+
+            // Count total items before applying pagination
+            var totalCount = await query.CountAsync();
+
+            // Apply pagination
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Create and return paged result
+            return new PagedResult<Order>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<Order> CreateAsync(Order order)
