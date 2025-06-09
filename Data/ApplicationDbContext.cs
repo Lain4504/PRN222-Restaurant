@@ -41,11 +41,13 @@ public class ApplicationDbContext : DbContext
             new MenuItem { Id = 3, Name = "Bánh Flan", Description = "Bánh flan trứng sữa", Price = 35000, CategoryId = 3, ImageUrl = "/images/banh-flan.jpg" }
         );
 
-        // Seed Tables
+        // Seed 30 tables: 1-10 (2), 11-20 (4), 21-25 (6), 26-30 (8)
         modelBuilder.Entity<Table>().HasData(
-            new Table { Id = 1, TableNumber = 1, Capacity = 4, Status = "Available" },
-            new Table { Id = 2, TableNumber = 2, Capacity = 6, Status = "Available" },
-            new Table { Id = 3, TableNumber = 3, Capacity = 2, Status = "Available" }
+            Enumerable.Range(1, 10).Select(i => new Table { Id = i, TableNumber = i, Capacity = 2, Status = "Available" })
+            .Concat(Enumerable.Range(11, 10).Select(i => new Table { Id = i, TableNumber = i, Capacity = 4, Status = "Available" }))
+            .Concat(Enumerable.Range(21, 5).Select(i => new Table { Id = i, TableNumber = i, Capacity = 6, Status = "Available" }))
+            .Concat(Enumerable.Range(26, 5).Select(i => new Table { Id = i, TableNumber = i, Capacity = 8, Status = "Available" }))
+            .ToArray()
         );
 
         // Seed Users

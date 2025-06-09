@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
@@ -5,6 +6,7 @@ using System.Collections.Generic;
 
 namespace PRN222_Restaurant.Pages.Admin
 {
+    [Authorize(Roles = "Admin,Staff")]
     public class DashboardModel : PageModel
     {
         public int TotalUsers { get; set; }
