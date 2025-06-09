@@ -7,6 +7,7 @@ using PRN222_Restaurant.Services;
 using System.Text;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services.IService;
+using PRN222_Restaurant.Services.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,7 +84,26 @@ builder.Services.AddHttpClient();
 builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 
+// Add Order services
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+
 var app = builder.Build();
+
+// Seed database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        SeedData.Initialize(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred seeding the DB.");
+    }
+}
 
 // Middleware pipeline
 if (!app.Environment.IsDevelopment())
