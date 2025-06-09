@@ -6,14 +6,25 @@
 
 <div class="card bg-base-100 shadow-md">
     <div class="card-body">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">            <h2 class="card-title text-2xl">Quản lý sản phẩm</h2>
-            <a href="/admin/products/create" class="btn btn-primary mt-2 md:mt-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                Thêm sản phẩm
-            </a>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <h2 class="card-title text-2xl mb-2 md:mb-0">Quản lý sản phẩm</h2>
+            <div class="flex gap-x-2 mt-2 md:mt-0">
+                <a href="/admin/products/createcate" class="btn btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Thêm danh mục
+                </a>
+
+                <a href="/admin/products/create" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Thêm sản phẩm
+                </a>
+            </div>
         </div>
+
         
         <!-- Search and filters -->
         <div class="mb-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
