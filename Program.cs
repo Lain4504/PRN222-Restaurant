@@ -102,6 +102,7 @@ app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStatusCodePagesWithRedirects("/");
 
 // Map endpoints
 app.MapRazorPages();
