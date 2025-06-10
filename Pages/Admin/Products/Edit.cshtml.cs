@@ -91,7 +91,7 @@ namespace PRN222_Restaurant.Pages.Admin.Products
                 "Nước ép cam", "Nước ép dưa hấu", "Sinh tố bơ", "Sinh tố xoài", "Nước ép dứa",
                 "Gà rán", "Pizza", "Hamburger", "Khoai tây chiên", "Salad"
             };
-
+            
             var productName = productNames[id % productNames.Length];
             var category = categories[id % categories.Length];
             var price = (id % 10 + 1) * 10000 + 15000; // Random price between 25,000 and 115,000
