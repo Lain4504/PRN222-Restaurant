@@ -1,0 +1,266 @@
+@page
+@model PRN222_Restaurant.Pages.Admin.TablesModel
+@{
+    ViewData["Title"] = "Quản lý bàn ăn";
+}
+
+<div class="card bg-base-100 shadow-md">
+    <div class="card-body">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">            
+            <h2 class="card-title text-2xl">Quản lý bàn ăn</h2>
+            <a href="/admin/tables/create" class="btn btn-primary mt-2 md:mt-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Thêm bàn ăn
+            </a>
+        </div>
+        
+        <!-- Search and filters -->
+        <div class="mb-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div class="lg:col-span-2">
+                <div class="join w-full">
+                    <input type="text" id="searchInput" data-search-table="tablesTable" placeholder="Tìm kiếm bàn ăn..." class="input input-bordered join-item w-full" />
+                    <button class="btn join-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div>
+                <select class="select select-bordered w-full" id="statusFilter">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Available">Còn trống</option>
+                    <option value="Reserved">Đã đặt</option>
+                    <option value="Occupied">Đang sử dụng</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Loading skeleton (hidden when data is loaded) -->
+        <div id="loading-skeleton" class="@(Model.Tables.Any() ? "hidden" : "")">
+            @for (int i = 0; i < 5; i++)
+            {
+                <div class="h-20 bg-base-200 animate-pulse rounded-md mb-2"></div>
+            }
+        </div>
+        
+        <!-- Tables table -->
+        <div class="overflow-x-auto" id="tables-table-container" class="@(!Model.Tables.Any() ? "hidden" : "")">
+            <table id="tablesTable" class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>ID</th>
+                        <th>Số bàn</th>
+                        <th>Sức chứa</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Tables.Count; i++)
+                    {
+                        var table = Model.Tables[i];
+                        <tr>
+                            <td>@((Model.PageSize * (Model.CurrentPage - 1)) + i + 1)</td>
+                            <td>@table.Id</td>
+                            <td>@table.TableNumber</td>
+                            <td>@table.Capacity</td>
+                            <td data-status="@table.Status">
+                                @if (table.Status == "Available")
+                                {
+                                    <span class="badge badge-success">Còn trống</span>
+                                }
+                                else if (table.Status == "Reserved")
+                                {
+                                    <span class="badge badge-warning">Đã đặt</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-error">Đang sử dụng</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="flex gap-1">
+                                    <a href="/admin/tables/details/@table.Id" class="btn btn-xs btn-square btn-info">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+                                    <button type="button" class="btn btn-xs btn-square btn-warning" onclick="openEditTableModal(@table.Id, @table.TableNumber, @table.Capacity, '@table.Status')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                    <button onclick="confirmDelete(@table.Id, '@table.TableNumber')" class="btn btn-xs btn-square btn-error">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex justify-between items-center flex-wrap">
+            <div class="text-sm text-gray-500 mb-2 md:mb-0">
+                Showing <span class="font-medium">@((Model.CurrentPage - 1) * Model.PageSize + 1)</span> to <span class="font-medium">@(((Model.CurrentPage - 1) * Model.PageSize) + Model.Tables.Count)</span> of <span class="font-medium">@Model.TotalTables entries</span>
+            </div>
+            <div class="join">
+                <button class="join-item btn btn-sm @(Model.CurrentPage == 1 ? "btn-disabled" : "")" type="button" onclick="changePage(@(Model.CurrentPage - 1))">«</button>
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <button class="join-item btn btn-sm @(Model.CurrentPage == i ? "btn-active" : "")" type="button" onclick="changePage(@i)">@i</button>
+                }
+                <button class="join-item btn btn-sm @(Model.CurrentPage == Model.TotalPages ? "btn-disabled" : "")" type="button" onclick="changePage(@(Model.CurrentPage + 1))">»</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<dialog id="delete-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Xác nhận xoá</h3>
+        <p class="py-4">Bạn có chắc chắn muốn xóa sản phẩm <span id="delete-product-name" class="font-bold"></span>?</p>
+        <div class="modal-action">
+            <form method="post">
+                <input type="hidden" id="delete-product-id" name="tableId" value="" />
+                <button class="btn btn-error" type="submit" asp-page-handler="Delete">Xóa</button>
+                <button class="btn btn-ghost" type="button" onclick="closeDeleteModal()">Hủy</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<!-- Edit Table Modal -->
+<dialog id="edit-table-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Cập nhật bàn ăn</h3>
+        <form method="post" asp-page-handler="Edit">
+            <input type="hidden" id="edit-table-id" name="editTable.Id" />
+            <div class="form-control mb-2">
+                <label class="label">Số bàn</label>
+                <input type="number" id="edit-table-number" name="editTable.TableNumber" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control mb-2">
+                <label class="label">Sức chứa</label>
+                <input type="number" id="edit-table-capacity" name="editTable.Capacity" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control mb-2">
+                <label class="label">Trạng thái</label>
+                <select id="edit-table-status" name="editTable.Status" class="select select-bordered w-full">
+                    <option value="Available">Còn trống</option>
+                    <option value="Reserved">Đã đặt</option>
+                    <option value="Occupied">Đang sử dụng</option>
+                </select>
+            </div>
+            <div class="modal-action">
+                <button class="btn btn-primary" type="submit">Lưu</button>
+                <button class="btn btn-ghost" type="button" onclick="closeEditTableModal()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- Add Table Modal -->
+<dialog id="add-table-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Thêm bàn ăn mới</h3>
+        <form method="post" asp-page-handler="Add">
+            <input type="hidden" name="page" value="@Model.CurrentPage" />
+            <div class="form-control mb-2">
+                <label class="label">Số bàn</label>
+                <input type="number" name="newTable.TableNumber" class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control mb-2">
+                <label class="label">Sức chứa</label>
+                <input type="number" name="newTable.Capacity" class="input input-bordered w-full" required />
+            </div>
+            <input type="hidden" name="newTable.Status" value="Available" />
+            <div class="modal-action">
+                <button class="btn btn-primary" type="submit">Thêm</button>
+                <button class="btn btn-ghost" type="button" onclick="closeAddTableModal()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+@section Scripts {
+    <script>
+        // Show toast notification if exists
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <text>showToast('@Model.SuccessMessage', 'success');</text>
+            }
+            setTimeout(() => {
+                document.getElementById('loading-skeleton').classList.add('hidden');
+                document.getElementById('tables-table-container').classList.remove('hidden');
+            }, 500);
+            setupFilters();
+        });
+
+        // Confirmation modal functions
+        function confirmDelete(productId, productName) {
+            document.getElementById('delete-product-id').value = productId;
+            document.getElementById('delete-product-name').textContent = productName;
+            document.getElementById('delete-modal').showModal();
+        }
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').close();
+        }
+        // Pagination function
+        function changePage(page) {
+            window.location.href = '/admin/tables?page=' + page;
+        }
+        // Setup filter functions
+        function setupFilters() {
+            const statusFilter = document.getElementById('statusFilter');
+            const table = document.getElementById('tablesTable');
+            if (!statusFilter || !table) return;
+            statusFilter.addEventListener('change', function() {
+                const statusValue = statusFilter.value;
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    // Lấy status thực tế từ thuộc tính data-status hoặc text content
+                    let statusCell = row.cells[3];
+                    let status = statusCell.getAttribute('data-status') || statusCell.textContent;
+                    status = status.trim();
+                    if (!statusValue || status === statusValue) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+        // Edit table modal functions
+        function openEditTableModal(id, number, capacity, status) {
+            document.getElementById('edit-table-id').value = id;
+            document.getElementById('edit-table-number').value = number;
+            document.getElementById('edit-table-capacity').value = capacity;
+            document.getElementById('edit-table-status').value = status;
+            document.getElementById('edit-table-modal').showModal();
+        }
+        function closeEditTableModal() {
+            document.getElementById('edit-table-modal').close();
+        }
+        // Add table modal functions
+        document.querySelector('a.btn.btn-primary').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('add-table-modal').showModal();
+        });
+        function closeAddTableModal() {
+            document.getElementById('add-table-modal').close();
+        }
+    </script>
+}

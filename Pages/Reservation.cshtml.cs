@@ -1,54 +1,79 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Services.IService;
+using System.ComponentModel.DataAnnotations;
 
 namespace PRN222_Restaurant.Pages
 {
     public class ReservationModel : PageModel
     {
-        [BindProperty]
-        public Reservation ReservationRequest { get; set; } = new Reservation();
-        
-        public void OnGet()
+        private readonly IOrderService _orderService;
+
+        public ReservationModel(IOrderService orderService)
         {
-            // Initialize with default values if needed
-            ReservationRequest.ReservationDate = DateTime.Now.Date.AddDays(1);
-            ReservationRequest.ReservationTime = new TimeSpan(19, 0, 0); // 7:00 PM default
+            _orderService = orderService;
+        }
+
+        [BindProperty]
+        [Required(ErrorMessage = "Please select a date")]
+        public DateTime ReservationDate { get; set; } = DateTime.Today;
+
+        [BindProperty]
+        [Required(ErrorMessage = "Please select a time")]
+        public TimeSpan ReservationTime { get; set; }
+
+        [BindProperty]
+        [Required(ErrorMessage = "Please enter number of guests")]
+        [Range(1, 20, ErrorMessage = "Number of guests must be between 1 and 20")]
+        public int NumberOfGuests { get; set; }
+
+        [BindProperty]
+        [Required(ErrorMessage = "Please select a table")]
+        public int TableId { get; set; }
+
+        [BindProperty]
+        public string? Note { get; set; }
+
+        public SelectList AvailableTables { get; set; }
+        
+        public async Task<IActionResult> OnGetAsync()
+        {
+            await LoadAvailableTables();
+            return Page();
         }
         
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
+                await LoadAvailableTables();
                 return Page();
             }
             
-            // In a real application, this would save to database
-            // and potentially send confirmation emails
-            
-            // For now, just return success
-            TempData["ReservationSuccess"] = true;
-            TempData["ReservationDetails"] = $"Table for {ReservationRequest.PartySize} on {ReservationRequest.ReservationDate.ToShortDateString()} at {ReservationRequest.ReservationTime.ToString(@"hh\:mm")}";
-            
-            return RedirectToPage();
+            // Check if table is available
+            if (!await _orderService.IsTableAvailableAsync(TableId, ReservationDate, ReservationTime))
+            {
+                ModelState.AddModelError("", "Selected table is not available at the chosen time.");
+                await LoadAvailableTables();
+                return Page();
+            }
+
+            // Store reservation details in TempData
+            TempData["ReservationDate"] = ReservationDate.ToString("yyyy-MM-dd");
+            TempData["ReservationTime"] = ReservationTime.ToString();
+            TempData["TableId"] = TableId.ToString();
+            TempData["NumberOfGuests"] = NumberOfGuests.ToString();
+            TempData["Note"] = Note;
+
+            return RedirectToPage("/PreOrderMenu");
         }
-    }
-    
-    // This class would normally be in the Models folder
-    // It's defined here for simplicity in this example
-    public class Reservation
-    {
-        public int Id { get; set; }
-        public string FullName { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public int PartySize { get; set; }
-        public DateTime ReservationDate { get; set; }
-        public TimeSpan ReservationTime { get; set; }
-        public string SpecialRequests { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public string Status { get; set; } = "Pending"; // Pending, Confirmed, Cancelled
+
+        private async Task LoadAvailableTables()
+        {
+            var tables = await _orderService.GetAvailableTablesAsync();
+            AvailableTables = new SelectList(tables, "Id", "TableNumber");
+        }
     }
 }
