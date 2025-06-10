@@ -1,17 +1,28 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using PRN222_Restaurant.Data; // hoặc namespace thật của DbContext
+using PRN222_Restaurant.Models; // chứa MenuItem entity
 using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace PRN222_Restaurant.Pages.Admin.Products
 {
     public class EditModel : PageModel
     {
-        [BindProperty]
-        public Product Product { get; set; } = new Product();
+        private readonly ApplicationDbContext _context;
+
+        public EditModel(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
         [BindProperty]
-        public IFormFile? ImageFile { get; set; }
+        public MenuItem Product { get; set; } = new MenuItem();
+        public List<Category> Categories { get; set; } = new();
+        public List<string> Statuses { get; set; } = new();
 
         public bool IsNewProduct => Product.Id == 0;
 
@@ -20,103 +31,66 @@ namespace PRN222_Restaurant.Pages.Admin.Products
 
         public string? ErrorMessage { get; set; }
 
-        public IActionResult OnGet(int? id)
+        public async Task<IActionResult> OnGetAsync(int? id)
         {
+            Categories = await _context.Categories.ToListAsync();
+            Statuses = Enum.GetNames(typeof(MenuItemStatus)).ToList();
+
             if (id.HasValue)
             {
-                // Edit existing product
-                var product = GetProductById(id.Value);
+                var product = await _context.MenuItems
+                    .Include(p => p.Category)
+                    .FirstOrDefaultAsync(p => p.Id == id.Value);
+
                 if (product == null)
-                {
                     return NotFound();
-                }
-                
+
                 Product = product;
             }
             else
             {
-                // Create new product
-                Product = new Product
+                Product = new MenuItem
                 {
-                    Status = "Đang bán", // Default status for new products
-                    ImageUrl = "" // No image by default
+                    Status = MenuItemStatus.Available,
+                    ImageUrl = ""
                 };
             }
 
             return Page();
         }
 
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
-            // In a real application, you would save the image file to a storage location
-            // and update the ImageUrl property with the file path or URL
-            
-            // For demo purposes, we'll just use a placeholder image if a new file is uploaded
-            if (ImageFile != null && ImageFile.Length > 0)
-            {
-                // In a real application, save the file and get the URL
-                // For demo, we'll use a placeholder
-                Product.ImageUrl = $"https://picsum.photos/seed/product{DateTime.Now.Ticks}/200/200";
-            }
-            
-            // In a real application, you would save to database
-            // For demo purposes, we'll just redirect with a success message
-            
+            Categories = await _context.Categories.ToListAsync();
+            Statuses = Enum.GetNames(typeof(MenuItemStatus)).ToList();
+
+            if (!ModelState.IsValid)
+                return Page();
+
             if (IsNewProduct)
             {
+                _context.MenuItems.Add(Product);
                 SuccessMessage = "Đã thêm sản phẩm mới thành công";
             }
             else
-            {            SuccessMessage = $"Đã cập nhật sản phẩm {Product.Name} thành công";
+            {
+                var existingProduct = await _context.MenuItems.FindAsync(Product.Id);
+                if (existingProduct == null)
+                    return NotFound();
+
+                existingProduct.Name = Product.Name;
+                existingProduct.Description = Product.Description;
+                existingProduct.Price = Product.Price;
+                existingProduct.Status = Product.Status;
+                existingProduct.CategoryId = Product.CategoryId;
+                existingProduct.ImageUrl = Product.ImageUrl;
+
+                SuccessMessage = $"Đã cập nhật sản phẩm {Product.Name} thành công";
             }
 
+            await _context.SaveChangesAsync();
             return RedirectToPage("/admin/products");
         }
 
-        private Product? GetProductById(int id)
-        {
-            // In a real application, you would get this from your database
-            // For demo purposes, we'll just return a mock product
-            if (id <= 0 || id > 30) return null;
-
-            var categories = new[] { "Đồ uống", "Món chính", "Món tráng miệng", "Món khai vị" };
-            var statuses = new[] { "Đang bán", "Hết hàng", "Ngưng bán" };
-            
-            var productNames = new[]
-            {
-                "Cà phê đen", "Cà phê sữa", "Trà đào", "Trà vải", "Trà sữa trân châu",
-                "Cơm gà xối mỡ", "Cơm sườn nướng", "Phở bò", "Bún bò Huế", "Mì Quảng",
-                "Bánh flan", "Chè thái", "Kem dừa", "Bánh tiramisu", "Chè đậu đỏ",
-                "Gỏi cuốn", "Chả giò", "Bánh xèo", "Bánh khọt", "Nem nướng",
-                "Nước ép cam", "Nước ép dưa hấu", "Sinh tố bơ", "Sinh tố xoài", "Nước ép dứa",
-                "Gà rán", "Pizza", "Hamburger", "Khoai tây chiên", "Salad"
-            };
-            
-            var productName = productNames[id % productNames.Length];
-            var category = categories[id % categories.Length];
-            var price = (id % 10 + 1) * 10000 + 15000; // Random price between 25,000 and 115,000
-            
-            return new Product
-            {
-                Id = id,
-                Name = productName,
-                Category = category,
-                Price = price,
-                Status = statuses[id % statuses.Length],
-                ImageUrl = $"https://picsum.photos/seed/product{id}/200/200", // Random image
-                Description = $"Đây là mô tả chi tiết về sản phẩm {productName}. Sản phẩm thuộc danh mục {category} với chất lượng cao và giá cả phải chăng. Phù hợp cho mọi khách hàng."
-            };
-        }
-    }
-
-    public class Product
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
-        public decimal Price { get; set; }
-        public string Status { get; set; } = string.Empty;
-        public string ImageUrl { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
     }
 }
