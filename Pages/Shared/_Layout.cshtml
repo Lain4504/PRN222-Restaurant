@@ -18,6 +18,27 @@
 
 </head>
 <body>
+    @inject IHttpContextAccessor HttpContextAccessor
+    @using PRN222_Restaurant.Helper
+    @inject IHttpContextAccessor HttpContextAccessor
+    @using System.Security.Claims
+
+    @{
+        var user = HttpContextAccessor.HttpContext?.User;
+        if (!AuthHelper.IsStaffOrAdmin(user))
+        {
+            Context.Response.Redirect("/");
+        }
+    }
+
+    @{
+        var _user = HttpContextAccessor.HttpContext?.User;
+        var userEmail = _user?.Identity?.IsAuthenticated == true
+        ? _user.FindFirst(ClaimTypes.Email)?.Value ?? "User":null;
+    }
+
+
+
     <div class="drawer lg:drawer-open">
         <!-- Mobile menu toggle -->
         <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
@@ -28,12 +49,15 @@
                 <div class="navbar bg-base-100">
                     <div class="flex-none lg:hidden">
                         <label for="drawer-toggle" class="btn btn-square btn-ghost drawer-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
                         </label>
-                    </div>                    <div class="flex-1">
+                    </div>
+                    <div class="flex-1">
                         <span class="font-bold text-xl lg:hidden">PRN222 Restaurant</span>
                     </div>
-                    <div class="flex-none gap-2">
+                    <div class="flex gap-3 items-center">
                         <!-- Dark Mode Toggle -->
                         <button id="theme-toggle" class="btn btn-ghost btn-circle">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 theme-light-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -43,21 +67,36 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                             </svg>
                         </button>
-                        
+
+                        <!-- Show User Name -->
+                    
+                        <div class="font-semibold bg-red-300 px-3 py-1 rounded">@userEmail</div>
+
+                        <!-- Avatar + Dropdown -->
                         <div class="dropdown dropdown-end">
                             <label tabindex="0" class="btn btn-ghost btn-circle avatar">
                                 <div class="w-10 rounded-full">
-                                    <img src="https://ui-avatars.com/api/?name=Admin+User&background=random" />
+                                    <img src="data:image/jpeg;base64,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" />
                                 </div>
                             </label>
-                            <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">                                <li><a>Profile</a></li>
-                                <li><a>Settings</a></li>
-                                <li><a href="/admin/logout">Logout</a></li>
+                            <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+                                @if (!string.IsNullOrEmpty(userEmail))
+                                {
+                                    <li><a>Profile</a></li>
+                                    <li><a>Settings</a></li>
+                                    <li><a href="/admin/logout">Logout</a></li>
+                                }
+                                else
+                                {
+                                    <li><a href="/login">Login</a></li>
+                                }
                             </ul>
                         </div>
                     </div>
                 </div>
             </header>
+
+
 
             <!-- Page content -->
             <main class="flex-1 p-4 md:p-6 overflow-y-auto bg-base-200">

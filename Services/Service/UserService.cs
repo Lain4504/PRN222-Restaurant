@@ -24,6 +24,10 @@ namespace PRN222_Restaurant.Services
             _emailService = emailService;
         }
 
+        public async Task<PagedResult<User>> GetPagedUsersAsync(int page, int pageSize)
+        {
+            return await _repository.GetPagedAsync(page, pageSize);
+        }
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await _context.Users.ToListAsync();

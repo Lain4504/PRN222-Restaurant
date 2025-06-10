@@ -3,6 +3,7 @@ using PRN222_Restaurant.Models.Response;
 
 public interface IUserService
 {
+    Task<PagedResult<User>> GetPagedUsersAsync(int page, int pageSize);
     Task<IEnumerable<User>> GetAllUsersAsync();
     Task<User?> GetUserByIdAsync(int id);
     Task<User?> GetUserByEmailAsync(string email);
