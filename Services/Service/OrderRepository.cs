@@ -77,9 +77,19 @@ namespace PRN222_Restaurant.Services.Service
 
         public async Task<Order> CreateAsync(Order order)
         {
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-            return order;
+            try
+            {
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Successfully saved order {order.Id} with {order.OrderItems?.Count ?? 0} items");
+                return order;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating order: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw; // Re-throw to allow the service to handle it
+            }
         }
 
         public async Task<bool> UpdateAsync(Order order)

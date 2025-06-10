@@ -1,4 +1,4 @@
-@page
+@page "/preorderconfirmation/{id:int}"
 @model PRN222_Restaurant.Pages.PreOrderConfirmationModel
 @{
     ViewData["Title"] = "Reservation Confirmation";
@@ -21,30 +21,30 @@
                             Thank you for choosing Ocean Delights. Your reservation has been successfully booked.
                             A confirmation email has been sent to your email address.
                         </p>
-                    </div>
-                    
+        </div>
+
                     <!-- Reservation Details -->
                     <div class="bg-base-200 p-6 rounded-lg mb-8">
                         <h2 class="text-xl font-semibold mb-4">Reservation Details</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
+                <div>
                                 <p><span class="font-medium">Date:</span> @Model.ReservationDate.ToString("MMMM dd, yyyy")</p>
-                                <p><span class="font-medium">Time:</span> @Model.ReservationTime.ToString(@"hh\:mm tt")</p>
-                            </div>
-                            <div>
+                                <p><span class="font-medium">Time:</span> @Model.ReservationTime.ToString("hh\\:mm")</p>
+                </div>
+                <div>
                                 <p><span class="font-medium">Table:</span> @Model.TableNumber</p>
                                 <p><span class="font-medium">Guests:</span> @Model.NumberOfGuests</p>
-                            </div>
-                        </div>
+                </div>
+                </div>
                         @if (!string.IsNullOrEmpty(Model.Note))
                         {
                             <div class="mt-4">
                                 <p><span class="font-medium">Special Requests:</span></p>
                                 <p class="italic">@Model.Note</p>
-                            </div>
+                </div>
                         }
-                    </div>
-                    
+            </div>
+
                     <!-- Pre-Order Items -->
                     @if (Model.OrderItems.Any())
                     {
@@ -62,7 +62,7 @@
                                     </thead>
                                     <tbody>
                                         @foreach (var item in Model.OrderItems)
-                                        {
+                    {
                                             <tr>
                                                 <td>@item.Name</td>
                                                 <td class="text-right">@item.Quantity</td>

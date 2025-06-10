@@ -14,7 +14,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <p><span class="font-medium">Date:</span> @Model.ReservationDate.ToString("MMMM dd, yyyy")</p>
-                    <p><span class="font-medium">Time:</span> @Model.ReservationTime.ToString(@"hh\:mm tt")</p>
+                    <p><span class="font-medium">Time:</span> @Model.ReservationTime.ToString("hh\\:mm")</p>
                 </div>
                 <div>
                     <p><span class="font-medium">Table:</span> @Model.TableNumber</p>
@@ -36,7 +36,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach (var item in Model.MenuItems)
             {
-                <div class="card bg-base-100 shadow-xl menu-item" data-category="@item.Category.Name.ToLower()">
+                <div class="card bg-base-100 shadow-xl menu-item" data-category="@(item.Category?.Name?.ToLower() ?? "uncategorized")">
                     <figure class="h-48">
                         <img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" />
                     </figure>
@@ -129,9 +129,18 @@
             const totalItems = Object.values(selectedItems).reduce((sum, qty) => sum + qty, 0);
             document.getElementById('total-items').textContent = totalItems;
             
-            // Calculate total price (this would need to be done with actual prices from the server)
-            // For now, we'll just show the number of items
-            document.getElementById('total-price').textContent = totalItems.toFixed(2);
+            // Calculate total price using actual menu item prices
+            const menuItems = @Html.Raw(Model.SerializeMenuItems());
+            let totalPrice = 0;
+            
+            for (const itemId in selectedItems) {
+                const item = menuItems.find(i => i.id === parseInt(itemId));
+                if (item) {
+                    totalPrice += item.price * selectedItems[itemId];
+                }
+            }
+            
+            document.getElementById('total-price').textContent = totalPrice.toFixed(2);
         }
         
         // Form submission
@@ -139,7 +148,13 @@
             if (Object.keys(selectedItems).length === 0) {
                 e.preventDefault();
                 alert('Please select at least one item');
+                return;
             }
+            
+            // Set the selected items as JSON in the hidden input
+            const selectedItemsInput = document.getElementById('selectedItems');
+            selectedItemsInput.value = JSON.stringify(selectedItems);
+            console.log('Submitting with items:', selectedItemsInput.value);
         });
     </script>
 } 

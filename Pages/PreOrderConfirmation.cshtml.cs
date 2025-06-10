@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services.IService;
-using System.Text.Json;
+using System.Collections.Generic;
 
 namespace PRN222_Restaurant.Pages
 {
@@ -13,146 +13,107 @@ namespace PRN222_Restaurant.Pages
         private readonly IOrderService _orderService;
         private readonly ApplicationDbContext _context;
 
-        public PreOrderConfirmationModel(
-            IOrderService orderService,
-            ApplicationDbContext context)
+        public PreOrderConfirmationModel(IOrderService orderService, ApplicationDbContext context)
         {
             _orderService = orderService;
             _context = context;
         }
 
+        public Order? Order { get; set; }
         public DateTime ReservationDate { get; set; }
         public TimeSpan ReservationTime { get; set; }
         public int TableNumber { get; set; }
         public int NumberOfGuests { get; set; }
-        public string Note { get; set; }
-        public List<OrderItemViewModel> OrderItems { get; set; } = new();
+        public string? Note { get; set; }
+        public List<OrderItemViewModel> OrderItems { get; set; } = new List<OrderItemViewModel>();
         public decimal TotalAmount { get; set; }
 
-        public async Task<IActionResult> OnGetAsync()
-        {
-            // Get reservation details from TempData
-            if (!TempData.ContainsKey("ReservationDate") || !TempData.ContainsKey("ReservationTime") ||
-                !TempData.ContainsKey("TableId") || !TempData.ContainsKey("NumberOfGuests"))
-            {
-                return RedirectToPage("/Reservation");
-            }
-
-            ReservationDate = DateTime.Parse(TempData["ReservationDate"].ToString());
-            ReservationTime = TimeSpan.Parse(TempData["ReservationTime"].ToString());
-            var tableId = int.Parse(TempData["TableId"].ToString());
-            NumberOfGuests = int.Parse(TempData["NumberOfGuests"].ToString());
-            Note = TempData["Note"]?.ToString();
-
-            // Get table number
-            var table = await _context.Tables.FindAsync(tableId);
-            if (table == null)
-            {
-                return RedirectToPage("/Reservation");
-            }
-            TableNumber = table.TableNumber;
-
-            // Process selected items if any
-            if (TempData.ContainsKey("SelectedItems") && !string.IsNullOrEmpty(TempData["SelectedItems"]?.ToString()))
-            {
-                var selectedItemsJson = TempData["SelectedItems"].ToString();
-                var selectedItems = JsonSerializer.Deserialize<Dictionary<string, int>>(selectedItemsJson);
-
-                if (selectedItems != null && selectedItems.Any())
-                {
-                    foreach (var item in selectedItems)
-                    {
-                        if (int.TryParse(item.Key, out int menuItemId))
-                        {
-                            var menuItem = await _context.MenuItems.FindAsync(menuItemId);
-                            if (menuItem != null)
-                            {
-                                OrderItems.Add(new OrderItemViewModel
-                                {
-                                    MenuItemId = menuItem.Id,
-                                    Name = menuItem.Name,
-                                    Price = menuItem.Price,
-                                    Quantity = item.Value,
-                                    Subtotal = menuItem.Price * item.Value
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Calculate total amount
-            TotalAmount = OrderItems.Sum(i => i.Subtotal);
-
-            // Create the reservation and order in the database
-            await CreateReservationAndOrder(tableId);
-
-            return Page();
-        }
-
-        private async Task CreateReservationAndOrder(int tableId)
+        public async Task<IActionResult> OnGetAsync(int id)
         {
             try
             {
-                // Create reservation
-                var reservation = new Reservation
+                Console.WriteLine($"PreOrderConfirmation: Loading order with ID {id}");
+                
+                // Fetch order details
+                Order = await _orderService.GetOrderWithItemsAsync(id);
+                if (Order == null)
                 {
-                    UserId = User.Identity.IsAuthenticated ? int.Parse(User.FindFirst("UserId")?.Value) : 1, // Guest user if not authenticated
-                    TableId = tableId,
-                    ReservationTime = ReservationDate.Add(ReservationTime),
-                    Note = Note
-                };
-
-                await _context.Reservations.AddAsync(reservation);
-                await _context.SaveChangesAsync();
-
-                // Create order if there are menu items
-                if (OrderItems.Any())
-                {
-                    var order = new Order
-                    {
-                        UserId = reservation.UserId,
-                        TableId = tableId,
-                        ReservationTime = reservation.ReservationTime,
-                        NumberOfGuests = NumberOfGuests,
-                        Status = "Confirmed",
-                        OrderDate = DateTime.Now,
-                        TotalPrice = TotalAmount,
-                        Note = Note
-                    };
-
-                    await _context.Orders.AddAsync(order);
-                    await _context.SaveChangesAsync();
-
-                    // Add order items
-                    foreach (var item in OrderItems)
-                    {
-                        var orderItem = new OrderItem
-                        {
-                            OrderId = order.Id,
-                            MenuItemId = item.MenuItemId,
-                            Quantity = item.Quantity,
-                            UnitPrice = item.Price
-                        };
-
-                        await _context.OrderItems.AddAsync(orderItem);
-                    }
-
-                    await _context.SaveChangesAsync();
+                    Console.WriteLine($"PreOrderConfirmation: Order with ID {id} not found");
+                    return RedirectToPage("/Index");
                 }
+
+                Console.WriteLine($"PreOrderConfirmation: Order loaded successfully - OrderType: {Order.OrderType}, Status: {Order.Status}");
+
+                // Set reservation details
+                if (Order.ReservationTime.HasValue)
+                {
+                    ReservationDate = Order.ReservationTime.Value.Date;
+                    ReservationTime = Order.ReservationTime.Value.TimeOfDay;
+                }
+                else
+                {
+                    // Fallback values if reservation time is null
+                    ReservationDate = DateTime.Now.Date;
+                    ReservationTime = DateTime.Now.TimeOfDay;
+                }
+                
+                Note = Order.Note;
+                NumberOfGuests = (int)Order.NumberOfGuests!;
+
+                // Get table details
+                var table = await _context.Tables.FindAsync(Order.TableId);
+                TableNumber = table?.TableNumber ?? 0;
+
+                // Get order items
+                OrderItems = new List<OrderItemViewModel>();
+                TotalAmount = 0;
+
+                if (Order.OrderItems != null && Order.OrderItems.Any())
+                {
+                    foreach (var item in Order.OrderItems)
+                    {
+                        var menuItem = await _context.MenuItems.FindAsync(item.MenuItemId);
+                        if (menuItem != null)
+                        {
+                            var orderItem = new OrderItemViewModel
+                            {
+                                Id = item.Id,
+                                Name = menuItem.Name,
+                                Price = menuItem.Price,
+                                Quantity = item.Quantity,
+                                Subtotal = menuItem.Price * item.Quantity
+                            };
+
+                            OrderItems.Add(orderItem);
+                            TotalAmount += orderItem.Subtotal;
+                        }
+                    }
+                }
+                
+                Console.WriteLine($"PreOrderConfirmation: Loaded {OrderItems.Count} order items with total amount: {TotalAmount}");
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine($"Error creating reservation: {ex.Message}");
+                // Log exception
+                Console.WriteLine($"Error in PreOrderConfirmation: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                // Initialize empty collections
+                OrderItems = new List<OrderItemViewModel>();
+                TotalAmount = 0;
+                
+                // Redirect to home page on severe errors
+                return RedirectToPage("/Index");
             }
+
+            return Page();
         }
     }
 
     public class OrderItemViewModel
     {
-        public int MenuItemId { get; set; }
-        public string Name { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public decimal Subtotal { get; set; }
