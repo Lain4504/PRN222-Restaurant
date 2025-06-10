@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services.IService;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using PRN222_Restaurant.Data;
 
 namespace PRN222_Restaurant.Pages
@@ -12,6 +13,7 @@ namespace PRN222_Restaurant.Pages
     {
         private readonly IOrderService _orderService;
         private readonly ApplicationDbContext _context;
+        private readonly JsonSerializerOptions _jsonOptions;
 
         public PreOrderMenuModel(
             IOrderService orderService,
@@ -19,6 +21,11 @@ namespace PRN222_Restaurant.Pages
         {
             _orderService = orderService;
             _context = context;
+            _jsonOptions = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve,
+                MaxDepth = 64
+            };
         }
 
         public DateTime ReservationDate { get; set; }
@@ -55,8 +62,23 @@ namespace PRN222_Restaurant.Pages
 
             // Load categories and menu items
             Categories = await _context.Categories.ToListAsync();
+            
+            // Avoid circular references by explicitly selecting only needed properties
             MenuItems = await _context.MenuItems
-                .Include(m => m.Category)
+                .Select(m => new MenuItem
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Price = m.Price,
+                    ImageUrl = m.ImageUrl,
+                    CategoryId = m.CategoryId,
+                    Status = m.Status,
+                    Category = new Category { 
+                        Id = m.Category.Id, 
+                        Name = m.Category.Name 
+                    }
+                })
                 .ToListAsync();
 
             return Page();
@@ -111,6 +133,12 @@ namespace PRN222_Restaurant.Pages
                 ModelState.AddModelError("", "An error occurred while processing your order. Please try again.");
                 return Page();
             }
+        }
+        
+        // Helper method to serialize menu items without circular references
+        public string SerializeMenuItems()
+        {
+            return JsonSerializer.Serialize(MenuItems, _jsonOptions);
         }
     }
 } 
