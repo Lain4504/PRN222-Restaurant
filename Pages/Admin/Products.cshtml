@@ -6,15 +6,26 @@
 
 <div class="card bg-base-100 shadow-md">
     <div class="card-body">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">            <h2 class="card-title text-2xl">Quản lý sản phẩm</h2>
-            <a href="/admin/products/create" class="btn btn-primary mt-2 md:mt-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                </svg>
-                Thêm sản phẩm
-            </a>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <h2 class="card-title text-2xl mb-2 md:mb-0">Quản lý sản phẩm</h2>
+            <div class="flex mt-2 md:mt-0">
+                <a href="/admin/products/createcate" class="btn btn-secondary mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Thêm danh mục
+                </a>
+
+                <a href="/admin/products/create" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Thêm sản phẩm
+                </a>
+            </div>
         </div>
-        
+
+
         <!-- Search and filters -->
         <div class="mb-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
             <div class="lg:col-span-2">
@@ -27,27 +38,29 @@
                     </button>
                 </div>
             </div>
-            
+
             <div>
                 <select class="select select-bordered w-full" id="categoryFilter">
                     <option value="">Tất cả danh mục</option>
-                    <option value="Đồ uống">Đồ uống</option>
-                    <option value="Món chính">Món chính</option>
-                    <option value="Món tráng miệng">Món tráng miệng</option>
-                    <option value="Món khai vị">Món khai vị</option>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Name">@category.Name</option>
+                    }
                 </select>
             </div>
-            
+
             <div>
                 <select class="select select-bordered w-full" id="statusFilter">
                     <option value="">Tất cả trạng thái</option>
-                    <option value="Đang bán">Đang bán</option>
-                    <option value="Hết hàng">Hết hàng</option>
-                    <option value="Ngưng bán">Ngưng bán</option>
+                    @foreach (var status in Model.Statuses)
+                    {
+                        <option value="@status">@status</option>
+                    }
                 </select>
             </div>
+
         </div>
-        
+
         <!-- Loading skeleton (hidden when data is loaded) -->
         <div id="loading-skeleton" class="@(Model.Products.Any() ? "hidden" : "")">
             @for (int i = 0; i < 5; i++)
@@ -55,7 +68,7 @@
                 <div class="h-20 bg-base-200 animate-pulse rounded-md mb-2"></div>
             }
         </div>
-        
+
         <!-- Products table -->
         <div class="overflow-x-auto" id="products-table-container" class="@(!Model.Products.Any() ? "hidden" : "")">
             <table id="productsTable" class="table table-zebra w-full">
@@ -83,23 +96,20 @@
                                 </div>
                             </td>
                             <td class="font-medium">@product.Name</td>
-                            <td>@product.Category</td>
+                            <td>@product.Category.Name</td>
                             <td>@product.Price.ToString("N0") đ</td>
                             <td>
-                                @if (product.Status == "Đang bán")
+                                @if (product.Status == Models.MenuItemStatus.Available)
                                 {
                                     <span class="badge badge-success">@product.Status</span>
                                 }
-                                else if (product.Status == "Hết hàng")
+                                else if (product.Status == Models.MenuItemStatus.Unavailable)
                                 {
                                     <span class="badge badge-warning">@product.Status</span>
                                 }
-                                else
-                                {
-                                    <span class="badge badge-error">@product.Status</span>
-                                }
                             </td>
-                            <td>                                <div class="flex gap-1">
+                            <td>
+                                <div class="flex gap-1">
                                     <a href="/admin/products/details/@product.Id" class="btn btn-xs btn-square btn-info">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -123,13 +133,13 @@
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Pagination -->
         <div class="mt-4 flex justify-between items-center flex-wrap">
             <div class="text-sm text-gray-500 mb-2 md:mb-0">
                 Showing <span class="font-medium">1</span> to <span class="font-medium">@Model.Products.Count</span> of <span class="font-medium">@Model.TotalProducts</span> entries
             </div>
-            
+
             <div class="join">
                 <button class="join-item btn btn-sm @(Model.CurrentPage == 1 ? "btn-disabled" : "")" onclick="changePage(@(Model.CurrentPage - 1))">«</button>
                 @for (int i = 1; i <= Model.TotalPages; i++)
@@ -160,57 +170,57 @@
 @section Scripts {
     <script>
         // Show toast notification if exists
-        document.addEventListener('DOMContentLoaded', function() {
-            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-            {
-                <text>showToast('@Model.SuccessMessage', 'success');</text>
-            }
-            
-            // Hide loading skeleton and show table
-            setTimeout(() => {
-                document.getElementById('loading-skeleton').classList.add('hidden');
-                document.getElementById('products-table-container').classList.remove('hidden');
-            }, 500);
-            
+        document.addEventListener('DOMContentLoaded', function () {
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <text>showToast('@Model.SuccessMessage', 'success'); </text>
+        }
+
+                // Hide loading skeleton and show table
+                setTimeout(() => {
+                    document.getElementById('loading-skeleton').classList.add('hidden');
+                    document.getElementById('products-table-container').classList.remove('hidden');
+                }, 500);
+
             // Setup filters
             setupFilters();
         });
-        
+
         // Confirmation modal functions
         function confirmDelete(productId, productName) {
             document.getElementById('delete-product-id').value = productId;
             document.getElementById('delete-product-name').textContent = productName;
             document.getElementById('delete-modal').showModal();
         }
-        
+
         function closeDeleteModal() {
             document.getElementById('delete-modal').close();
-        }        
+        }
         // Pagination function
         function changePage(page) {
             window.location.href = '/admin/products?page=' + page;
         }
-        
+
         // Setup filter functions
         function setupFilters() {
             const categoryFilter = document.getElementById('categoryFilter');
             const statusFilter = document.getElementById('statusFilter');
             const table = document.getElementById('productsTable');
-            
+
             if (!categoryFilter || !statusFilter || !table) return;
-            
+
             const filterTable = () => {
                 const categoryValue = categoryFilter.value.toLowerCase();
                 const statusValue = statusFilter.value.toLowerCase();
                 const rows = table.querySelectorAll('tbody tr');
-                
+
                 rows.forEach(row => {
                     const category = row.cells[3].textContent.toLowerCase();
                     const status = row.cells[5].textContent.toLowerCase();
-                    
+
                     const categoryMatch = !categoryValue || category === categoryValue;
                     const statusMatch = !statusValue || status.includes(statusValue);
-                    
+
                     if (categoryMatch && statusMatch) {
                         row.style.display = '';
                     } else {
@@ -218,7 +228,7 @@
                     }
                 });
             };
-            
+
             categoryFilter.addEventListener('change', filterTable);
             statusFilter.addEventListener('change', filterTable);
         }

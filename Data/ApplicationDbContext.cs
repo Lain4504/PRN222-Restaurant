@@ -26,22 +26,6 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Seed Categories
-        modelBuilder.Entity<Category>().HasData(
-            new Category { Id = 1, Name = "Món Khai Vị" },
-            new Category { Id = 2, Name = "Món Chính" },
-            new Category { Id = 3, Name = "Món Tráng Miệng" }
-        );
-
-        // Seed MenuItems
-        modelBuilder.Entity<MenuItem>().HasData(
-            new MenuItem { Id = 1, Name = "Gỏi Cuốn", Description = "Gỏi cuốn tôm thịt", Price = 45000, CategoryId = 1, ImageUrl = "/images/goi-cuon.jpg" },
-            new MenuItem { Id = 2, Name = "Phở Bò", Description = "Phở bò truyền thống", Price = 65000, CategoryId = 2, ImageUrl = "/images/pho-bo.jpg" },
-            new MenuItem { Id = 3, Name = "Bánh Flan", Description = "Bánh flan trứng sữa", Price = 35000, CategoryId = 3, ImageUrl = "/images/banh-flan.jpg" }
-        );
-
-        // Seed 30 tables: 1-10 (2), 11-20 (4), 21-25 (6), 26-30 (8)
         modelBuilder.Entity<Table>().HasData(
             Enumerable.Range(1, 10).Select(i => new Table { Id = i, TableNumber = i, Capacity = 2, Status = "Available" })
             .Concat(Enumerable.Range(11, 10).Select(i => new Table { Id = i, TableNumber = i, Capacity = 4, Status = "Available" }))

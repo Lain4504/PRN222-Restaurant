@@ -1,25 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Models.Response;
 using PRN222_Restaurant.Services.IService;
+using PRN222_Restaurant.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace PRN222_Restaurant.Pages.Admin
 {
     public class OrdersModel : PageModel
     {
         private readonly IOrderService _orderService;
+        private readonly ApplicationDbContext _context;
         private const int DefaultPageSize = 10;
 
-        public OrdersModel(IOrderService orderService)
+        public OrdersModel(IOrderService orderService, ApplicationDbContext context)
         {
             _orderService = orderService;
+            _context = context;
         }
 
-        public PagedResult<PRN222_Restaurant.Models.Order> OrdersResult { get; set; } = new PagedResult<PRN222_Restaurant.Models.Order>();
-        public List<PRN222_Restaurant.Models.Order> Orders => OrdersResult.Items;
+        public PagedResult<Models.Order> OrdersResult { get; set; } = new PagedResult<Models.Order>();
+        public List<Models.Order> Orders => OrdersResult.Items;
+        public List<Table> AvailableTables { get; set; }
+        public List<MenuItem> MenuItems { get; set; }
 
         [TempData]
         public string StatusMessage { get; set; }
@@ -36,6 +43,9 @@ namespace PRN222_Restaurant.Pages.Admin
         [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = DefaultPageSize;
 
+        [BindProperty]
+        public CreateOrderModel CreateOrderModel { get; set; } = new CreateOrderModel();
+
         public async Task OnGetAsync()
         {
             // Ensure valid pagination parameters
@@ -44,6 +54,15 @@ namespace PRN222_Restaurant.Pages.Admin
             
             // Get paginated orders
             OrdersResult = await _orderService.GetPagedOrdersAsync(CurrentPage, PageSize);
+
+            // Load available tables and menu items for create order modal
+            await LoadTablesAndMenuItems();
+        }
+
+        private async Task LoadTablesAndMenuItems()
+        {
+            AvailableTables = await _context.Tables.Where(t => t.Status == "Available").ToListAsync();
+            MenuItems = await _context.MenuItems.Include(m => m.Category).ToListAsync();
         }
 
         public async Task<IActionResult> OnPostUpdateStatusAsync()
@@ -65,7 +84,6 @@ namespace PRN222_Restaurant.Pages.Admin
                 StatusMessage = $"Error: Failed to update order #{OrderId}";
             }
 
-            // Redirect to the same page with pagination parameters
             return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
         }
 
@@ -82,8 +100,103 @@ namespace PRN222_Restaurant.Pages.Admin
                 StatusMessage = $"Error: Failed to cancel order #{id}";
             }
 
-            // Redirect to the same page with pagination parameters
             return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
         }
+
+        public async Task<IActionResult> OnPostCreateOrder()
+        {
+            // Load tables and menu items for the form if validation fails
+            await LoadTablesAndMenuItems();
+
+            // Validate table selection
+            if (CreateOrderModel == null)
+            {
+                StatusMessage = "Error: Dữ liệu không hợp lệ";
+                return Page();
+            }
+
+            if (CreateOrderModel.TableId <= 0)
+            {
+                ModelState.AddModelError("CreateOrderModel.TableId", "Vui lòng chọn bàn");
+                StatusMessage = "Error: Vui lòng chọn bàn để tạo đơn hàng";
+                return Page();
+            }
+
+            // Validate that at least one item has been selected
+            if (CreateOrderModel.SelectedItems == null || !CreateOrderModel.SelectedItems.Any(i => i.Quantity > 0))
+            {
+                StatusMessage = "Error: Vui lòng chọn ít nhất một món ăn";
+                return Page();
+            }
+
+            try
+            {
+                var order = new Models.Order
+                {
+                    TableId = CreateOrderModel.TableId,
+                    OrderType = "Immediate",
+                    OrderDate = DateTime.Now,
+                    Status = "Pending",
+                    Note = CreateOrderModel.Note,
+                    OrderItems = new List<OrderItem>() // Initialize empty collection
+                };
+
+                var selectedItems = CreateOrderModel.SelectedItems
+                    .Where(x => x.Quantity > 0)
+                    .ToDictionary(x => x.MenuItemId, x => x.Quantity);
+
+                var createdOrder = await _orderService.CreateImmediateOrderAsync(order, selectedItems);
+                StatusMessage = $"Order #{createdOrder.Id} has been created successfully";
+                return RedirectToPage("/admin/orders");
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Error: Failed to create order - {ex.Message}";
+                return Page();
+            }
+        }
+
+        public async Task<IActionResult> OnGetOrderDetailsAsync(int id)
+        {
+            var order = await _orderService.GetOrderByIdAsync(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            return new JsonResult(new
+            {
+                order.Id,
+                order.OrderType,
+                order.Status,
+                order.OrderDate,
+                order.ReservationTime,
+                order.TotalPrice,
+                order.Note,
+                order.NumberOfGuests,
+                Customer = order.User?.FullName ?? "Khách vãng lai",
+                Table = order.Table?.TableNumber,
+                Items = order.OrderItems.Select(item => new
+                {
+                    item.MenuItem.Name,
+                    item.Quantity,
+                    item.UnitPrice,
+                    Total = item.Quantity * item.UnitPrice
+                })
+            });
+        }
+    }
+
+    public class CreateOrderModel
+    {
+        public int TableId { get; set; }
+        public string Note { get; set; }
+        public List<OrderItemModel> SelectedItems { get; set; } = new List<OrderItemModel>();
+    }
+
+    public class OrderItemModel
+    {
+        public int MenuItemId { get; set; }
+        public int Quantity { get; set; }
     }
 } 
