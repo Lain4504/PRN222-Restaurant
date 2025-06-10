@@ -7,6 +7,12 @@
 <div class="flex flex-col space-y-6">
     <div class="flex justify-between items-center">
         <h1 class="text-2xl font-bold">Quản lý đơn hàng</h1>
+        <button class="btn btn-primary" onclick="document.getElementById('create-order-modal').showModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Tạo đơn hàng mới
+        </button>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.StatusMessage))
@@ -94,7 +100,7 @@
                                             </li>
                                             <li class="divider"></li>
                                             <li>
-                                                <a href="#" class="text-red-500 view-order-details" data-id="@order.Id">
+                                                <a href="#" class="text-primary view-order-details" data-id="@order.Id">
                                                     Xem chi tiết
                                                 </a>
                                             </li>
@@ -169,6 +175,90 @@
         </div>
     </div>
 </div>
+
+<!-- Modal tạo đơn hàng mới -->
+<dialog id="create-order-modal" class="modal">
+    <div class="modal-box w-11/12 max-w-5xl">
+        <h3 class="font-bold text-lg mb-4">Tạo đơn hàng mới</h3>
+
+        @if (!string.IsNullOrEmpty(Model.StatusMessage) && Model.StatusMessage.StartsWith("Error"))
+        {
+            <div class="alert alert-error mb-4">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>@Model.StatusMessage</span>
+                </div>
+            </div>
+        }
+        
+        <form id="create-order-form" method="post" asp-page-handler="CreateOrder">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Chọn bàn</span>
+                    </label>
+                    <select class="select select-bordered w-full" asp-for="CreateOrderModel.TableId" required>
+                        <option value="">Chọn bàn...</option>
+                        @foreach (var table in Model.AvailableTables)
+                        {
+                            <option value="@table.Id">Bàn @table.TableNumber</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CreateOrderModel.TableId" class="text-error"></span>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Ghi chú</span>
+                    </label>
+                    <textarea class="textarea textarea-bordered" asp-for="CreateOrderModel.Note" placeholder="Nhập ghi chú..."></textarea>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto mb-6">
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>Tên món</th>
+                            <th>Danh mục</th>
+                            <th>Giá</th>
+                            <th>Số lượng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.MenuItems)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td>@item.Category.Name</td>
+                                <td>@item.Price.ToString("N0") đ</td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" class="btn btn-circle btn-sm" onclick="decrementQuantity(@item.Id)">-</button>
+                                        <input type="number" class="input input-bordered w-20 text-center" 
+                                               id="quantity-@item.Id" value="0" min="0"
+                                               onchange="updateQuantity(@item.Id, this.value)" />
+                                        <button type="button" class="btn btn-circle btn-sm" onclick="incrementQuantity(@item.Id)">+</button>
+                                        <input type="hidden" name="CreateOrderModel.SelectedItems.Index" value="@item.Id" />
+                                        <input type="hidden" name="CreateOrderModel.SelectedItems[@item.Id].MenuItemId" value="@item.Id" />
+                                        <input type="hidden" name="CreateOrderModel.SelectedItems[@item.Id].Quantity" value="0" id="hidden-quantity-@item.Id" />
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Tạo đơn hàng</button>
+                <button type="button" class="btn" onclick="document.getElementById('create-order-modal').close()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</dialog>
 
 <!-- Modal xem chi tiết đơn hàng -->
 <dialog id="order-details-modal" class="modal">
@@ -262,10 +352,7 @@
                     document.getElementById('status-order-id').value = orderId;
                     document.getElementById('status-value').value = status;
                     
-                    // Set form action to lowercase URL
-                    const form = document.getElementById('update-status-form');
-                    form.action = '/admin/orders?handler=UpdateStatus';
-                    form.submit();
+                    document.getElementById('update-status-form').submit();
                 });
             });
             
@@ -276,22 +363,38 @@
                     const orderId = this.getAttribute('data-id');
                     const modal = document.getElementById('order-details-modal');
                     
-                    // Lấy thông tin đơn hàng từ dữ liệu hiển thị trên bảng
-                    const row = this.closest('tr');
-                    const cells = row.querySelectorAll('td');
-                    
-                    document.getElementById('order-id').textContent = cells[0].textContent;
-                    document.getElementById('order-type').textContent = cells[1].textContent.trim();
-                    document.getElementById('order-customer').textContent = cells[2].textContent;
-                    document.getElementById('order-table').textContent = cells[3].textContent;
-                    document.getElementById('order-date').textContent = cells[4].textContent;
-                    document.getElementById('order-reservation-time').textContent = cells[5].textContent;
-                    document.getElementById('order-total').textContent = cells[6].textContent;
-                    document.getElementById('order-status').textContent = cells[7].textContent.trim();
-                    
-                    // TODO: Thêm API để lấy chi tiết đơn hàng hoặc truyền dữ liệu qua data attribute
-                    
-                    modal.showModal();
+                    // Fetch order details
+                    fetch(`/admin/orders?handler=OrderDetails&id=${orderId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('order-id').textContent = data.id;
+                            document.getElementById('order-type').textContent = data.orderType === 'Immediate' ? 'Tại chỗ' : 'Đặt trước';
+                            document.getElementById('order-status').textContent = data.status;
+                            document.getElementById('order-customer').textContent = data.customer;
+                            document.getElementById('order-table').textContent = data.table ? `Bàn ${data.table}` : 'N/A';
+                            document.getElementById('order-date').textContent = new Date(data.orderDate).toLocaleString('vi-VN');
+                            document.getElementById('order-reservation-time').textContent = data.reservationTime ? new Date(data.reservationTime).toLocaleString('vi-VN') : 'N/A';
+                            document.getElementById('order-guests').textContent = data.numberOfGuests || 'N/A';
+                            document.getElementById('order-note').textContent = data.note || 'N/A';
+                            
+                            // Update order items
+                            const itemsContainer = document.getElementById('order-items');
+                            itemsContainer.innerHTML = '';
+                            data.items.forEach(item => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${item.name}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${item.unitPrice.toLocaleString('vi-VN')} đ</td>
+                                    <td>${item.total.toLocaleString('vi-VN')} đ</td>
+                                `;
+                                itemsContainer.appendChild(row);
+                            });
+                            
+                            document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} đ`;
+                            
+                            modal.showModal();
+                        });
                 });
             });
             
@@ -299,6 +402,38 @@
             document.getElementById('pageSize').addEventListener('change', function() {
                 window.location.href = '/admin/orders?currentPage=1&pageSize=' + this.value;
             });
+
+            // Show modal if there are errors
+            @if (!string.IsNullOrEmpty(Model.StatusMessage) && Model.StatusMessage.StartsWith("Error"))
+            {
+                <text>
+                    document.getElementById('create-order-modal').showModal();
+                </text>
+            }
         });
+
+        // Functions for create order modal
+        function incrementQuantity(itemId) {
+            const input = document.getElementById(`quantity-${itemId}`);
+            input.value = parseInt(input.value) + 1;
+            updateQuantity(itemId, input.value);
+        }
+
+        function decrementQuantity(itemId) {
+            const input = document.getElementById(`quantity-${itemId}`);
+            if (parseInt(input.value) > 0) {
+                input.value = parseInt(input.value) - 1;
+                updateQuantity(itemId, input.value);
+            }
+        }
+
+        function updateQuantity(itemId, value) {
+            const quantity = parseInt(value) || 0;
+            const input = document.getElementById(`quantity-${itemId}`);
+            input.value = Math.max(0, quantity);
+            
+            // Update hidden input for quantity
+            document.getElementById(`hidden-quantity-${itemId}`).value = quantity;
+        }
     </script>
 } 
