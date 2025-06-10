@@ -39,6 +39,14 @@
         <span asp-validation-for="MenuItem.CategoryId" class="text-red-500 text-sm"></span>
     </div>
 
+    <div class="mb-4">
+        <label class="label">Tình trạng món ăn</label>
+        <select asp-for="MenuItem.Status" asp-items="Model.StatusOptions" class="select select-bordered w-full">
+            <option value="">-- Chọn tình trạng --</option>
+        </select>
+        <span asp-validation-for="MenuItem.Status" class="text-red-500 text-sm"></span>
+    </div>
+
     <div class="mt-6">
         <button type="submit" class="btn btn-primary">Lưu</button>
         <a href="/admin/products" class="btn btn-ghost ml-2">Hủy</a>

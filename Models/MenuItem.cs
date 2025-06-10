@@ -19,10 +19,19 @@ public class MenuItem
     public string ImageUrl { get; set; } = null!;
 
     [Required(ErrorMessage = "Phải chọn danh mục")]
-    public int? CategoryId { get; set; } // sửa từ int -> int? để validation hoạt động
+    public int? CategoryId { get; set; }
 
     public Category? Category { get; set; }
 
     public ICollection<OrderItem>? OrderItems { get; set; }
+
+    [Required(ErrorMessage = "Tình trạng món ăn là bắt buộc")]
+    public MenuItemStatus Status { get; set; }
+}
+
+public enum MenuItemStatus
+{
+    Available,   // Còn món
+    Unavailable  // Hết món
 }
 

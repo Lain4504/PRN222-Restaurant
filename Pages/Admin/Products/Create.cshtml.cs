@@ -21,6 +21,7 @@ namespace PRN222_Restaurant.Pages.Admin.Products
         public MenuItem MenuItem { get; set; } = new MenuItem();
 
         public SelectList? CategoryOptions { get; set; }
+        public SelectList? StatusOptions { get; set; }
 
         private async Task LoadCategoryOptionsAsync()
         {
@@ -28,9 +29,20 @@ namespace PRN222_Restaurant.Pages.Admin.Products
             CategoryOptions = new SelectList(categories, "Id", "Name");
         }
 
+        private void LoadStatusOptions()
+        {
+            StatusOptions = new SelectList(
+                Enum.GetValues(typeof(MenuItemStatus))
+                    .Cast<MenuItemStatus>()
+                    .Select(s => new { Value = s, Text = s.ToString() }),
+                "Value", "Text"
+            );
+        }
+
         public async Task<IActionResult> OnGetAsync()
         {
             await LoadCategoryOptionsAsync();
+            LoadStatusOptions();
             return Page();
         }
 
@@ -39,21 +51,21 @@ namespace PRN222_Restaurant.Pages.Admin.Products
             if (!ModelState.IsValid)
             {
                 await LoadCategoryOptionsAsync();
+                LoadStatusOptions();
                 return Page();
             }
 
             try
             {
-                // Sử dụng dữ liệu từ form thay vì hardcode
                 await _menuItemService.AddAsync(MenuItem);
                 TempData["SuccessMessage"] = "Thêm món thành công!";
                 return RedirectToPage("/admin/products");
             }
             catch (Exception ex)
             {
-                // Log lỗi nếu cần
                 ModelState.AddModelError("", "Có lỗi xảy ra khi thêm món: " + ex.Message);
                 await LoadCategoryOptionsAsync();
+                LoadStatusOptions();
                 return Page();
             }
         }
