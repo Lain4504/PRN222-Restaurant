@@ -8,10 +8,8 @@
     <div class="card-body">
         <h2 class="card-title text-2xl mb-6">@(Model.IsNewProduct ? "Thêm sản phẩm mới" : "Cập nhật sản phẩm")</h2>
         
-        <form method="post" id="productForm" data-validate="true" enctype="multipart/form-data">
+        <form method="post" id="productForm" data-validate="true">
             <input type="hidden" asp-for="Product.Id" />
-            <input type="hidden" asp-for="Product.ImageUrl" />
-            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Left column - Form fields -->
                 <div class="space-y-4">
@@ -26,12 +24,12 @@
                         <label class="label">
                             <span class="label-text">Danh mục</span>
                         </label>
-                        <select asp-for="Product.Category" class="select select-bordered w-full" required>
+                        <select asp-for="Product.CategoryId" class="select select-bordered w-full" required>
                             <option value="">Chọn danh mục</option>
-                            <option value="Đồ uống">Đồ uống</option>
-                            <option value="Món chính">Món chính</option>
-                            <option value="Món tráng miệng">Món tráng miệng</option>
-                            <option value="Món khai vị">Món khai vị</option>
+                            @foreach (var category in Model.Categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
                         </select>
                     </div>
                     
@@ -39,7 +37,7 @@
                         <label class="label">
                             <span class="label-text">Giá (VNĐ)</span>
                         </label>
-                        <input type="number" asp-for="Product.Price" class="input input-bordered w-full" placeholder="Nhập giá sản phẩm" required min="0" />
+                        <input type="number" asp-for="Product.Price" asp-format="{0:0.##}" class="input input-bordered w-full" placeholder="Nhập giá sản phẩm" required min="0" />
                     </div>
                     
                     <div class="form-control w-full">
@@ -48,9 +46,10 @@
                         </label>
                         <select asp-for="Product.Status" class="select select-bordered w-full" required>
                             <option value="">Chọn trạng thái</option>
-                            <option value="Đang bán">Đang bán</option>
-                            <option value="Hết hàng">Hết hàng</option>
-                            <option value="Ngưng bán">Ngưng bán</option>
+                            @foreach (var status in Model.Statuses)
+                            {
+                                <option value="@status">@status</option>
+                            }
                         </select>
                     </div>
                     
@@ -66,22 +65,26 @@
                 <div>
                     <div class="form-control w-full">
                         <label class="label">
-                            <span class="label-text">Hình ảnh sản phẩm</span>
+                            <span class="label-text">URL hình ảnh</span>
                         </label>
-                        <input type="file" name="ImageFile" class="file-input file-input-bordered w-full" accept="image/*" @(Model.IsNewProduct ? "required" : "") />
+                        <input type="url" asp-for="Product.ImageUrl" class="input input-bordered w-full" placeholder="Nhập hoặc dán URL hình ảnh" required />
                     </div>
+
                     
                     <div class="mt-4">
                         <label class="label">
                             <span class="label-text">Xem trước hình ảnh</span>
                         </label>
                         <div class="w-full h-64 bg-base-200 rounded-lg overflow-hidden">
-                            <img id="imagePreview" src="@Model.Product.ImageUrl" alt="Product preview" class="w-full h-full object-contain @(string.IsNullOrEmpty(Model.Product.ImageUrl) ? "hidden" : "")" />
-                            <div id="previewPlaceholder" class="w-full h-full flex items-center justify-center @(!string.IsNullOrEmpty(Model.Product.ImageUrl) ? "hidden" : "")">
+                            <img id="imagePreview" src="@Model.Product.ImageUrl" alt="Product preview"
+                                 class="w-full h-full object-contain @(string.IsNullOrEmpty(Model.Product.ImageUrl) ? "hidden" : "")" />
+                            <div id="previewPlaceholder"
+                                 class="w-full h-full flex items-center justify-center @(!string.IsNullOrEmpty(Model.Product.ImageUrl) ? "hidden" : "")">
                                 <span class="text-gray-400">No image uploaded</span>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
               <div class="divider"></div>
@@ -121,24 +124,27 @@
                 this.submit();
             }
         });
-        
-        // Image preview functionality
-        const imageInput = document.querySelector('input[name="ImageFile"]');
-        const imagePreview = document.getElementById('imagePreview');
-        const previewPlaceholder = document.getElementById('previewPlaceholder');
-        
-        imageInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    imagePreview.classList.remove('hidden');
-                    previewPlaceholder.classList.add('hidden');
-                }
-                
-                reader.readAsDataURL(this.files[0]);
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const imageUrlInput = document.querySelector('input[name="Product.ImageUrl"]');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewPlaceholder = document.getElementById('previewPlaceholder');
+
+            if (imageUrlInput) {
+                imageUrlInput.addEventListener('input', function () {
+                    const url = this.value.trim();
+                    if (url) {
+                        imagePreview.src = url;
+                        imagePreview.classList.remove('hidden');
+                        previewPlaceholder.classList.add('hidden');
+                    } else {
+                        imagePreview.src = "";
+                        imagePreview.classList.add('hidden');
+                        previewPlaceholder.classList.remove('hidden');
+                    }
+                });
             }
         });
+
     </script>
 }
