@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
-using System;
 
 namespace PRN222_Restaurant.Pages.Admin
 {
@@ -26,31 +25,30 @@ namespace PRN222_Restaurant.Pages.Admin
         public int CurrentPage { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public int TotalPages => (TotalProducts + PageSize - 1) / PageSize;
+        public int FromRecord => ((CurrentPage - 1) * PageSize) + 1;
+        public int ToRecord => Math.Min(CurrentPage * PageSize, TotalProducts);
 
-        public async Task OnGetAsync(int page = 1)
+        public async Task OnGetAsync()
         {
-            CurrentPage = page < 1 ? 1 : page;
+            var pageQuery = HttpContext.Request.Query["page"];
+            int.TryParse(pageQuery, out int page);
+            CurrentPage = page <= 0 ? 1 : page;
 
-            var query = _context.MenuItems
-                                .Include(m => m.Category) // Lấy tên category
-                                .AsQueryable();
+            var query = _context.MenuItems.Include(m => m.Category).AsQueryable();
 
             TotalProducts = await query.CountAsync();
-
             Products = await query
                 .OrderBy(p => p.Id)
                 .Skip((CurrentPage - 1) * PageSize)
                 .Take(PageSize)
                 .ToListAsync();
 
-            // Lấy danh mục từ database
             Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
-
-            // Lấy trạng thái từ enum MenuItemStatus
             Statuses = Enum.GetNames(typeof(MenuItemStatus)).ToList();
         }
 
-        public async Task<IActionResult> OnPostDeleteAsync(int productId)
+
+        public async Task<IActionResult> OnPostDeleteAsync(int productId, int page = 1)
         {
             var product = await _context.MenuItems.FindAsync(productId);
             if (product != null)
@@ -60,7 +58,9 @@ namespace PRN222_Restaurant.Pages.Admin
                 SuccessMessage = $"Sản phẩm ID {productId} đã được xóa thành công";
             }
 
-            return RedirectToPage();
+            // Redirect lại đúng trang hiện tại sau khi xóa
+            return Redirect($"/admin/products");
         }
     }
+
 }
