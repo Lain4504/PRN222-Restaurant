@@ -1,12 +1,9 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using PRN222_Restaurant.Data; // hoặc namespace thật của DbContext
-using PRN222_Restaurant.Models; // chứa MenuItem entity
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using PRN222_Restaurant.Data;
+using PRN222_Restaurant.Models;
+
 
 namespace PRN222_Restaurant.Pages.Admin.Products
 {

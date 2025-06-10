@@ -15,10 +15,13 @@ namespace PRN222_Restaurant.Pages.Admin.Products
         }
 
         [BindProperty]
-        public Category Category { get; set; } = new Category();
+        public Category Category { get; set; } = new();
 
-        public IActionResult OnGet()
+        public List<Category> Categories { get; set; } = new();
+
+        public async Task<IActionResult> OnGetAsync()
         {
+            Categories = (await _menuCategoryService.GetAllAsync()).ToList();
             return Page();
         }
 
@@ -26,6 +29,7 @@ namespace PRN222_Restaurant.Pages.Admin.Products
         {
             if (!ModelState.IsValid)
             {
+                Categories = (await _menuCategoryService.GetAllAsync()).ToList();
                 return Page();
             }
 
@@ -33,13 +37,29 @@ namespace PRN222_Restaurant.Pages.Admin.Products
             {
                 await _menuCategoryService.AddAsync(Category);
                 TempData["SuccessMessage"] = "Thêm danh mục thành công!";
-                return RedirectToPage("/admin/products");
+                return Redirect($"/admin/products"); // Refresh lại trang để hiển thị danh sách mới
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi khi thêm danh mục: " + ex.Message);
+                Categories = (await _menuCategoryService.GetAllAsync()).ToList();
                 return Page();
             }
+        }
+
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
+        {
+            try
+            {
+                await _menuCategoryService.DeleteAsync(id);
+                TempData["SuccessMessage"] = "Xóa danh mục thành công!";
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Lỗi khi xóa: " + ex.Message);
+            }
+
+            return Redirect($"/admin/products");
         }
     }
 }
