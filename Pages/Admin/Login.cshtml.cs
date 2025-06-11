@@ -115,7 +115,7 @@ namespace PRN222_Restaurant.Pages.Admin
             switch (loginResult.Role)
             {
                 case "Admin":
-                    return RedirectToPage("/Admin/Dashboard");
+                    return RedirectToPage("/admin/dashboard");
                 case "Customer":
                     return RedirectToPage("/Index");
                 default:
