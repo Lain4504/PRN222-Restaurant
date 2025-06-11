@@ -16,5 +16,6 @@ namespace PRN222_Restaurant.Services.IService
         Task<bool> IsTableAvailableAsync(int tableId, DateTime date, TimeSpan time);
         Task<List<Table>> GetAvailableTablesAsync();
         Task SendOrderConfirmationEmailAsync(Order order);
+        Task<Order?> GetOrderWithItemsAsync(int id);
     }
 } 

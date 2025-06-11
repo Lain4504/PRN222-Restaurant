@@ -1,150 +1,99 @@
 @page "/checkout"
 @model PRN222_Restaurant.Pages.CheckoutModel
 @{
-    ViewData["Title"] = "Thanh toán";
+    ViewData["Title"] = "Complete Your Payment";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <!-- Order Summary -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">Đơn hàng của bạn</h3>
-                </div>
-                <div class="card-body">
-                    <div id="checkout-items" class="text-center">
-                        <!-- Order items will be populated here with JavaScript -->
-                        <div class="text-center text-muted py-4">
-                            <span>Đang tải thông tin đơn hàng...</span>
-                        </div>
-                    </div>
-                    
-                    <div class="divider"></div>
-                    
-                    <div class="space-y-2 text-center">
-                        <div class="d-flex justify-content-between">
-                            <span>Tạm tính</span>
-                            <span id="subtotal">0 VNĐ</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Thuế (10%)</span>
-                            <span id="tax">0 VNĐ</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Phí vận chuyển</span>
-                            <span id="delivery-fee">0 VNĐ</span>
-                        </div>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">Complete Your Payment</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Order Summary -->
+            <div class="md:col-span-2">
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-4">Order Summary</h2>
                         
-                        <div class="divider"></div>
-                        
-                        <div class="d-flex justify-content-between font-bold text-lg">
-                            <span>Tổng cộng</span>
-                            <span id="total">0 VNĐ</span>
+                        <div class="overflow-x-auto">
+                            <table class="table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th class="text-right">Quantity</th>
+                                        <th class="text-right">Price</th>
+                                        <th class="text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.OrderItems != null)
+                                    {
+                                        foreach (var item in Model.OrderItems)
+                                        {
+                                            <tr>
+                                                <td>@item.Name</td>
+                                                <td class="text-right">@item.Quantity</td>
+                                                <td class="text-right">$@item.Price.ToString("F2")</td>
+                                                <td class="text-right">$@item.Subtotal.ToString("F2")</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-right font-bold">Subtotal:</td>
+                                        <td class="text-right font-bold">$@Model.Subtotal.ToString("F2")</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-right">Tax (10%):</td>
+                                        <td class="text-right">$@Model.Tax.ToString("F2")</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-right font-bold">Total:</td>
+                                        <td class="text-right font-bold">$@Model.Total.ToString("F2")</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Payment Section -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">Thanh toán</h3>
-                </div>
-                <div class="card-body">
-                    <form method="post" class="text-center">
-                        <input type="hidden" asp-for="PaymentInfo.OrderType" value="other" />
-                        <input type="hidden" asp-for="PaymentInfo.OrderId" value="@DateTime.Now.Ticks" />
-                        <input type="hidden" asp-for="PaymentInfo.Name" value="Khách hàng" />
-                        <input type="hidden" asp-for="PaymentInfo.OrderDescription" value="Thanh toan don hang" />
-                        <input type="hidden" asp-for="PaymentInfo.Amount" value="100000" />
+            
+            <!-- Payment Section -->
+            <div class="md:col-span-1">
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl mb-4">Payment</h2>
                         
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-credit-card me-2"></i>
-                                Thanh toán với VNPay
-                            </button>
+                        <form method="post">
+                            <input type="hidden" asp-for="PaymentInfo.OrderId" value="@Model.OrderId" />
+                            <input type="hidden" asp-for="PaymentInfo.Amount" value="@Model.Total" />
+                            <input type="hidden" asp-for="PaymentInfo.OrderDescription" value="Payment for reservation #@Model.OrderId" />
+                            <input type="hidden" asp-for="PaymentInfo.OrderType" value="PreOrder" />
+                            <input type="hidden" asp-for="PaymentInfo.Name" value="@(User.Identity.IsAuthenticated ? User.Identity.Name : "Guest")" />
+                            
+                            <div class="form-control mt-6">
+                                <button type="submit" class="btn btn-primary btn-lg w-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                    </svg>
+                                    Pay with VNPay
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="mt-8">
+                            <h3 class="font-semibold mb-2">Payment Instructions</h3>
+                            <ul class="list-disc pl-5 space-y-1 text-sm">
+                                <li>You will be redirected to the VNPay payment gateway</li>
+                                <li>Select your preferred payment method</li>
+                                <li>Complete the payment process</li>
+                                <li>You will be returned to our site after payment</li>
+                            </ul>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Variables
-    let cartItems = [];
-    let cartTotal = 0;
-    let tax = 0;
-    let deliveryFee = 0;
-    let subtotal = 0;
-    
-    // Initialize checkout page
-    document.addEventListener('DOMContentLoaded', function() {
-        loadOrderItems();
-    });
-    
-    // Load order items from server
-    async function loadOrderItems() {
-        try {
-            const response = await fetch('/api/orders/current');
-            const order = await response.json();
-            
-            if (order && order.orderItems) {
-                const checkoutItemsContainer = document.getElementById('checkout-items');
-                checkoutItemsContainer.innerHTML = '';
-                
-                subtotal = 0;
-                
-                order.orderItems.forEach(item => {
-                    const itemTotal = item.price * item.quantity;
-                    subtotal += itemTotal;
-                    
-                    const itemElement = document.createElement('div');
-                    itemElement.className = 'd-flex justify-content-between align-items-center mb-4';
-                    itemElement.innerHTML = `
-                        <div class="text-start">
-                            <h4 class="font-medium">${item.menuItem.name}</h4>
-                            <p class="text-sm text-gray-500">${item.price.toLocaleString('vi-VN')} VNĐ × ${item.quantity}</p>
-                        </div>
-                        <span class="font-medium">${itemTotal.toLocaleString('vi-VN')} VNĐ</span>
-                    `;
-                    checkoutItemsContainer.appendChild(itemElement);
-                });
-                
-                updateOrderSummary();
-            }
-        } catch (error) {
-            console.error('Error loading order items:', error);
-        }
-    }
-    
-    // Update order summary
-    function updateOrderSummary() {
-        const subtotalElement = document.getElementById('subtotal');
-        const taxElement = document.getElementById('tax');
-        const deliveryFeeElement = document.getElementById('delivery-fee');
-        const totalElement = document.getElementById('total');
-        
-        // Calculate tax
-        tax = subtotal * 0.1;
-        
-        // Calculate delivery fee
-        deliveryFee = subtotal > 0 ? 30000 : 0; // 30,000 VNĐ delivery fee if there are items
-        
-        // Update display
-        subtotalElement.textContent = `${subtotal.toLocaleString('vi-VN')} VNĐ`;
-        taxElement.textContent = `${tax.toLocaleString('vi-VN')} VNĐ`;
-        deliveryFeeElement.textContent = `${deliveryFee.toLocaleString('vi-VN')} VNĐ`;
-        
-        // Calculate total
-        cartTotal = subtotal + tax + deliveryFee;
-        totalElement.textContent = `${cartTotal.toLocaleString('vi-VN')} VNĐ`;
-        
-        // Update hidden amount field
-        document.querySelector('input[name="PaymentInfo.Amount"]').value = cartTotal;
-    }
-</script>

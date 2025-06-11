@@ -1,80 +1,155 @@
-@page "/preorder-confirmation/{id:int}"
+@page "/preorderconfirmation/{id:int}"
 @model PRN222_Restaurant.Pages.PreOrderConfirmationModel
 @{
-    ViewData["Title"] = "Order Confirmation";
+    ViewData["Title"] = "Reservation Confirmation";
 }
 
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Order Confirmation</h1>
-            <p class="text-gray-600 mt-2">Thank you for your order! Here are your order details.</p>
-        </div>
-
-        <div class="bg-white shadow-lg rounded-lg p-6 mb-6">
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Order Number</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">#@Model.Order.Id</p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Status</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">@Model.Order.Status</p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Reservation Date</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">@Model.Order.ReservationTime?.ToString("MMMM dd, yyyy")</p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Reservation Time</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">@Model.Order.ReservationTime?.ToString("hh:mm tt")</p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Table Number</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">@Model.Order.Table.TableNumber</p>
-                </div>
-                <div>
-                    <h3 class="text-sm font-medium text-gray-500">Number of Guests</h3>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">@Model.Order.NumberOfGuests</p>
-                </div>
-            </div>
-
-            <div class="border-t border-gray-200 pt-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
-                <div class="space-y-4">
-                    @foreach (var item in Model.Order.OrderItems)
-                    {
-                        <div class="flex justify-between items-center">
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-8">
+                    <!-- Success Message -->
+                    <div class="flex flex-col items-center justify-center py-4 mb-8">
+                        <div class="text-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-success mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h1 class="text-3xl font-bold mb-2 text-center">Pre-Order Successfully Placed!</h1>
+                        <p class="text-center text-gray-600 mb-6">
+                            Thank you for choosing Ocean Delights. Your reservation and pre-order have been successfully booked.
+                        </p>
+                    </div>
+                    
+                    <!-- Payment Timer Alert -->
+                    <div class="alert alert-warning mb-8">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                             <div>
-                                <h4 class="text-base font-medium text-gray-900">@item.MenuItem.Name</h4>
-                                <p class="text-sm text-gray-500">Quantity: @item.Quantity</p>
+                                <h3 class="font-bold">Please complete your payment within:</h3>
+                                <div class="text-lg font-mono font-bold" id="countdown">15:00</div>
+                                <p class="text-sm">Your reservation will be automatically cancelled if payment is not completed within 15 minutes.</p>
                             </div>
-                            <p class="text-base font-medium text-gray-900">$@(item.UnitPrice * item.Quantity)</p>
+                        </div>
+                    </div>
+
+                    <!-- Reservation Details -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-8">
+                        <h2 class="text-xl font-semibold mb-4">Reservation Details</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p><span class="font-medium">Date:</span> @Model.ReservationDate.ToString("MMMM dd, yyyy")</p>
+                                <p><span class="font-medium">Time:</span> @Model.ReservationTime.ToString("hh\\:mm")</p>
+                            </div>
+                            <div>
+                                <p><span class="font-medium">Table:</span> @Model.TableNumber</p>
+                                <p><span class="font-medium">Guests:</span> @Model.NumberOfGuests</p>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Note))
+                        {
+                            <div class="mt-4">
+                                <p><span class="font-medium">Special Requests:</span></p>
+                                <p class="italic">@Model.Note</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Pre-Order Items -->
+                    @if (Model.OrderItems.Any())
+                    {
+                        <div class="mb-8">
+                            <h2 class="text-xl font-semibold mb-4">Pre-Ordered Items</h2>
+                            <div class="overflow-x-auto">
+                                <table class="table w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th class="text-right">Quantity</th>
+                                            <th class="text-right">Price</th>
+                                            <th class="text-right">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.OrderItems)
+                                        {
+                                            <tr>
+                                                <td>@item.Name</td>
+                                                <td class="text-right">@item.Quantity</td>
+                                                <td class="text-right">$@item.Price.ToString("F2")</td>
+                                                <td class="text-right">$@item.Subtotal.ToString("F2")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="text-right font-bold">Total:</td>
+                                            <td class="text-right font-bold">$@Model.TotalAmount.ToString("F2")</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     }
-                </div>
-                <div class="border-t border-gray-200 mt-6 pt-6">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-gray-900">Total</h3>
-                        <p class="text-2xl font-bold text-gray-900">$@Model.Order.TotalPrice</p>
+                    
+                    <!-- Actions -->
+                    <div class="flex flex-col items-center gap-4 mt-8">
+                        <a href="/checkout?orderId=@Model.Order.Id" class="btn btn-primary btn-lg w-full md:w-1/2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                            Pay Now
+                        </a>
+                        <div class="flex flex-col md:flex-row gap-4 justify-center w-full">
+                            <a href="/" class="btn btn-outline flex-1">Return to Homepage</a>
+                            <a href="/menu" class="btn btn-outline flex-1">View Our Menu</a>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            @if (!string.IsNullOrEmpty(Model.Order.Note))
-            {
-                <div class="mt-6">
-                    <h3 class="text-sm font-medium text-gray-500">Special Instructions</h3>
-                    <p class="mt-1 text-gray-900">@Model.Order.Note</p>
-                </div>
-            }
-        </div>
-
-        <div class="flex justify-center space-x-4">
-            <form method="post" asp-page-handler="Cancel" asp-route-id="@Model.Order.Id">
-                <button type="submit" class="btn btn-error">Cancel Order</button>
-            </form>
-            <a href="/" class="btn btn-primary">Return to Home</a>
         </div>
     </div>
-</div> 
+</section>
+
+@section Scripts {
+    <script>
+        // Countdown timer functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set the countdown time (15 minutes in seconds)
+            let timeLeft = 15 * 60;
+            const countdownElement = document.getElementById('countdown');
+            
+            // Update the countdown every second
+            const countdownInterval = setInterval(function() {
+                // Calculate minutes and seconds
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                // Display the time with leading zeros if needed
+                countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Decrement the time
+                timeLeft--;
+                
+                // Check if time has expired
+                if (timeLeft < 0) {
+                    clearInterval(countdownInterval);
+                    countdownElement.textContent = '00:00';
+                    countdownElement.classList.add('text-red-500');
+                    
+                    // You could redirect to a payment failed page or show a message
+                    alert('Your reservation time has expired. The order will be cancelled.');
+                    window.location.href = '/';
+                }
+                
+                // Change color to red when less than 3 minutes remaining
+                if (timeLeft < 180) {
+                    countdownElement.classList.add('text-red-500');
+                }
+            }, 1000);
+        });
+    </script>
+} 

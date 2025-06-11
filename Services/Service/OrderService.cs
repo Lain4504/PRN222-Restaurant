@@ -66,9 +66,17 @@ namespace PRN222_Restaurant.Services.Service
 
         public async Task<Order> CreatePreOrderAsync(Order order, Dictionary<int, int> selectedItems)
         {
+            // Initialize OrderItems collection if null
+            if (order.OrderItems == null)
+            {
+                order.OrderItems = new List<OrderItem>();
+            }
+            
             order.OrderType = "PreOrder";
             order.OrderDate = DateTime.Now;
             order.Status = "Pending";
+            
+            Console.WriteLine($"Creating pre-order for table {order.TableId} with {selectedItems.Count} items");
 
             // Add order items and calculate total price
             decimal totalPrice = 0;
@@ -84,11 +92,15 @@ namespace PRN222_Restaurant.Services.Service
                         UnitPrice = menuItem.Price
                     });
                     totalPrice += menuItem.Price * item.Value;
+                    Console.WriteLine($"Added item {menuItem.Name} x{item.Value} at ${menuItem.Price} each");
                 }
             }
             order.TotalPrice = totalPrice;
+            Console.WriteLine($"Total order price: ${totalPrice}");
 
             var createdOrder = await _orderRepository.CreateAsync(order);
+            Console.WriteLine($"Created order with ID: {createdOrder.Id}");
+            
             await SendOrderConfirmationEmailAsync(createdOrder);
             return createdOrder;
         }
@@ -122,6 +134,39 @@ namespace PRN222_Restaurant.Services.Service
             // TODO: Implement email sending logic
             // This would typically use a service like SendGrid or SMTP
             await Task.CompletedTask;
+        }
+        
+        public async Task<Order?> GetOrderWithItemsAsync(int id)
+        {
+            return await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == id);
+        }
+        
+        // Interface implementation for IOrderService
+        public async Task<IEnumerable<Order>> GetAllAsync()
+        {
+            return await _orderRepository.GetAllAsync();
+        }
+        
+        public async Task<Order?> GetByIdAsync(int id)
+        {
+            return await _orderRepository.GetByIdAsync(id);
+        }
+        
+        public async Task<Order> CreateAsync(Order order)
+        {
+            return await _orderRepository.CreateAsync(order);
+        }
+        
+        public async Task UpdateAsync(Order order)
+        {
+            await _orderRepository.UpdateAsync(order);
+        }
+        
+        public async Task DeleteAsync(int id)
+        {
+            await _orderRepository.DeleteAsync(id);
         }
     }
 } 
