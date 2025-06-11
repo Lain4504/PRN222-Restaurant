@@ -1,28 +1,129 @@
 @page "/payment-success"
 @model PRN222_Restaurant.Pages.PaymentSuccessModel
 @{
-    ViewData["Title"] = "Thanh toán thành công";
+    ViewData["Title"] = "Payment Successful";
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-8">
+                    <!-- Success Message -->
+                    <div class="flex flex-col items-center justify-center py-4 mb-8">
+                        <div class="text-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-success mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h1 class="text-3xl font-bold mb-2 text-center">Payment Successful!</h1>
+                        <p class="text-center text-gray-600 mb-2">
+                            Thank you for your payment. Your reservation has been confirmed.
+                        </p>
+                        @if (TempData["TransactionId"] != null)
+                        {
+                            <p class="text-center text-gray-500">
+                                Transaction ID: <span class="font-mono">@TempData["TransactionId"]</span>
+                            </p>
+                        }
                     </div>
-                    <h2 class="card-title">Thanh toán thành công!</h2>
-                    <p class="card-text">Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
-                    @if (TempData["TransactionId"] != null)
+                    
+                    <!-- Order Details -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-8">
+                        <h2 class="text-xl font-semibold mb-4">Reservation Details</h2>
+                        
+                        @if (Model.Order != null)
+                        {
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    @if (Model.Order.ReservationTime.HasValue)
+                                    {
+                                        <p><span class="font-medium">Date:</span> @Model.Order.ReservationTime.Value.ToString("MMMM dd, yyyy")</p>
+                                        <p><span class="font-medium">Time:</span> @Model.Order.ReservationTime.Value.ToString("hh:mm tt")</p>
+                                    }
+                                    <p><span class="font-medium">Order ID:</span> #@Model.Order.Id</p>
+                                </div>
+                                <div>
+                                    @if (Model.TableNumber > 0)
+                                    {
+                                        <p><span class="font-medium">Table:</span> @Model.TableNumber</p>
+                                    }
+                                    @if (Model.Order.NumberOfGuests.HasValue)
+                                    {
+                                        <p><span class="font-medium">Guests:</span> @Model.Order.NumberOfGuests</p>
+                                    }
+                                </div>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(Model.Order.Note))
+                            {
+                                <div class="mt-4">
+                                    <p><span class="font-medium">Special Requests:</span></p>
+                                    <p class="italic">@Model.Order.Note</p>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p>Your payment has been processed successfully.</p>
+                        }
+                    </div>
+                    
+                    <!-- Pre-Order Items -->
+                    @if (Model.OrderItems != null && Model.OrderItems.Any())
                     {
-                        <p class="card-text">Mã giao dịch: @TempData["TransactionId"]</p>
+                        <div class="mb-8">
+                            <h2 class="text-xl font-semibold mb-4">Pre-Ordered Items</h2>
+                            <div class="overflow-x-auto">
+                                <table class="table w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th class="text-right">Quantity</th>
+                                            <th class="text-right">Price</th>
+                                            <th class="text-right">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.OrderItems)
+                                        {
+                                            <tr>
+                                                <td>@item.Name</td>
+                                                <td class="text-right">@item.Quantity</td>
+                                                <td class="text-right">$@item.Price.ToString("F2")</td>
+                                                <td class="text-right">$@item.Subtotal.ToString("F2")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="text-right font-bold">Total:</td>
+                                            <td class="text-right font-bold">$@Model.TotalAmount.ToString("F2")</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
                     }
-                    <div class="mt-4">
-                        <a href="/" class="btn btn-primary">Về trang chủ</a>
+                    
+                    <!-- Next Steps -->
+                    <div class="bg-blue-50 p-6 rounded-lg mb-8">
+                        <h2 class="text-xl font-semibold mb-4">Next Steps</h2>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>A confirmation email has been sent to your registered email address.</li>
+                            <li>Please arrive 10 minutes before your scheduled reservation time.</li>
+                            <li>Your pre-ordered items will be prepared for your arrival.</li>
+                            <li>If you need to modify your reservation, please contact us at least 2 hours in advance.</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex flex-col md:flex-row gap-4 justify-center mt-8">
+                        <a href="/" class="btn btn-outline flex-1">Return to Homepage</a>
+                        <a href="/menu" class="btn btn-primary flex-1">Browse Our Menu</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div> 
+</section> 
