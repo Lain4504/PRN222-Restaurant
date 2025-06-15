@@ -8,12 +8,11 @@
 <section class="relative py-16 md:py-24">
     <!-- Background Image with Overlay -->
     <div class="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=2070" 
-             alt="Restaurant Interior" 
-             class="w-full h-full object-cover" />
+        <img src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=2070" alt="Restaurant Interior"
+            class="w-full h-full object-cover" />
         <div class="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900/80"></div>
     </div>
-    
+
     <div class="container mx-auto px-4 relative z-10">
         <div class="text-center mb-12">
             <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Reserve Your Table</h1>
@@ -31,44 +30,41 @@
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body p-8">
                     <h2 class="card-title text-2xl mb-6">Reservation Details</h2>
-                    
+
                     <form id="reservationForm" method="post" class="space-y-6">
                         <div asp-validation-summary="ModelOnly" class="text-red-500"></div>
-                        
+
                         <!-- Date and Time Selection -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-control">
                                 <label asp-for="ReservationDate" class="label">
                                     <span class="label-text">Date</span>
                                 </label>
-                                <input asp-for="ReservationDate" type="date" 
-                                       class="input input-bordered w-full" 
-                                       min="@DateTime.Now.ToString("yyyy-MM-dd")" 
-                                       id="reservationDate" />
+                                <input asp-for="ReservationDate" type="date" class="input input-bordered w-full"
+                                    min="@DateTime.Now.ToString("yyyy-MM-dd")" id="reservationDate" />
                                 <span asp-validation-for="ReservationDate" class="text-red-500"></span>
                             </div>
-                            
+
                             <div class="form-control">
                                 <label asp-for="ReservationTime" class="label">
                                     <span class="label-text">Time</span>
                                 </label>
-                                <input asp-for="ReservationTime" type="time" 
-                                       class="input input-bordered w-full"
-                                       id="reservationTime" />
+                                <input asp-for="ReservationTime" type="time" class="input input-bordered w-full"
+                                    id="reservationTime" />
                                 <span asp-validation-for="ReservationTime" class="text-red-500"></span>
                             </div>
                         </div>
-                        
+
                         <!-- Number of Guests -->
                         <div class="form-control">
                             <label asp-for="NumberOfGuests" class="label">
                                 <span class="label-text">Number of Guests</span>
                             </label>
-                            <input asp-for="NumberOfGuests" type="number" min="1" max="20" 
-                                   class="input input-bordered w-full" />
+                            <input asp-for="NumberOfGuests" type="number" min="1" max="20"
+                                class="input input-bordered w-full" />
                             <span asp-validation-for="NumberOfGuests" class="text-red-500"></span>
                         </div>
-                        
+
                         <!-- Table Selection -->
                         <div class="form-control">
                             <label class="label">
@@ -76,13 +72,13 @@
                             </label>
                             <input type="hidden" asp-for="TableId" id="selectedTable" />
                             <span asp-validation-for="TableId" class="text-red-500"></span>
-                            
+
                             <!-- Tables Layout Section -->
                             <div class="mb-8 p-6 bg-gray-100 rounded-lg">
                                 <div class="text-center mb-4">
                                     <h3 class="text-lg font-bold">Restaurant Floor Plan</h3>
                                 </div>
-                                
+
                                 <!-- Table Status Legend -->
                                 <div class="flex items-center justify-center gap-8 mb-6">
                                     <div class="flex items-center">
@@ -94,44 +90,58 @@
                                         <span>Occupied</span>
                                     </div>
                                     <div class="flex items-center">
+                                        <div class="w-6 h-6 bg-yellow-400 rounded-md mr-2" style="background-color: #facc15;"></div>
+                                        <span>Unavailable</span>
+                                    </div>
+                                    <div class="flex items-center">
                                         <div class="w-6 h-6 bg-blue-500 rounded-md mr-2"></div>
                                         <span>Selected</span>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Restaurant Area -->
                                 <div class="relative border-2 border-gray-400 rounded-lg p-6 bg-gray-50">
                                     <!-- Restaurant Entrance -->
-                                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium">
+                                    <div
+                                        class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium">
                                         Entrance
                                     </div>
-                                    
+
                                     <!-- Kitchen Area -->
-                                    <div class="absolute -bottom-4 right-8 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium">
+                                    <div
+                                        class="absolute -bottom-4 right-8 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium">
                                         Kitchen
                                     </div>
-                                    
+
                                     <!-- Bar Area -->
-                                    <div class="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium rotate-90">
+                                    <div
+                                        class="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium rotate-90">
                                         Bar
                                     </div>
-                                    
+
                                     <!-- Tables Grid -->
                                     <div class="grid grid-cols-4 gap-4">
                                         @for (int i = 0; i < Model.Tables.Count; i++)
                                         {
                                             var table = Model.Tables[i];
-                                            string bgColor = table.IsAvailable ? "bg-green-500" : "bg-red-500";
-                                            string hoverEffect = table.IsAvailable ? "hover:bg-green-600" : "";
-                                            string cursor = table.IsAvailable ? "cursor-pointer" : "cursor-not-allowed";
-                                            string opacity = table.IsAvailable ? "" : "opacity-60";
-                                            
+                                            bool isAvailable = table.IsAvailable;
+                                            bool isOverCapacity = isAvailable && Model.NumberOfGuests > table.Capacity;
+                                            string bgColor = isAvailable
+                                                ? (isOverCapacity ? "bg-yellow-400" : "bg-green-500")
+                                                : "bg-red-500";
+                                            string hoverEffect = (isAvailable && !isOverCapacity) ? "hover:bg-green-600" : "";
+                                            string cursor = (isAvailable && !isOverCapacity) ? "cursor-pointer" : "cursor-not-allowed";
+                                            string opacity = (!isAvailable || isOverCapacity) ? "opacity-60" : "";
+                                            string onClick = (isAvailable && !isOverCapacity) ? "onclick=\"selectTable(this)\"" : "";
+                                            string extraStyle = isOverCapacity ? "background-color: #facc15;" : ""; // Tailwind yellow-400
+
                                             <div class="table-item @bgColor @hoverEffect @cursor @opacity rounded-lg p-4 h-24 text-center text-white shadow-md border-2 border-gray-600"
-                                                 data-table-id="@table.Id" 
+                                                 style="@extraStyle"
+                                                 data-table-id="@table.Id"
                                                  data-table-number="@table.TableNumber"
                                                  data-table-capacity="@table.Capacity"
-                                                 data-available="@table.IsAvailable.ToString().ToLower()"
-                                                 onclick="selectTable(this)">
+                                                 data-available="@isAvailable.ToString().ToLower()"
+                                                 @Html.Raw(onClick)>
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                 </svg>
@@ -143,41 +153,45 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Additional Notes -->
                         <div class="form-control">
                             <label asp-for="Note" class="label">
                                 <span class="label-text">Additional Notes (Optional)</span>
                             </label>
-                            <textarea asp-for="Note" class="textarea textarea-bordered h-24" 
-                                      placeholder="Any special requests or requirements?"></textarea>
+                            <textarea asp-for="Note" class="textarea textarea-bordered h-24"
+                                placeholder="Any special requests or requirements?"></textarea>
                             <span asp-validation-for="Note" class="text-red-500"></span>
                         </div>
-                        
+
                         <!-- Selected Table Info -->
                         <div id="selectedTableInfo" class="p-4 bg-blue-50 rounded-lg hidden">
                             <h3 class="font-bold text-lg mb-2">Selected Table</h3>
                             <p>Table Number: <span id="displayTableNumber"></span></p>
                             <p>Capacity: <span id="displayTableCapacity"></span> people</p>
                         </div>
-                        
+
                         <!-- Food Menu Selection Section (initially hidden) -->
                         <div id="menuSelectionSection" class="hidden mt-8 border-t pt-8">
                             <h3 class="font-bold text-xl mb-4">Pre-Order Menu</h3>
-                            
+
                             <!-- Search and Category Filter -->
                             <div class="flex flex-col md:flex-row gap-4 mb-6">
                                 <div class="form-control flex-grow">
-                                    <div class="input-group">
-                                        <input type="text" id="menuSearch" placeholder="Search menu items..." class="input input-bordered w-full" />
-                                        <button type="button" class="btn btn-square" onclick="searchMenuItems()">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    <div class="relative">
+                                        <input type="text" id="menuSearch" placeholder="Search menu items..."
+                                            class="input input-bordered w-full pr-10" />
+                                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none" style="top: 1.5px; bottom: unset; height: 1.8rem;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                             </svg>
-                                        </button>
+                                        </span>
                                     </div>
                                 </div>
-                                <select id="categoryFilter" class="select select-bordered w-full md:w-64" onchange="filterByCategory()">
+                                <select id="categoryFilter" class="select select-bordered w-full md:w-64"
+                                    onchange="filterByCategory()">
                                     <option value="">All Categories</option>
                                     @foreach (var category in Model.Categories)
                                     {
@@ -185,12 +199,13 @@
                                     }
                                 </select>
                             </div>
-                            
+
                             <!-- Menu Items Grid -->
                             <div id="menuItemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @foreach (var item in Model.MenuItems)
                                 {
-                                    <div class="card bg-base-100 shadow-md menu-item" data-category="@item.CategoryId" data-name="@item.Name.ToLower()">
+                                    <div class="card bg-base-100 shadow-md menu-item" data-category="@item.CategoryId"
+                                        data-name="@item.Name.ToLower()">
                                         <figure class="h-36">
                                             <img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" />
                                         </figure>
@@ -198,23 +213,30 @@
                                             <h4 class="card-title text-base">@item.Name</h4>
                                             <p class="text-primary font-bold">$@item.Price.ToString("F2")</p>
                                             <div class="card-actions justify-end">
-                                                <button type="button" class="btn btn-circle btn-sm" onclick="viewMenuItem(@item.Id)">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                <button type="button" class="btn btn-circle btn-sm"
+                                                    onclick="viewMenuItem(@item.Id)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                     </svg>
                                                 </button>
                                                 <div class="flex items-center gap-2">
-                                                    <button type="button" class="btn btn-circle btn-sm" onclick="decrementQuantity(@item.Id)">-</button>
+                                                    <button type="button" class="btn btn-circle btn-sm"
+                                                        onclick="decrementQuantity(@item.Id)">-</button>
                                                     <span id="quantity-@item.Id" class="w-6 text-center">0</span>
-                                                    <button type="button" class="btn btn-circle btn-sm" onclick="incrementQuantity(@item.Id)">+</button>
+                                                    <button type="button" class="btn btn-circle btn-sm"
+                                                        onclick="incrementQuantity(@item.Id)">+</button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 }
                             </div>
-                            
+
                             <!-- Selected Items Summary -->
                             <div id="selectedItemsSummary" class="mt-6 p-4 bg-base-200 rounded-lg hidden">
                                 <h4 class="font-bold mb-2">Selected Items</h4>
@@ -225,7 +247,7 @@
                                 <input type="hidden" id="selectedItemsJson" name="SelectedItems" />
                             </div>
                         </div>
-                        
+
                         <!-- Submit Button -->
                         <div class="form-control mt-6">
                             <button type="submit" class="btn btn-primary" id="submitButton">Make Reservation</button>
@@ -233,7 +255,7 @@
                     </form>
                 </div>
             </div>
-            
+
             <!-- Reservation Policy -->
             <div class="mt-12 p-6 bg-slate-50 rounded-xl">
                 <h3 class="text-xl font-bold text-slate-800 mb-4">Reservation Policy</h3>
@@ -271,82 +293,107 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         let selectedItems = {};
-        
-        document.addEventListener('DOMContentLoaded', function() {
+
+        document.addEventListener('DOMContentLoaded', function () {
             const dateInput = document.getElementById('reservationDate');
             const timeInput = document.getElementById('reservationTime');
-            
+
             // Set minimum date to today
             const today = new Date().toISOString().split('T')[0];
             dateInput.min = today;
-            
+
             // Set default time to next available hour
             const now = new Date();
             const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
             timeInput.value = nextHour.toTimeString().slice(0, 5);
-            
+
             // Date and time change handlers to refresh available tables
             dateInput.addEventListener('change', checkTableAvailability);
             timeInput.addEventListener('change', checkTableAvailability);
+
+            // Xử lý đổi màu bàn khi nhập số khách
+            const guestInput = document.getElementById('NumberOfGuests');
+            guestInput.addEventListener('input', function () {
+                const guests = parseInt(this.value) || 0;
+                document.querySelectorAll('.table-item').forEach(function (tableEl) {
+                    const isAvailable = tableEl.dataset.available === "true";
+                    const capacity = parseInt(tableEl.dataset.tableCapacity);
+                    tableEl.classList.remove(
+                        'bg-green-500', 'bg-yellow-400', 'bg-gray-400', 'bg-gray-500', 'bg-red-500',
+                        'hover:bg-green-600', 'cursor-pointer', 'cursor-not-allowed', 'opacity-60', 'bg-blue-500'
+                    );
+                    // Reset inline style
+                    tableEl.style.backgroundColor = '';
+                    if (tableEl.classList.contains('bg-blue-500')) return;
+                    if (!isAvailable) {
+                        tableEl.classList.add('bg-red-500', 'cursor-not-allowed', 'opacity-60');
+                    } else if (guests > 0 && guests > capacity) {
+                        tableEl.classList.add('bg-yellow-400', 'cursor-not-allowed', 'opacity-60');
+                        tableEl.style.backgroundColor = '#facc15'; // Always set inline style for yellow
+                    } else {
+                        tableEl.classList.add('bg-green-500', 'cursor-pointer', 'hover:bg-green-600');
+                    }
+                });
+            });
         });
-        
+
         function checkTableAvailability() {
             // This would normally make an AJAX call to check table availability
             // For now, we'll just simulate it with the existing data
             console.log("Checking table availability...");
         }
-        
+
         function selectTable(tableElement) {
-            // Check if table is available
+            // Chỉ cho chọn nếu available và số khách <= sức chứa
             const isAvailable = tableElement.dataset.available === "true";
-            if (!isAvailable) return;
-            
-            // Reset previously selected table
+            const capacity = parseInt(tableElement.dataset.tableCapacity);
+            const guests = parseInt(document.getElementById('NumberOfGuests').value) || 0;
+            if (!isAvailable || guests > capacity) return;
+
+            // Reset màu tất cả bàn
             document.querySelectorAll('.table-item').forEach(el => {
-                if (el.classList.contains('bg-blue-500')) {
-                    el.classList.remove('bg-blue-500');
-                    // Add back the original green color
-                    if (el.dataset.available === "true") {
-                        el.classList.add('bg-green-500');
-                    } else {
-                        el.classList.add('bg-red-500');
-                    }
+                el.classList.remove('bg-blue-500', 'bg-green-500', 'bg-yellow-400', 'bg-red-500');
+                // Reset inline style
+                el.style.backgroundColor = '';
+                const elAvailable = el.dataset.available === "true";
+                const elCapacity = parseInt(el.dataset.tableCapacity);
+                if (elAvailable && guests > elCapacity) {
+                    el.classList.add('bg-yellow-400', 'cursor-not-allowed', 'opacity-60');
+                    el.style.backgroundColor = '#facc15'; // Always set inline style for yellow
+                } else if (elAvailable) {
+                    el.classList.add('bg-green-500', 'cursor-pointer', 'hover:bg-green-600');
+                } else {
+                    el.classList.add('bg-red-500', 'cursor-not-allowed', 'opacity-60');
                 }
             });
-            
-            // Mark this table as selected
+
+            // Đổi màu bàn vừa chọn thành xanh dương
             tableElement.classList.remove('bg-green-500');
             tableElement.classList.add('bg-blue-500');
-            
+
             // Update hidden input
             const tableId = tableElement.dataset.tableId;
             document.getElementById('selectedTable').value = tableId;
-            
-            // Show selected table info
             const tableNumber = tableElement.dataset.tableNumber;
             const tableCapacity = tableElement.dataset.tableCapacity;
             document.getElementById('displayTableNumber').textContent = tableNumber;
             document.getElementById('displayTableCapacity').textContent = tableCapacity;
             document.getElementById('selectedTableInfo').classList.remove('hidden');
-            
-            // Show menu selection section
             document.getElementById('menuSelectionSection').classList.remove('hidden');
-            
-            // Change button text
             document.getElementById('submitButton').textContent = 'Continue to Confirmation';
         }
-        
+
         function searchMenuItems() {
             const searchTerm = document.getElementById('menuSearch').value.toLowerCase();
             const categoryFilter = document.getElementById('categoryFilter').value;
-            
+
             document.querySelectorAll('.menu-item').forEach(item => {
                 const itemName = item.dataset.name;
                 const itemCategory = item.dataset.category;
-                
+
                 const matchesSearch = searchTerm === '' || itemName.includes(searchTerm);
                 const matchesCategory = categoryFilter === '' || itemCategory === categoryFilter;
-                
+
                 if (matchesSearch && matchesCategory) {
                     item.style.display = 'block';
                 } else {
@@ -354,33 +401,33 @@
                 }
             });
         }
-        
+
         function filterByCategory() {
             searchMenuItems();
         }
-        
+
         function viewMenuItem(itemId) {
             // Fetch item details from the server (simulated here)
             const menuItems = @Html.Raw(Model.SerializeMenuItems());
             const item = menuItems.find(i => i.id === itemId);
-            
+
             if (item) {
                 document.getElementById('modalItemName').textContent = item.name;
                 document.getElementById('modalItemImage').src = item.imageUrl;
                 document.getElementById('modalItemDescription').textContent = item.description;
                 document.getElementById('modalItemPrice').textContent = item.price.toFixed(2);
-                
+
                 document.getElementById('menuItemModal').showModal();
             }
         }
-        
+
         function incrementQuantity(itemId) {
             const quantityElement = document.getElementById(`quantity-${itemId}`);
             const currentQuantity = parseInt(quantityElement.textContent || '0');
             quantityElement.textContent = currentQuantity + 1;
             updateSelectedItems(itemId, currentQuantity + 1);
         }
-        
+
         function decrementQuantity(itemId) {
             const quantityElement = document.getElementById(`quantity-${itemId}`);
             const currentQuantity = parseInt(quantityElement.textContent || '0');
@@ -389,12 +436,12 @@
                 updateSelectedItems(itemId, currentQuantity - 1);
             }
         }
-        
+
         function updateSelectedItems(itemId, quantity) {
             // Get menu item details
             const menuItems = @Html.Raw(Model.SerializeMenuItems());
             const item = menuItems.find(i => i.id === itemId);
-            
+
             if (quantity > 0) {
                 selectedItems[itemId] = {
                     id: itemId,
@@ -405,19 +452,19 @@
             } else {
                 delete selectedItems[itemId];
             }
-            
+
             updateSelectedItemsSummary();
         }
-        
+
         function updateSelectedItemsSummary() {
             const selectedItemsList = document.getElementById('selectedItemsList');
             const selectedItemsJson = document.getElementById('selectedItemsJson');
             const selectedItemsSummary = document.getElementById('selectedItemsSummary');
             const totalPriceElement = document.getElementById('totalPrice');
-            
+
             // Clear the list
             selectedItemsList.innerHTML = '';
-            
+
             // Check if there are any selected items
             const hasItems = Object.keys(selectedItems).length > 0;
             if (hasItems) {
@@ -426,23 +473,23 @@
                 selectedItemsSummary.classList.add('hidden');
                 return;
             }
-            
+
             // Calculate total price
             let totalPrice = 0;
-            
+
             // Add items to the list
             for (const id in selectedItems) {
                 const item = selectedItems[id];
                 const li = document.createElement('li');
                 li.textContent = `${item.name} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`;
                 selectedItemsList.appendChild(li);
-                
+
                 totalPrice += item.price * item.quantity;
             }
-            
+
             // Update total price
             totalPriceElement.textContent = totalPrice.toFixed(2);
-            
+
             // Update hidden input with JSON data
             const selectedItemsData = {};
             for (const id in selectedItems) {
