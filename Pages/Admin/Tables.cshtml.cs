@@ -15,9 +15,13 @@ namespace PRN222_Restaurant.Pages.Admin
 
         public List<TableViewModel> Tables { get; set; } = new List<TableViewModel>();
         public int TotalTables { get; set; }
+        [BindProperty(SupportsGet = true)]
         public int CurrentPage { get; set; } = 1;
+        [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = 10;
         public int TotalPages => (TotalTables + PageSize - 1) / PageSize;
+        public int FromRecord => ((CurrentPage - 1) * PageSize) + 1;
+        public int ToRecord => System.Math.Min(CurrentPage * PageSize, TotalTables);
 
         private readonly ITableService _tableService;
         public TablesModel(ITableService tableService)
@@ -25,20 +29,25 @@ namespace PRN222_Restaurant.Pages.Admin
             _tableService = tableService;
         }
 
-        public async Task OnGetAsync(int page = 1)
+        public async Task OnGetAsync()
         {
-            CurrentPage = page < 1 ? 1 : page;
-            var (tables, totalCount) = await _tableService.GetPagedAsync(CurrentPage, PageSize);
-            TotalTables = totalCount;
-            Tables = tables.Select(t => new TableViewModel
-            {
-                Id = t.Id,
-                TableNumber = t.TableNumber,
-                Capacity = t.Capacity,
-                Status = t.Status
-            }).ToList();
-            Console.WriteLine($"PageSize: {PageSize}, CurrentPage: {CurrentPage}");
+            if (CurrentPage < 1) CurrentPage = 1;
+            if (PageSize < 1) PageSize = 10;
 
+            var allTables = await _tableService.GetAllAsync();
+            TotalTables = allTables.Count();
+
+            Tables = allTables
+                .OrderBy(t => t.Id)
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .Select(t => new TableViewModel
+                {
+                    Id = t.Id,
+                    TableNumber = t.TableNumber,
+                    Capacity = t.Capacity,
+                    Status = t.Status
+                }).ToList();
         }
 
         public async Task<IActionResult> OnPostDeleteAsync(int tableId)
@@ -48,33 +57,27 @@ namespace PRN222_Restaurant.Pages.Admin
             return RedirectToPage();
         }
 
-        // Thêm mới bàn ăn (persist to DB)
         public async Task<IActionResult> OnPostAddAsync(TableViewModel newTable, int page = 1)
         {
-            // Kiểm tra số bàn không được để trống hoặc <= 0
             if (newTable == null || newTable.TableNumber <= 0)
             {
                 SuccessMessage = "Số bàn không hợp lệ.";
                 return RedirectToPage();
             }
-            // Kiểm tra sức chứa không được để trống hoặc <= 0
             if (newTable.Capacity <= 0)
             {
                 SuccessMessage = "Sức chứa không hợp lệ.";
                 return RedirectToPage();
             }
-            // Kiểm tra số bàn không được trùng
             var allTables = await _tableService.GetAllAsync();
             if (allTables.Any(t => t.TableNumber == newTable.TableNumber))
             {
                 SuccessMessage = $"Số bàn {newTable.TableNumber} đã tồn tại.";
                 return RedirectToPage();
             }
-           
-            // Khi thêm mới, status luôn là "Available"
             var table = new Table
             {
-                Id = newTable.Id > 0 ? newTable.Id : 0, // Nếu có nhập ID thủ công
+                Id = newTable.Id > 0 ? newTable.Id : 0,
                 TableNumber = newTable.TableNumber,
                 Capacity = newTable.Capacity,
                 Status = "Available"
@@ -84,10 +87,8 @@ namespace PRN222_Restaurant.Pages.Admin
             return RedirectToPage();
         }
 
-        // Sửa thông tin bàn ăn (mock)
         public async Task<IActionResult> OnPostEditAsync(TableViewModel editTable)
         {
-            // Lấy bàn từ DB
             var table = await _tableService.GetByIdAsync(editTable.Id);
             if (table != null)
             {
@@ -99,14 +100,14 @@ namespace PRN222_Restaurant.Pages.Admin
                 }
                 table.TableNumber = editTable.TableNumber;
                 table.Capacity = editTable.Capacity;
-                table.Status = editTable.Status;
-                await _tableService.UpdateAsync(table);
-                SuccessMessage = $"Đã cập nhật bàn số {editTable.TableNumber} thành công";
             }
             else
             {
-                SuccessMessage = $"Không tìm thấy bàn để cập nhật.";
+                SuccessMessage = "Không tìm thấy bàn để cập nhật.";
+                return RedirectToPage();
             }
+            await _tableService.UpdateAsync(table);
+            SuccessMessage = $"Đã cập nhật bàn số {editTable.TableNumber} thành công";
             return RedirectToPage();
         }
     }
