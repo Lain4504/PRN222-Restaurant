@@ -45,16 +45,15 @@ namespace PRN222_Restaurant.Pages.Admin
 
         [BindProperty]
         public CreateOrderModel CreateOrderModel { get; set; } = new CreateOrderModel();
-
+       
         public async Task OnGetAsync()
         {
             // Ensure valid pagination parameters
             if (CurrentPage < 1) CurrentPage = 1;
             if (PageSize < 1) PageSize = DefaultPageSize;
-            
+
             // Get paginated orders
             OrdersResult = await _orderService.GetPagedOrdersAsync(CurrentPage, PageSize);
-
             // Load available tables and menu items for create order modal
             await LoadTablesAndMenuItems();
         }
@@ -74,7 +73,7 @@ namespace PRN222_Restaurant.Pages.Admin
             }
 
             var success = await _orderService.UpdateOrderStatusAsync(OrderId, OrderStatus);
-
+            // Cập nhật trạng thái bàn theo trạng thái đơn hàng
             if (success)
             {
                 StatusMessage = $"Order #{OrderId} status updated to {OrderStatus}";
@@ -83,7 +82,6 @@ namespace PRN222_Restaurant.Pages.Admin
             {
                 StatusMessage = $"Error: Failed to update order #{OrderId}";
             }
-
             return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
         }
 
@@ -99,7 +97,6 @@ namespace PRN222_Restaurant.Pages.Admin
             {
                 StatusMessage = $"Error: Failed to cancel order #{id}";
             }
-
             return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
         }
 
@@ -146,6 +143,8 @@ namespace PRN222_Restaurant.Pages.Admin
                     .ToDictionary(x => x.MenuItemId, x => x.Quantity);
 
                 var createdOrder = await _orderService.CreateImmediateOrderAsync(order, selectedItems);
+
+                
                 StatusMessage = $"Order #{createdOrder.Id} has been created successfully";
                 return RedirectToPage("/admin/orders");
             }
@@ -199,4 +198,4 @@ namespace PRN222_Restaurant.Pages.Admin
         public int MenuItemId { get; set; }
         public int Quantity { get; set; }
     }
-} 
+}

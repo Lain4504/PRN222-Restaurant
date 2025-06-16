@@ -104,7 +104,7 @@ namespace PRN222_Restaurant.Pages
         {
             // Get all tables from the database
             var allTables = await _context.Tables.ToListAsync();
-            
+
             // For testing purposes, create 16 tables if there are not enough
             if (allTables.Count < 16)
             {
@@ -120,18 +120,18 @@ namespace PRN222_Restaurant.Pages
                     _context.Tables.Add(table);
                 }
                 await _context.SaveChangesAsync();
-                
+
                 // Reload tables after adding new ones
                 allTables = await _context.Tables.ToListAsync();
             }
-            
-            // Convert to view model with availability info
+
+            // Convert to view model with availability info (không còn unavailable)
             Tables = allTables.Select(t => new TableViewModel
             {
                 Id = t.Id,
                 TableNumber = t.TableNumber,
                 Capacity = t.Capacity,
-                IsAvailable = t.Status == "Available"
+                IsAvailable = t.Status == "Available" && t.Capacity >= NumberOfGuests
             }).ToList();
         }
 
@@ -168,5 +168,6 @@ namespace PRN222_Restaurant.Pages
         public int TableNumber { get; set; }
         public int Capacity { get; set; }
         public bool IsAvailable { get; set; }
+        // Xóa IsUnavailable
     }
 }
