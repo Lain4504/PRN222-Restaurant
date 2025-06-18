@@ -38,25 +38,27 @@
             </div>
 
             <!-- Search and Filters -->
-            <div class="flex items-center gap-2">
-                <div class="form-control">
-                    <div class="input-group">
-                        <input type="text" id="menu-search" placeholder="Search menu..."
-                               class="input input-bordered w-full max-w-xs"
-                               oninput="searchMenu()" />
-                        <button class="btn btn-square">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </button>
-                    </div>
+            <div class="flex items-center gap-4">
+                <!-- Search Input + Button -->
+                <div class="flex items-center border rounded overflow-hidden max-w-xs w-full">
+                    <input type="text" id="menu-search" placeholder="Search menu..."
+                           class="input input-bordered border-0 focus:outline-none w-full"
+                           oninput="searchMenu()" />
+                    <button class="btn btn-square rounded-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
                 </div>
 
                 <!-- View Cart Button -->
                 <div class="dropdown dropdown-end">
                     <label tabindex="0" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         <span id="cart-count">0</span>
                     </label>
@@ -79,6 +81,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </section>
@@ -99,50 +102,9 @@
                             </figure>
                             <div class="card-body">
                                 <h3 class="card-title text-xl">@item.Name</h3>
-                                @if (item.Name.Contains("Seafood Sampler") || item.Name.Contains("Grilled Atlantic Salmon") || item.Name.Contains("Maryland Crab Cakes") || item.Name.Contains("Chocolate Lava Cake"))
-                                {
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="badge badge-secondary">Popular</div>
-                                        @if (item.Name.Contains("Seafood Sampler"))
-                                        {
-                                            <div class="badge badge-outline">Shareable</div>
-                                        }
-                                    </div>
-                                }
-                                @if (item.Name.Contains("Fresh Oysters") || item.Name.Contains("Seared Sea Scallops") || item.Name.Contains("Lobster Linguine") || item.Name.Contains("Ocean Breeze Cocktail"))
-                                {
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="badge badge-accent">Chef's Choice</div>
-                                        @if (item.Name.Contains("Seared Sea Scallops"))
-                                        {
-                                            <div class="badge badge-outline">Keto Friendly</div>
-                                        }
-                                    </div>
-                                }
-                                @if (item.Name.Contains("Grilled Atlantic Salmon") || item.Name.Contains("Seasonal Vegetables"))
-                                {
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="badge badge-outline">Gluten-Free</div>
-                                    </div>
-                                }
-                                @if (item.Name.Contains("Seasonal Vegetables"))
-                                {
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="badge badge-outline">Vegan</div>
-                                    </div>
-                                }
-                                @if (item.Name.Contains("Ocean Breeze Cocktail"))
-                                {
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="badge badge-accent">Signature</div>
-                                    </div>
-                                }
-                                @if (item.Name.Contains("Fresh Lemonade"))
-                                {
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="badge badge-outline">Non-Alcoholic</div>
-                                    </div>
-                                }
+
+                                <!-- Removed all badge-related sections -->
+
                                 <p class="text-slate-600">@item.Description</p>
                                 <div class="flex justify-between items-center mt-4">
                                     <span class="text-xl font-bold">$@item.Price.ToString("F2")</span>
@@ -157,6 +119,7 @@
     </div>
 </section>
 
+
 <!-- Recommendations Section -->
 <section class="py-12 bg-white">
     <div class="container mx-auto px-4">
@@ -168,39 +131,36 @@
         </div>
 
         <div class="carousel carousel-center w-full p-4 space-x-4 rounded-box">
-            @{
-                var recommendations = new List<(string Name, decimal Price, string ImageUrl, string Description, string Badge)>()
+            @if (Model.TopRecommendations != null && Model.TopRecommendations.Count > 0)
             {
-            ("Ultimate Seafood Feast", 89.99M, "https://images.unsplash.com/photo-1579631542720-3a87824fff86?q=80&w=1964",
-            "A premium seafood tower with lobster, crab, shrimp, oysters, and clams. Perfect for sharing!", "Most Popular"),
-            ("Connecticut Lobster Roll", 26.99M, "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?q=80&w=2070",
-            "Warm buttered Maine lobster meat served on a toasted split-top bun with a side of crispy fries", "Chef's Favorite"),
-            ("Seafood Paella", 34.99M, "https://images.unsplash.com/photo-1559847844-5315695dadae?q=80&w=2058",
-            "Traditional Spanish rice dish with shrimp, mussels, clams, and calamari, flavored with saffron", "Popular")
-            };
-            }
-            @foreach (var rec in recommendations)
-            {
-                <div class="carousel-item w-full md:w-1/2 lg:w-1/3">
-                    <div class="card bg-base-100 shadow-xl">
-                        <figure class="h-64">
-                            <img src="@rec.ImageUrl" alt="@rec.Name" class="w-full h-full object-cover" />
-                        </figure>
-                        <div class="card-body">
-                            <h3 class="card-title text-xl">@rec.Name</h3>
-                            <p class="text-slate-600">@rec.Description</p>
-                            <div class="badge badge-@(rec.Badge == "Most Popular" || rec.Badge == "Popular" ? "secondary" : "accent") mb-2">@rec.Badge</div>
-                            <div class="flex justify-between items-center mt-4">
-                                <span class="text-xl font-bold">$@rec.Price.ToString("F2")</span>
-                                <button class="btn btn-primary btn-sm" onclick="addToCart('@rec.Name', @rec.Price)">Add to Cart</button>
+                foreach (var rec in Model.TopRecommendations)
+                {
+                    <div class="carousel-item w-full md:w-1/2 lg:w-1/3">
+                        <div class="card bg-base-100 shadow-xl">
+                            <figure class="h-64">
+                                <img src="@rec.ImageUrl" alt="@rec.Name" class="w-full h-full object-cover" />
+                            </figure>
+                            <div class="card-body">
+                                <h3 class="card-title text-xl">@rec.Name</h3>
+                                <p class="text-slate-600">@rec.Description</p>
+                                <div class="badge badge-secondary mb-2">Top Seller</div>
+                                <div class="flex justify-between items-center mt-4">
+                                    <span class="text-xl font-bold">$@rec.Price.ToString("F2")</span>
+                                    <button class="btn btn-primary btn-sm" onclick="addToCart('@rec.Name', @rec.Price)">Add to Cart</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                }
+            }
+            else
+            {
+                <p class="text-center text-slate-500 w-full">No top recommendations available at the moment.</p>
             }
         </div>
     </div>
 </section>
+
 
 <!-- JavaScript for Menu Functionality -->
 <script>
