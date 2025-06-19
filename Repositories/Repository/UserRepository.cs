@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Models.Response;
 
 public class UserRepository : IUserRepository
 {
@@ -10,6 +11,26 @@ public class UserRepository : IUserRepository
     {
         _context = context;
     }
+    public async Task<PagedResult<User>> GetPagedAsync(int page, int pageSize)
+    {
+        var query = _context.Users.OrderBy(u => u.Id); 
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<User>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
+    }
+
 
     public async Task<IEnumerable<User>> GetAllAsync() =>
         await _context.Users.ToListAsync();

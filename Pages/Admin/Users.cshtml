@@ -41,7 +41,7 @@
                 <thead>
                     <tr>
                         <th>STT</th>
-                        <th>Tên</th>
+                        <th>Aavatar</th>
                         <th>Email</th>
                         <th>Vai trò</th>
                         <th>Trạng thái</th>
@@ -83,7 +83,7 @@
                             </td>
                             <td>
                                 <div class="flex gap-1">
-                                    <a href="/Admin/Users/Details/@(user.Id)" class="btn btn-xs btn-square btn-info">
+                                    <a href="/admin/users/details/@(user.Id)" class="btn btn-xs btn-square btn-info">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -107,19 +107,65 @@
             </table>
         </div>
 
-        <!-- Pagination -->
-        <div class="mt-4 flex justify-between items-center flex-wrap">
-            <div class="text-sm text-gray-500 mb-2 md:mb-0">
-                Showing <span class="font-medium">1</span> to <span class="font-medium">@Model.Users.Count</span> of <span class="font-medium">@Model.TotalUsers</span> entries
+       
+        <!-- Pagination controls -->
+        <div class="flex justify-between items-center mt-4">
+            <div class="text-sm text-gray-600">
+                Hiển thị @((Model.UsersResult.Page - 1) * Model.UsersResult.PageSize + 1) đến
+                @(Math.Min(Model.UsersResult.Page * Model.UsersResult.PageSize, Model.UsersResult.TotalCount))
+                trên tổng số @Model.UsersResult.TotalCount người dùng
             </div>
 
             <div class="join">
-                <button class="join-item btn btn-sm @(Model.CurrentPage == 1 ? "btn-disabled" : "")" onclick="changePage(@(Model.CurrentPage - 1))">«</button>
-                @for (int i = 1; i <= Model.TotalPages; i++)
+                @if (Model.UsersResult.HasPreviousPage)
                 {
-                    <button class="join-item btn btn-sm @(Model.CurrentPage == i ? "btn-active" : "")" onclick="changePage(@i)">@i</button>
+                    <a href="/admin/users?currentPage=@(Model.UsersResult.Page - 1)&pageSize=@Model.UsersResult.PageSize"
+                       class="join-item btn btn-outline">«</a>
                 }
-                <button class="join-item btn btn-sm @(Model.CurrentPage == Model.TotalPages ? "btn-disabled" : "")" onclick="changePage(@(Model.CurrentPage + 1))">»</button>
+                else
+                {
+                    <button class="join-item btn btn-outline" disabled>«</button>
+                }
+
+                @for (int i = Math.Max(1, Model.UsersResult.Page - 2); i <= Math.Min(Model.UsersResult.TotalPages, Math.Max(Model.UsersResult.Page + 2, 5)); i++)
+                {
+                    if (i == Model.UsersResult.Page)
+                    {
+                        <button class="join-item btn btn-active">@i</button>
+                    }
+                    else
+                    {
+                        <a href="/admin/users?currentPage=@i&pageSize=@Model.UsersResult.PageSize"
+                           class="join-item btn btn-outline">@i</a>
+                    }
+                }
+
+                @if (Model.UsersResult.HasNextPage)
+                {
+                    <a href="/admin/users?currentPage=@(Model.UsersResult.Page + 1)&pageSize=@Model.UsersResult.PageSize"
+                       class="join-item btn btn-outline">»</a>
+                }
+                else
+                {
+                    <button class="join-item btn btn-outline" disabled>»</button>
+                }
+            </div>
+
+            <div class="flex items-center">
+                <span class="mr-2">Hiển thị:</span>
+                <select id="pageSize" class="select select-bordered select-sm w-auto max-w-xs"
+                        onchange="location.href='/admin/users?currentPage=1&pageSize=' + this.value">
+                    @{
+                        bool isSelected5 = Model.UsersResult.PageSize == 5;
+                        bool isSelected10 = Model.UsersResult.PageSize == 10;
+                        bool isSelected20 = Model.UsersResult.PageSize == 20;
+                        bool isSelected50 = Model.UsersResult.PageSize == 50;
+                    }
+                    <option value="5" selected="@isSelected5">5</option>
+                    <option value="10" selected="@isSelected10">10</option>
+                    <option value="20" selected="@isSelected20">20</option>
+                    <option value="50" selected="@isSelected50">50</option>
+                </select>
             </div>
         </div>
     </div>
@@ -169,7 +215,7 @@
 
         // Pagination function
         function changePage(page) {
-            window.location.href = '/Admin/Users?page=' + page;
+            window.location.href = '/admin/users?page=' + page;
         }
     </script>
 }

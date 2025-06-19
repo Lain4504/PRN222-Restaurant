@@ -43,7 +43,7 @@ namespace PRN222_Restaurant.Pages.Admin
             if (addedUser != null)
             {
                 TempData["SuccessMessage"] = "Thêm người dùng thành công!";
-                return RedirectToPage("/Admin/Users");
+                return RedirectToPage("/admin/users");
             }
             else
             {

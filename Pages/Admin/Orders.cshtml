@@ -1,0 +1,439 @@
+@page
+@model PRN222_Restaurant.Pages.Admin.OrdersModel
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+}
+
+<div class="flex flex-col space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Quản lý đơn hàng</h1>
+        <button class="btn btn-primary" onclick="document.getElementById('create-order-modal').showModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Tạo đơn hàng mới
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="alert @(Model.StatusMessage.StartsWith("Error") ? "alert-error" : "alert-success") shadow-lg mb-4">
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>@Model.StatusMessage</span>
+            </div>
+        </div>
+    }
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Loại đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Bàn</th>
+                            <th>Ngày đặt</th>
+                            <th>Thời gian đặt bàn</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td>@order.Id</td>
+                                <td>
+                                    <span class="badge @(order.OrderType == "Immediate" ? "badge-info" : "badge-warning")">
+                                        @(order.OrderType == "Immediate" ? "Tại chỗ" : "Đặt trước")
+                                    </span>
+                                </td>
+                                <td>@(order.User != null ? order.User.FullName : "Khách vãng lai")</td>
+                                <td>@(order.Table != null ? $"Bàn {order.Table.TableNumber}" : "N/A")</td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@(order.ReservationTime.HasValue ? order.ReservationTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
+                                <td>@order.TotalPrice.ToString("N0") đ</td>
+                                <td>
+                                    <span class="badge 
+                                           @(order.Status == "Pending" ? "badge-warning" : 
+                                              order.Status == "Preparing" ? "badge-info" : 
+                                              order.Status == "Served" ? "badge-success" : 
+                                              order.Status == "Completed" ? "badge-success" : 
+                                              order.Status == "Cancelled" ? "badge-error" : "")">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="dropdown dropdown-left">
+                                        <div tabindex="0" role="button" class="btn btn-sm m-1">Thao tác</div>
+                                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Pending" class="update-status">
+                                                    Đánh dấu chờ xử lý
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Preparing" class="update-status">
+                                                    Đánh dấu đang chuẩn bị
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Served" class="update-status">
+                                                    Đánh dấu đã phục vụ
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Completed" class="update-status">
+                                                    Đánh dấu hoàn thành
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" data-id="@order.Id" data-status="Cancelled" class="update-status">
+                                                    Đánh dấu đã hủy
+                                                </a>
+                                            </li>
+                                            <li class="divider"></li>
+                                            <li>
+                                                <a href="#" class="text-primary view-order-details" data-id="@order.Id">
+                                                    Xem chi tiết
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination controls -->
+            <div class="flex justify-between items-center mt-4">
+                <div class="text-sm text-gray-600">
+                    Hiển thị @((Model.OrdersResult.Page - 1) * Model.OrdersResult.PageSize + 1) đến 
+                    @(Math.Min(Model.OrdersResult.Page * Model.OrdersResult.PageSize, Model.OrdersResult.TotalCount)) 
+                    trên tổng số @Model.OrdersResult.TotalCount đơn hàng
+                </div>
+                
+                <div class="join">
+                    @if (Model.OrdersResult.HasPreviousPage)
+                    {
+                        <a href="/admin/orders?currentPage=@(Model.OrdersResult.Page - 1)&pageSize=@Model.OrdersResult.PageSize" 
+                           class="join-item btn btn-outline">«</a>
+                    }
+                    else
+                    {
+                        <button class="join-item btn btn-outline" disabled>«</button>
+                    }
+                    
+                    @for (int i = Math.Max(1, Model.OrdersResult.Page - 2); i <= Math.Min(Model.OrdersResult.TotalPages, Math.Max(Model.OrdersResult.Page + 2, 5)); i++)
+                    {
+                        if (i == Model.OrdersResult.Page)
+                        {
+                            <button class="join-item btn btn-active">@i</button>
+                        }
+                        else
+                        {
+                            <a href="/admin/orders?currentPage=@i&pageSize=@Model.OrdersResult.PageSize" 
+                               class="join-item btn btn-outline">@i</a>
+                        }
+                    }
+                    
+                    @if (Model.OrdersResult.HasNextPage)
+                    {
+                        <a href="/admin/orders?currentPage=@(Model.OrdersResult.Page + 1)&pageSize=@Model.OrdersResult.PageSize" 
+                           class="join-item btn btn-outline">»</a>
+                    }
+                    else
+                    {
+                        <button class="join-item btn btn-outline" disabled>»</button>
+                    }
+                </div>
+                
+                <div class="flex items-center">
+                    <span class="mr-2">Hiển thị:</span>
+                    <select id="pageSize" class="select select-bordered select-sm w-auto max-w-xs">
+                        @{
+                            bool isSelected5 = Model.OrdersResult.PageSize == 5;
+                            bool isSelected10 = Model.OrdersResult.PageSize == 10;
+                            bool isSelected20 = Model.OrdersResult.PageSize == 20;
+                            bool isSelected50 = Model.OrdersResult.PageSize == 50;
+                        }
+                        <option value="5" selected="@isSelected5">5</option>
+                        <option value="10" selected="@isSelected10">10</option>
+                        <option value="20" selected="@isSelected20">20</option>
+                        <option value="50" selected="@isSelected50">50</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal tạo đơn hàng mới -->
+<dialog id="create-order-modal" class="modal">
+    <div class="modal-box w-11/12 max-w-5xl">
+        <h3 class="font-bold text-lg mb-4">Tạo đơn hàng mới</h3>
+
+        @if (!string.IsNullOrEmpty(Model.StatusMessage) && Model.StatusMessage.StartsWith("Error"))
+        {
+            <div class="alert alert-error mb-4">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>@Model.StatusMessage</span>
+                </div>
+            </div>
+        }
+        
+        <form id="create-order-form" method="post" asp-page-handler="CreateOrder">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Chọn bàn</span>
+                    </label>
+                    <select class="select select-bordered w-full" asp-for="CreateOrderModel.TableId" required>
+                        <option value="">Chọn bàn...</option>
+                        @foreach (var table in Model.AvailableTables)
+                        {
+                            <option value="@table.Id">Bàn @table.TableNumber</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CreateOrderModel.TableId" class="text-error"></span>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Ghi chú</span>
+                    </label>
+                    <textarea class="textarea textarea-bordered" asp-for="CreateOrderModel.Note" placeholder="Nhập ghi chú..."></textarea>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto mb-6">
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>Tên món</th>
+                            <th>Danh mục</th>
+                            <th>Giá</th>
+                            <th>Số lượng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.MenuItems)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td>@item.Category.Name</td>
+                                <td>@item.Price.ToString("N0") đ</td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" class="btn btn-circle btn-sm" onclick="decrementQuantity(@item.Id)">-</button>
+                                        <input type="number" class="input input-bordered w-20 text-center" 
+                                               id="quantity-@item.Id" value="0" min="0"
+                                               onchange="updateQuantity(@item.Id, this.value)" />
+                                        <button type="button" class="btn btn-circle btn-sm" onclick="incrementQuantity(@item.Id)">+</button>
+                                        <input type="hidden" name="CreateOrderModel.SelectedItems.Index" value="@item.Id" />
+                                        <input type="hidden" name="CreateOrderModel.SelectedItems[@item.Id].MenuItemId" value="@item.Id" />
+                                        <input type="hidden" name="CreateOrderModel.SelectedItems[@item.Id].Quantity" value="0" id="hidden-quantity-@item.Id" />
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Tạo đơn hàng</button>
+                <button type="button" class="btn" onclick="document.getElementById('create-order-modal').close()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- Modal xem chi tiết đơn hàng -->
+<dialog id="order-details-modal" class="modal">
+    <div class="modal-box w-11/12 max-w-5xl">
+        <h3 class="font-bold text-lg mb-4">Chi tiết đơn hàng #<span id="order-id"></span></h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Loại đơn hàng</h4>
+                <p id="order-type" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Trạng thái</h4>
+                <p id="order-status" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Khách hàng</h4>
+                <p id="order-customer" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Bàn</h4>
+                <p id="order-table" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Ngày đặt</h4>
+                <p id="order-date" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Thời gian đặt bàn</h4>
+                <p id="order-reservation-time" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Số lượng khách</h4>
+                <p id="order-guests" class="text-lg"></p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Ghi chú</h4>
+                <p id="order-note" class="text-lg"></p>
+            </div>
+        </div>
+        
+        <h4 class="font-medium text-lg mb-2">Danh sách món</h4>
+        <div class="overflow-x-auto mb-6">
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th>Tên món</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody id="order-items">
+                    <!-- Items will be loaded here -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-right font-bold">Tổng cộng:</td>
+                        <td class="font-bold" id="order-total"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn">Đóng</button>
+            </form>
+        </div>
+    </div>
+</dialog>
+
+<!-- Form ẩn để cập nhật trạng thái -->
+<form id="update-status-form" method="post" asp-page-handler="UpdateStatus">
+    <input type="hidden" asp-for="OrderId" id="status-order-id" />
+    <input type="hidden" asp-for="OrderStatus" id="status-value" />
+    <input type="hidden" asp-for="CurrentPage" id="current-page" value="@Model.CurrentPage" />
+    <input type="hidden" asp-for="PageSize" id="page-size" value="@Model.PageSize" />
+</form>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Xử lý cập nhật trạng thái
+            document.querySelectorAll('.update-status').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const orderId = this.getAttribute('data-id');
+                    const status = this.getAttribute('data-status');
+                    
+                    document.getElementById('status-order-id').value = orderId;
+                    document.getElementById('status-value').value = status;
+                    
+                    document.getElementById('update-status-form').submit();
+                });
+            });
+            
+            // Xử lý xem chi tiết đơn hàng
+            document.querySelectorAll('.view-order-details').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const orderId = this.getAttribute('data-id');
+                    const modal = document.getElementById('order-details-modal');
+                    
+                    // Fetch order details
+                    fetch(`/admin/orders?handler=OrderDetails&id=${orderId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('order-id').textContent = data.id;
+                            document.getElementById('order-type').textContent = data.orderType === 'Immediate' ? 'Tại chỗ' : 'Đặt trước';
+                            document.getElementById('order-status').textContent = data.status;
+                            document.getElementById('order-customer').textContent = data.customer;
+                            document.getElementById('order-table').textContent = data.table ? `Bàn ${data.table}` : 'N/A';
+                            document.getElementById('order-date').textContent = new Date(data.orderDate).toLocaleString('vi-VN');
+                            document.getElementById('order-reservation-time').textContent = data.reservationTime ? new Date(data.reservationTime).toLocaleString('vi-VN') : 'N/A';
+                            document.getElementById('order-guests').textContent = data.numberOfGuests || 'N/A';
+                            document.getElementById('order-note').textContent = data.note || 'N/A';
+                            
+                            // Update order items
+                            const itemsContainer = document.getElementById('order-items');
+                            itemsContainer.innerHTML = '';
+                            data.items.forEach(item => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${item.name}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${item.unitPrice.toLocaleString('vi-VN')} đ</td>
+                                    <td>${item.total.toLocaleString('vi-VN')} đ</td>
+                                `;
+                                itemsContainer.appendChild(row);
+                            });
+                            
+                            document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} đ`;
+                            
+                            modal.showModal();
+                        });
+                });
+            });
+            
+            // Xử lý thay đổi số mục trên mỗi trang
+            document.getElementById('pageSize').addEventListener('change', function() {
+                window.location.href = '/admin/orders?currentPage=1&pageSize=' + this.value;
+            });
+
+            // Show modal if there are errors
+            @if (!string.IsNullOrEmpty(Model.StatusMessage) && Model.StatusMessage.StartsWith("Error"))
+            {
+                <text>
+                    document.getElementById('create-order-modal').showModal();
+                </text>
+            }
+        });
+
+        // Functions for create order modal
+        function incrementQuantity(itemId) {
+            const input = document.getElementById(`quantity-${itemId}`);
+            input.value = parseInt(input.value) + 1;
+            updateQuantity(itemId, input.value);
+        }
+
+        function decrementQuantity(itemId) {
+            const input = document.getElementById(`quantity-${itemId}`);
+            if (parseInt(input.value) > 0) {
+                input.value = parseInt(input.value) - 1;
+                updateQuantity(itemId, input.value);
+            }
+        }
+
+        function updateQuantity(itemId, value) {
+            const quantity = parseInt(value) || 0;
+            const input = document.getElementById(`quantity-${itemId}`);
+            input.value = Math.max(0, quantity);
+            
+            // Update hidden input for quantity
+            document.getElementById(`hidden-quantity-${itemId}`).value = quantity;
+        }
+    </script>
+} 

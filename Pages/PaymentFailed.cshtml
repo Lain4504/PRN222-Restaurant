@@ -1,29 +1,89 @@
 @page "/payment-failed"
 @model PRN222_Restaurant.Pages.PaymentFailedModel
 @{
-    ViewData["Title"] = "Thanh toán thất bại";
+    ViewData["Title"] = "Payment Failed";
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-6 offset-md-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-times-circle text-danger" style="font-size: 4rem;"></i>
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body p-8">
+                    <!-- Error Message -->
+                    <div class="flex flex-col items-center justify-center py-4 mb-8">
+                        <div class="text-center mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-error mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <h1 class="text-3xl font-bold mb-2 text-center">Payment Failed</h1>
+                        <p class="text-center text-gray-600 mb-2">
+                            We were unable to process your payment. Please try again.
+                        </p>
+                        @if (TempData["PaymentError"] != null)
+                        {
+                            <p class="text-center text-error">
+                                Error code: <span class="font-mono">@TempData["PaymentError"]</span>
+                            </p>
+                        }
                     </div>
-                    <h2 class="card-title">Thanh toán thất bại!</h2>
-                    <p class="card-text">Đã có lỗi xảy ra trong quá trình thanh toán.</p>
-                    @if (TempData["PaymentError"] != null)
-                    {
-                        <p class="card-text text-danger">Mã lỗi: @TempData["PaymentError"]</p>
-                    }
-                    <div class="mt-4">
-                        <a href="/checkout" class="btn btn-primary">Thử lại</a>
-                        <a href="/" class="btn btn-outline-primary ms-2">Về trang chủ</a>
+                    
+                    <!-- Order Details -->
+                    <div class="bg-base-200 p-6 rounded-lg mb-8">
+                        <h2 class="text-xl font-semibold mb-4">Reservation Details</h2>
+                        
+                        @if (Model.Order != null)
+                        {
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    @if (Model.Order.ReservationTime.HasValue)
+                                    {
+                                        <p><span class="font-medium">Date:</span> @Model.Order.ReservationTime.Value.ToString("MMMM dd, yyyy")</p>
+                                        <p><span class="font-medium">Time:</span> @Model.Order.ReservationTime.Value.ToString("hh:mm tt")</p>
+                                    }
+                                    <p><span class="font-medium">Order ID:</span> #@Model.Order.Id</p>
+                                </div>
+                                <div>
+                                    @if (Model.TableNumber > 0)
+                                    {
+                                        <p><span class="font-medium">Table:</span> @Model.TableNumber</p>
+                                    }
+                                    @if (Model.Order.NumberOfGuests.HasValue)
+                                    {
+                                        <p><span class="font-medium">Guests:</span> @Model.Order.NumberOfGuests</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p>Your payment attempt was not successful.</p>
+                        }
+                    </div>
+                    
+                    <!-- Payment Options -->
+                    <div class="bg-red-50 p-6 rounded-lg mb-8">
+                        <h2 class="text-xl font-semibold mb-4">What Went Wrong?</h2>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>Your payment may have been declined by your bank.</li>
+                            <li>There might be an issue with your payment method.</li>
+                            <li>The payment gateway might be experiencing temporary issues.</li>
+                            <li>Your payment session may have timed out.</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex flex-col md:flex-row gap-4 justify-center mt-8">
+                        <a href="/checkout?orderId=@(Model.Order?.Id ?? 0)" class="btn btn-primary flex-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                            Try Payment Again
+                        </a>
+                        <a href="/" class="btn btn-outline flex-1">Return to Homepage</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div> 
+</section> 

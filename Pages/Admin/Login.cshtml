@@ -1,4 +1,4 @@
-@page "/admin/login"
+﻿@page "/login"
 @model PRN222_Restaurant.Pages.Admin.LoginModel
 @{
     Layout = null;
@@ -9,77 +9,178 @@
 <html lang="en" data-theme="light">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - PRN222_Restaurant</title>
     <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-    <script src="~/js/dashboard.js" asp-append-version="true" defer></script>
 </head>
+<style>
+    body {
+        background-image: url('https://st3.depositphotos.com/4590583/19409/i/1600/depositphotos_194094412-stock-photo-food-lunch-boxes-delivery-food.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card {
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border-radius: 1rem;
+        padding: 2rem 2.5rem;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+        max-width: 420px;
+        margin: auto;
+    }
+
+    h2.card-title {
+        text-align: center;
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 1.75rem;
+        color: #222;
+    }
+
+    form .form-control {
+        margin-bottom: 1.25rem;
+    }
+
+    label .label-text {
+        font-weight: 600;
+        color: #444;
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+
+    input.input-bordered {
+        width: 100%;
+        padding: 0.55rem 0.85rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        border: 1.8px solid #ccc;
+        transition: border-color 0.3s ease;
+    }
+
+        input.input-bordered:focus {
+            outline: none;
+            border-color: #3b82f6; /* blue */
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+
+    .btn {
+        cursor: pointer;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        padding: 0.55rem 1.25rem;
+        font-size: 1rem;
+        transition: background-color 0.25s ease;
+        border: none;
+    }
+
+    .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+    .btn-secondary {
+        background-color: #6b7280;
+        color: white;
+    }
+
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
+    .btn-send-otp-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+    }
+
+    .text-error {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .alert {
+        border-radius: 0.5rem;
+        padding: 1rem 1.25rem;
+        font-size: 0.95rem;
+        margin-top: 1rem;
+    }
+
+    .alert-info {
+        background-color: #dbeafe;
+        color: #1e40af;
+        border: 1px solid #3b82f6;
+    }
+
+    .alert-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #dc2626;
+    }
+
+    .btn-group {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+</style>
 <body class="bg-base-200 min-h-screen flex items-center justify-center">
-    <div class="max-w-md w-full">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h2 class="card-title text-2xl font-bold text-center mb-6">Admin Login</h2>
-                
-                <form id="loginForm" method="post" data-validate="true">
-                    <div class="form-control w-full mb-4">
-                        <label class="label">
-                            <span class="label-text">Username</span>
-                        </label>
-                        <input type="text" name="Username" id="username" placeholder="Enter your username" class="input input-bordered w-full" required />
-                    </div>
-                    
-                    <div class="form-control w-full mb-4">
-                        <label class="label">
-                            <span class="label-text">Password</span>
-                        </label>
-                        <input type="password" name="Password" id="password" placeholder="Enter your password" class="input input-bordered w-full" required />
-                    </div>
-                    
-                    <div class="form-control mb-6">
-                        <label class="cursor-pointer label justify-start gap-2">
-                            <input type="checkbox" name="RememberMe" class="checkbox checkbox-sm" />
-                            <span class="label-text">Remember me</span>
-                        </label>
-                    </div>
-                    
-                    <div class="form-control mt-6">
-                        <button type="submit" id="login-btn" class="btn btn-primary">
-                            <span id="login-text">Login</span>
-                            <span id="login-loading" class="loading loading-spinner hidden"></span>
-                        </button>
-                    </div>
-                    
-                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                    {
-                        <div class="alert alert-error mt-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <span>@Model.ErrorMessage</span>
-                        </div>
-                    }
-                </form>
+    <div class="card">
+        <h2 class="card-title">Order Login with OTP</h2>
+
+        <form method="post" id="loginForm" novalidate>
+            <div class="form-control">
+                <label class="label" style="margin-bottom: 0.5rem;">
+                    <span class="label-text">Email</span>
+                </label>
+
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <input asp-for="Input.Email" type="email" placeholder="Enter your email" class="input input-bordered" style="flex-grow: 1;" required />
+                    <button type="submit" name="action" value="sendCode" class="btn btn-secondary" style="white-space: nowrap; padding: 0.5rem 1rem;">OTP Code</button>
+                </div>
             </div>
-        </div>
-    </div>
-    
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            if (this.checkValidity()) {
-                const loginBtn = document.getElementById('login-btn');
-                const loginText = document.getElementById('login-text');
-                const loginLoading = document.getElementById('login-loading');
-                
-                loginText.classList.add('hidden');
-                loginLoading.classList.remove('hidden');
-                loginBtn.disabled = true;
-                
-                // Simulate delay - remove in real implementation
-                setTimeout(() => {
-                    this.submit();
-                }, 1000);
-                
-                return false;
+
+            <span asp-validation-for="Input.Email" class="text-error" style="display: block; margin-top: 0.25rem;"></span>
+
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">OTP Code</span>
+                </label>
+                <input asp-for="Input.Code" type="text" placeholder="Enter the code sent to your email" class="input input-bordered" />
+                <span asp-validation-for="Input.Code" class="text-error"></span>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" name="action" value="login" class="btn btn-primary w-full">Login</button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Message))
+            {
+            <div class="alert alert-info">
+                <span>@Model.Message</span>
+            </div>
             }
-        });
-    </script>
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+            <div class="alert alert-error">
+                <span>@Model.ErrorMessage</span>
+            </div>
+            }
+        </form>
+    </div>
+
+    <partial name="_ValidationScriptsPartial" />
 </body>
 </html>
