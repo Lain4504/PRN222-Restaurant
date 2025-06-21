@@ -14,25 +14,27 @@ namespace PRN222_Restaurant.Pages.Admin
     public class OrdersModel : PageModel
     {
         private readonly IOrderService _orderService;
+        private readonly ITableService _tableService;
         private readonly ApplicationDbContext _context;
         private const int DefaultPageSize = 10;
 
-        public OrdersModel(IOrderService orderService, ApplicationDbContext context)
+        public OrdersModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context)
         {
             _orderService = orderService;
+            _tableService = tableService;
             _context = context;
         }
 
         public PagedResult<Models.Order> OrdersResult { get; set; } = new PagedResult<Models.Order>();
         public List<Models.Order> Orders => OrdersResult.Items;
-        public List<Table> AvailableTables { get; set; }
-        public List<MenuItem> MenuItems { get; set; }
+        public List<Table> AvailableTables { get; set; } = new List<Table>();
+        public List<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 
         [TempData]
-        public string StatusMessage { get; set; }
+        public string? StatusMessage { get; set; }
 
         [BindProperty]
-        public string OrderStatus { get; set; }
+        public string? OrderStatus { get; set; }
 
         [BindProperty]
         public int OrderId { get; set; }
@@ -76,6 +78,22 @@ namespace PRN222_Restaurant.Pages.Admin
             // Cập nhật trạng thái bàn theo trạng thái đơn hàng
             if (success)
             {
+                // Lấy đơn hàng để lấy TableId
+                var order = await _orderService.GetOrderByIdAsync(OrderId);
+                if (order != null && order.TableId.HasValue && order.TableId.Value > 0)
+                {
+                    string? newTableStatus = null;
+                    if (OrderStatus == "Pending" || OrderStatus == "Preparing")
+                        newTableStatus = "Reserved"; // sửa lại đúng trạng thái "Đã đặt"
+                    else if (OrderStatus == "Served")
+                        newTableStatus = "InUse"; // trạng thái "Đang sử dụng"
+                    else if (OrderStatus == "Completed" || OrderStatus == "Cancelled")
+                        newTableStatus = "Available";
+                    if (newTableStatus != null)
+                    {
+                        await _tableService.ChangeStatusAsync(order.TableId.Value, newTableStatus);
+                    }
+                }
                 StatusMessage = $"Order #{OrderId} status updated to {OrderStatus}";
             }
             else
@@ -138,6 +156,14 @@ namespace PRN222_Restaurant.Pages.Admin
                     OrderItems = new List<OrderItem>() // Initialize empty collection
                 };
 
+                // Đặt trạng thái bàn là 'Reserved' (đã đặt) khi tạo đơn hàng mới
+                var table = await _context.Tables.FirstOrDefaultAsync(t => t.Id == CreateOrderModel.TableId);
+                if (table != null)
+                {
+                    table.Status = "Reserved";
+                    await _context.SaveChangesAsync();
+                }
+
                 var selectedItems = CreateOrderModel.SelectedItems
                     .Where(x => x.Quantity > 0)
                     .ToDictionary(x => x.MenuItemId, x => x.Quantity);
@@ -189,7 +215,7 @@ namespace PRN222_Restaurant.Pages.Admin
     public class CreateOrderModel
     {
         public int TableId { get; set; }
-        public string Note { get; set; }
+        public string? Note { get; set; }
         public List<OrderItemModel> SelectedItems { get; set; } = new List<OrderItemModel>();
     }
 
