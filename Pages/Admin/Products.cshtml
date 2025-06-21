@@ -135,13 +135,13 @@
             </div>
 
             <div class="join">
-                <button class="join-item btn btn-sm @(Model.CurrentPage == 1 ? "btn-disabled" : "")" onclick="changePage(@(Model.CurrentPage - 1))">«</button>
-                @for (int i = 1; i <= Model.TotalPages; i++)
-                {
-                    <button class="join-item btn btn-sm @(Model.CurrentPage == i ? "btn-active" : "")" onclick="changePage(@i)">@i</button>
-                }
-                <button class="join-item btn btn-sm @(Model.CurrentPage == Model.TotalPages ? "btn-disabled" : "")" onclick="changePage(@(Model.CurrentPage + 1))">»</button>
-            </div>
+        <button class="join-item btn btn-sm @(Model.CurrentPage == 1 ? "btn-disabled" : "")" onclick="changePage(@(Model.CurrentPage - 1))">«</button>
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <button class="join-item btn btn-sm @(Model.CurrentPage == i ? "btn-active" : "")" onclick="changePage(@i)">@i</button>
+        }
+        <button class="join-item btn btn-sm @(Model.CurrentPage == Model.TotalPages ? "btn-disabled" : "")" onclick="changePage(@(Model.CurrentPage + 1))">»</button>
+    </div>
         </div>
     </div>
 </div>

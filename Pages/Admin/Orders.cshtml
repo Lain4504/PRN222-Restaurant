@@ -1,4 +1,4 @@
-@page
+@page "/admin/orders"
 @model PRN222_Restaurant.Pages.Admin.OrdersModel
 @{
     ViewData["Title"] = "Quản lý đơn hàng";
@@ -361,6 +361,7 @@
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const orderId = this.getAttribute('data-id');
+        
                     const modal = document.getElementById('order-details-modal');
                     
                     // Fetch order details
@@ -397,11 +398,12 @@
                         });
                 });
             });
-            
-            // Xử lý thay đổi số mục trên mỗi trang
+             // Xử lý thay đổi số mục trên mỗi trang
             document.getElementById('pageSize').addEventListener('change', function() {
                 window.location.href = '/admin/orders?currentPage=1&pageSize=' + this.value;
             });
+           
+        });
 
             // Show modal if there are errors
             @if (!string.IsNullOrEmpty(Model.StatusMessage) && Model.StatusMessage.StartsWith("Error"))
