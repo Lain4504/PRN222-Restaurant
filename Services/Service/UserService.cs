@@ -65,9 +65,6 @@ namespace PRN222_Restaurant.Services
             existingUser.FullName = updatedUser.FullName;
             existingUser.Email = updatedUser.Email;
             existingUser.Role = updatedUser.Role;
-            existingUser.PasswordHash = string.IsNullOrWhiteSpace(updatedUser.PasswordHash)
-                ? existingUser.PasswordHash
-                : updatedUser.PasswordHash;
 
             _context.Users.Update(existingUser);
             await _context.SaveChangesAsync();

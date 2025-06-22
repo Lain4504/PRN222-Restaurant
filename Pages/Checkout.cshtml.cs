@@ -1,37 +1,42 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using PRN222_Restaurant.Services;
-using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Data;
+using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Pages;
+using PRN222_Restaurant.Services;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace PRN222_Restaurant.Pages
 {
+    [Authorize]
     public class CheckoutModel : PageModel
     {
         private readonly IVNPayService _vnPayService;
         private readonly ApplicationDbContext _context;
-
-        public CheckoutModel(IVNPayService vnPayService, ApplicationDbContext context)
+        private readonly IFeedbackService _feedbackService;
+        public CheckoutModel(IVNPayService vnPayService, ApplicationDbContext context, IFeedbackService feedbackService)
         {
             _vnPayService = vnPayService;
             _context = context;
+            _feedbackService = feedbackService;
         }
 
         [BindProperty]
         public PaymentInformation PaymentInfo { get; set; }
-        
+
         public List<OrderItemViewModel> OrderItems { get; set; } = new List<OrderItemViewModel>();
         public decimal Subtotal { get; set; }
         public decimal Tax { get; set; }
         public decimal Total { get; set; }
         public int OrderId { get; set; }
-
+        [BindProperty]
+        public Feedback NewFeedback { get; set; } = new();
         public async Task<IActionResult> OnGetAsync(int? orderId)
         {
             // If orderId is provided, load that specific order
@@ -41,23 +46,23 @@ namespace PRN222_Restaurant.Pages
                     .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
                     .FirstOrDefaultAsync(o => o.Id == orderId.Value);
-                
+
                 if (order == null)
                 {
                     TempData["ErrorMessage"] = "Order not found.";
                     return RedirectToPage("/Error");
                 }
-                
+
                 // Store order ID in session for later use
                 HttpContext.Session.SetInt32("CurrentOrderId", order.Id);
                 OrderId = order.Id;
-                
+
                 // Load order items
                 await LoadOrderItems(order);
-                
+
                 return Page();
             }
-            
+
             // If no orderId provided, check if there's a current order in session
             var sessionOrderId = HttpContext.Session.GetInt32("CurrentOrderId");
             if (sessionOrderId.HasValue)
@@ -66,18 +71,18 @@ namespace PRN222_Restaurant.Pages
                     .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
                     .FirstOrDefaultAsync(o => o.Id == sessionOrderId.Value);
-                
+
                 if (existingOrder != null)
                 {
                     OrderId = existingOrder.Id;
-                    
+
                     // Load order items
                     await LoadOrderItems(existingOrder);
-                    
+
                     return Page();
                 }
             }
-            
+
             // If no valid order was found, create a test order (for demo purposes only)
             var testOrder = new Order
             {
@@ -112,32 +117,32 @@ namespace PRN222_Restaurant.Pages
             // Store order ID in session for later use
             HttpContext.Session.SetInt32("CurrentOrderId", testOrder.Id);
             OrderId = testOrder.Id;
-            
+
             // Reload the order with items
             var reloadedOrder = await _context.Orders
                 .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.MenuItem)
                 .FirstOrDefaultAsync(o => o.Id == testOrder.Id);
-                
+
             if (reloadedOrder != null)
             {
                 await LoadOrderItems(reloadedOrder);
             }
-            
+
             return Page();
         }
-        
+
         private async Task LoadOrderItems(Order order)
         {
             OrderItems.Clear();
             Subtotal = 0;
-            
+
             if (order.OrderItems != null)
             {
                 foreach (var item in order.OrderItems)
                 {
                     var menuItem = item.MenuItem ?? await _context.MenuItems.FindAsync(item.MenuItemId);
-                    
+
                     if (menuItem != null)
                     {
                         var orderItem = new OrderItemViewModel
@@ -154,7 +159,7 @@ namespace PRN222_Restaurant.Pages
                     }
                 }
             }
-            
+
             // Calculate tax and total
             Tax = Math.Round(Subtotal * 0.1m, 2);
             Total = Subtotal + Tax;
@@ -244,6 +249,54 @@ namespace PRN222_Restaurant.Pages
                 }
             }
             return RedirectToPage("/Error");
+        }
+
+
+
+        private int? GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return userId;
+            }
+            return null;
+        }
+
+
+        public async Task<IActionResult> OnPostSubmitFeedbackAsync()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                TempData["FeedbackError"] = "Bạn phải đăng nhập để gửi phản hồi.";
+                return Page();
+            }
+
+            // Kiểm tra xem user có tồn tại không (tránh lỗi khóa ngoại)
+            if (!await _context.Users.AnyAsync(u => u.Id == userId.Value))
+            {
+                TempData["FeedbackError"] = "Người dùng không hợp lệ.";
+                return Page();
+            }
+
+            NewFeedback.UserId = userId.Value;
+            NewFeedback.CreatedAt = DateTime.Now;
+
+            try
+            {
+                await _feedbackService.AddAsync(NewFeedback);
+                TempData["FeedbackSuccess"] = "Phản hồi của bạn đã được ghi nhận.";
+                return RedirectToPage();
+            }
+            catch (Exception ex)
+            {
+                TempData["FeedbackError"] = "Có lỗi xảy ra khi lưu phản hồi: " + ex.Message;
+                return Page();
+            }
+
+
+
         }
     }
 }

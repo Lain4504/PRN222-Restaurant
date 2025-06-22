@@ -1,4 +1,5 @@
 ﻿using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Models.Response;
 using PRN222_Restaurant.Repositories.IRepository;
 
 public class FeedbackService : IFeedbackService
@@ -20,6 +21,8 @@ public class FeedbackService : IFeedbackService
 
     public Task DeleteAsync(int id) => _repository.DeleteAsync(id);
 
-    public Task<(IEnumerable<Feedback> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize)
-        => _repository.GetPagedAsync(pageNumber, pageSize);
+    public async Task<PagedResult<Feedback>> GetPagedFeedbacksAsync(int page, int pageSize)
+    {
+        return await _repository.GetPagedAsync(page, pageSize);
+    }
 }

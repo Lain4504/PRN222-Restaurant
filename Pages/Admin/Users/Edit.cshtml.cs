@@ -20,12 +20,6 @@ namespace PRN222_Restaurant.Pages.Admin.Users
         [BindProperty]
         public User User { get; set; } = new User();
 
-        [BindProperty]
-        public string? Password { get; set; }
-
-        [BindProperty]
-        public string? ConfirmPassword { get; set; }
-
         public bool IsNewUser => User.Id == 0;
 
         public string[] Roles { get; set; } = new[] { "Admin", "Manager", "Staff", "User" };
@@ -54,18 +48,8 @@ namespace PRN222_Restaurant.Pages.Admin.Users
                 return Page();
             }
 
-            if (!string.IsNullOrEmpty(Password) || IsNewUser)
-            {
-                if (Password != ConfirmPassword)
-                {
-                    ErrorMessage = "Mật khẩu và xác nhận mật khẩu không khớp.";
-                    return Page();
-                }
 
-                User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(Password);
-            }
-            
-            if (IsNewUser)
+            if (User.Id == 0)
             {
                 await _userService.CreateUserAsync(User);
             }

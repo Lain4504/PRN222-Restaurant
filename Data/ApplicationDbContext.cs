@@ -42,7 +42,6 @@ public class ApplicationDbContext : DbContext
                 FullName = "John Doe",
                 Email = "john@example.com",
                 Role = "Customer",
-                PasswordHash = "password", // In a real app, should use password hashing
                 IsActive = true
             },
             new User
@@ -51,7 +50,6 @@ public class ApplicationDbContext : DbContext
                 FullName = "Jane Smith",
                 Email = "jane@example.com",
                 Role = "Customer",
-                PasswordHash = "password", // In a real app, should use password hashing
                 IsActive = true
             },
             new User
@@ -60,7 +58,6 @@ public class ApplicationDbContext : DbContext
                 FullName = "Admin User",
                 Email = "admin@example.com",
                 Role = "Admin",
-                PasswordHash = "admin123", // In a real app, should use password hashing
                 IsActive = true
             }
         );
