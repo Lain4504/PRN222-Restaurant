@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Models.Response;
 using PRN222_Restaurant.Repositories.IRepository;
 
 public class FeedbackRepository : IFeedbackRepository
@@ -24,8 +25,37 @@ public class FeedbackRepository : IFeedbackRepository
 
     public async Task AddAsync(Feedback feedback)
     {
-        await _context.Feedbacks.AddAsync(feedback);
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.Feedbacks.AddAsync(feedback);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException dbEx)
+        {
+
+            var innerMessage = dbEx.InnerException?.Message ?? dbEx.Message;
+            throw new Exception("Lỗi khi thêm Feedback: " + innerMessage, dbEx);
+        }
+    }
+    public async Task<PagedResult<Feedback>> GetPagedAsync(int page, int pageSize)
+    {
+        var query = _context.Feedbacks.Include(f => f.User)
+                            .OrderBy(f => f.Id);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Feedback>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
     }
 
     public async Task UpdateAsync(Feedback feedback)
@@ -43,20 +73,6 @@ public class FeedbackRepository : IFeedbackRepository
             await _context.SaveChangesAsync();
         }
     }
-    public async Task<(IEnumerable<Feedback>, int)> GetPagedAsync(int pageNumber, int pageSize)
-    {
-        int validPageNumber = pageNumber < 1 ? 1 : pageNumber;
-        int offset = (validPageNumber - 1) * pageSize;
 
-        var items = await _context.Feedbacks.Include(f => f.User)
-            .OrderBy(f => f.Id)  
-            .Skip(offset)
-            .Take(pageSize)
-            .ToListAsync();
-
-        int totalCount = await _context.Feedbacks.CountAsync();
-
-        return (items, totalCount);
-    }
 
 }

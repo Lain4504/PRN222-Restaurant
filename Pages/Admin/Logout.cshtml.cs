@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace PRN222_Restaurant.Pages.Admin
@@ -7,12 +7,20 @@ namespace PRN222_Restaurant.Pages.Admin
     {
         public IActionResult OnGet()
         {
-            // Sign out user
-            // For example, if using Identity:
-            // await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            
-            // Redirect to login page
-            return RedirectToPage("/admin/login");
+            // Xoá token khỏi Session
+            HttpContext.Session.Remove("AuthToken");
+
+
+            var role = HttpContext.Session.GetString("UserRole");
+
+            if (role == "Admin" || role == "Staff")
+            {
+                return Redirect("/admin/login");
+            }
+            else
+            {
+                return Redirect("/index");
+            }
         }
     }
 }

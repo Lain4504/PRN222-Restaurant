@@ -1,4 +1,5 @@
 ﻿using PRN222_Restaurant.Models;
+using PRN222_Restaurant.Models.Response;
 
 public interface IFeedbackService
 {
@@ -7,5 +8,6 @@ public interface IFeedbackService
     Task AddAsync(Feedback feedback);
     Task UpdateAsync(Feedback feedback);
     Task DeleteAsync(int id);
-    Task<(IEnumerable<Feedback> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize);
+    Task<PagedResult<Feedback>> GetPagedFeedbacksAsync(int page, int pageSize);
+
 }
