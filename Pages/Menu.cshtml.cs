@@ -22,7 +22,11 @@ namespace PRN222_Restaurant.Pages
         public List<Category> Categories { get; set; } = new();
         public List<MenuItem> TopRecommendations { get; set; } = new();
 
-        public Dictionary<string, string> MenuStatusDisplayNames { get; set; } = new();
+        public Dictionary<string, string> MenuStatusDisplayNames { get; set; } = new()
+        {
+            { "available", "Còn món" },
+            { "unavailable", "Hết món" }
+        };
 
         [BindProperty(SupportsGet = true)]
         public int? CategoryId { get; set; }
@@ -52,19 +56,30 @@ namespace PRN222_Restaurant.Pages
             var query = _context.MenuItems.Include(m => m.Category).AsQueryable();
 
             if (CategoryId.HasValue)
+            {
                 query = query.Where(m => m.CategoryId == CategoryId);
+            }
 
-            if (!string.IsNullOrEmpty(Status))
-                query = query.Where(m => m.Status.ToString().ToLower() == Status.ToLower());
+            if (!string.IsNullOrEmpty(Status) &&
+                Enum.TryParse<MenuItemStatus>(Status, true, out var parsedStatus))
+            {
+                query = query.Where(m => m.Status == parsedStatus);
+            }
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
                 query = query.Where(m => m.Name.Contains(SearchTerm) || m.Description.Contains(SearchTerm));
+            }
 
             if (MinPrice.HasValue)
-                query = query.Where(m => m.Price >= MinPrice);
+            {
+                query = query.Where(m => m.Price >= MinPrice.Value);
+            }
 
             if (MaxPrice.HasValue)
-                query = query.Where(m => m.Price <= MaxPrice);
+            {
+                query = query.Where(m => m.Price <= MaxPrice.Value);
+            }
 
             int totalItems = await query.CountAsync();
             TotalPages = (int)System.Math.Ceiling((double)totalItems / PageSize);
@@ -81,12 +96,6 @@ namespace PRN222_Restaurant.Pages
                 .ThenBy(m => m.Status)
                 .Take(3)
                 .ToListAsync();
-
-            MenuStatusDisplayNames = new()
-            {
-                { "available", "Còn món" },
-                { "unavailable", "Hết món" }
-            };
         }
     }
 }

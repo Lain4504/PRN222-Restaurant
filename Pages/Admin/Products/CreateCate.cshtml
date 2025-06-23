@@ -1,65 +1,91 @@
 ﻿@page
 @model PRN222_Restaurant.Pages.Admin.Products.CreateCateModel
 @{
-    ViewData["Title"] = "Thêm danh mục mới";
+    ViewData["Title"] = "Danh mục món ăn";
 }
 
 <div class="card bg-base-100 shadow-md p-6">
-    <h2 class="text-2xl mb-4 font-bold">Thêm danh mục mới</h2>
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold">Danh sách danh mục</h2>
+        <button class="btn btn-primary btn-md" onclick="document.getElementById('add-modal').showModal()" title="Thêm danh mục">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
 
-    <form method="post">
-        <div class="mb-4">
-            <label class="label">Tên danh mục</label>
-            <input asp-for="Category.Name" class="input input-bordered w-full" />
-            <span asp-validation-for="Category.Name" class="text-red-500 text-sm"></span>
-        </div>
+    </div>
 
-        <div class="mt-4">
-            <button type="submit" class="btn btn-primary">Lưu</button>
-            <a href="/admin/products" class="btn btn-ghost ml-2">Hủy</a>
-        </div>
-    </form>
+    <table class="table table-zebra w-full">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên danh mục</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cate in Model.Categories)
+            {
+                <tr>
+                    <td>@cate.Id</td>
+                    <td>@cate.Name</td>
+                    <td>
+                        <div class="flex gap-1">
+                            <button type="button" class="btn btn-xs btn-square btn-warning"
+                                    onclick="openEditModal(@cate.Id, '@cate.Name')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                            </button>
+
+                            <button type="button" class="btn btn-xs btn-error" onclick="confirmDelete(@cate.Id, '@cate.Name')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>
 
-@if (Model.Categories != null && Model.Categories.Any())
-{
-    <div class="card bg-base-100 shadow-md p-6 mt-8">
-        <h3 class="text-xl font-semibold mb-4">Danh sách danh mục</h3>
-
-        <table class="table table-zebra w-full">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tên danh mục</th>
-                    <th>Hành động</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var cate in Model.Categories)
-                {
-                    <tr>
-                        <td>@cate.Id</td>
-                        <td>@cate.Name</td>
-                        <td>
-                            <div class="flex gap-1">
-                                <a href="/admin/products/editcate/@cate.Id" class="btn btn-xs btn-square btn-warning">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
-                                </a>
-                                <button type="button" class="btn btn-xs btn-error"onclick="confirmDelete(@cate.Id, '@cate.Name')">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<!-- Modal thêm danh mục -->
+<dialog id="add-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Thêm danh mục mới</h3>
+        <form method="post" asp-page-handler="Add">
+            <div class="form-control mt-4">
+                <label class="label">Tên danh mục</label>
+                <input asp-for="Category.Name" class="input input-bordered w-full" />
+                <span asp-validation-for="Category.Name" class="text-red-500 text-sm"></span>
+            </div>
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">Lưu</button>
+                <button type="button" class="btn btn-ghost" onclick="document.getElementById('add-modal').close()">Hủy</button>
+            </div>
+        </form>
     </div>
-}
+</dialog>
+
+<!-- Modal chỉnh sửa danh mục -->
+<dialog id="edit-modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Chỉnh sửa danh mục</h3>
+        <form method="post" asp-page-handler="Edit">
+            <input type="hidden" id="edit-category-id" name="Category.Id" />
+            <div class="form-control mt-4">
+                <label class="label">Tên danh mục</label>
+                <input id="edit-category-name" name="Category.Name" class="input input-bordered w-full" />
+            </div>
+            <div class="modal-action">
+                <button type="submit" class="btn btn-warning">Lưu</button>
+                <button type="button" class="btn btn-ghost" onclick="document.getElementById('edit-modal').close()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</dialog>
 
 <!-- Modal xác nhận xóa -->
 <dialog id="delete-modal" class="modal">
@@ -87,6 +113,12 @@
 
         function closeDeleteModal() {
             document.getElementById('delete-modal').close();
+        }
+
+        function openEditModal(id, name) {
+            document.getElementById('edit-category-id').value = id;
+            document.getElementById('edit-category-name').value = name;
+            document.getElementById('edit-modal').showModal();
         }
     </script>
 }
