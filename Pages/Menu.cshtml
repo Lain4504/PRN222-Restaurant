@@ -4,366 +4,92 @@
     ViewData["Title"] = "Our Menu";
 }
 
-<!-- Menu Hero Section -->
+<!-- Hero Section -->
 <section class="relative py-16 md:py-24">
-    <!-- Background Image with Overlay -->
     <div class="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=2070"
-             alt="Seafood Platter"
-             class="w-full h-full object-cover" />
+        <img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?q=80&w=2070" class="w-full h-full object-cover" />
         <div class="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900/80"></div>
     </div>
-
-    <div class="container mx-auto px-4 relative z-10">
-        <div class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Our Menu</h1>
-            <p class="text-xl text-slate-200 max-w-2xl mx-auto">
-                Explore our selection of fresh seafood dishes prepared daily by our expert chefs
-            </p>
-        </div>
+    <div class="container mx-auto px-4 relative z-10 text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Our Menu</h1>
+        <p class="text-xl text-slate-200 max-w-3xl mx-auto">Explore our selection of fresh seafood dishes</p>
     </div>
 </section>
 
-<!-- Menu Navigation and Filters -->
+<!-- Filter Form -->
 <section class="bg-white py-8 sticky top-0 z-30 shadow-md">
     <div class="container mx-auto px-4">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <!-- Category Tabs -->
-            <div class="tabs tabs-boxed flex-1 justify-start overflow-x-auto max-w-full">
-                <a class="tab tab-active" id="all-tab" onclick="filterCategory('all')">All</a>
-                @foreach (var category in Model.Categories)
+        <form method="get" class="flex flex-col md:flex-row gap-4 items-center">
+            <select name="CategoryId" class="select select-bordered">
+                <option value="">Tất cả danh mục</option>
+                @foreach (var c in Model.Categories)
                 {
-                    <a class="tab" id="@category.Name.ToLower()-tab" onclick="filterCategory('@category.Name.ToLower()')">@category.Name</a>
+                    <option value="@c.Id" selected="@(Model.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
                 }
-            </div>
+            </select>
 
-            <!-- Search and Filters -->
-            <div class="flex items-center gap-4">
-                <!-- Search Input + Button -->
-                <div class="flex items-center border rounded overflow-hidden max-w-xs w-full">
-                    <input type="text" id="menu-search" placeholder="Search menu..."
-                           class="input input-bordered border-0 focus:outline-none w-full"
-                           oninput="searchMenu()" />
-                    <button class="btn btn-square rounded-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
-                </div>
+            <select name="Status" class="select select-bordered">
+                <option value="">Tất cả trạng thái</option>
+                @foreach (var s in Model.MenuStatusDisplayNames)
+                {
+                    <option value="@s.Key" selected="@(Model.Status == s.Key ? "selected" : null)">@s.Value</option>
+                }
+            </select>
 
-                <!-- View Cart Button -->
-                <div class="dropdown dropdown-end">
-                    <label tabindex="0" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <span id="cart-count">0</span>
-                    </label>
-                    <div tabindex="0" class="dropdown-content z-[1] card card-compact w-96 p-2 shadow bg-base-100">
-                        <div class="card-body">
-                            <h3 class="font-bold text-lg">Your Order</h3>
-                            <div id="cart-items" class="py-4">
-                                <p class="text-center text-gray-500 py-4">Your cart is empty</p>
-                            </div>
-                            <div class="flex justify-between font-bold text-lg">
-                                <span>Total:</span>
-                                <span id="cart-total">$0.00</span>
-                            </div>
-                            <div class="card-actions">
-                                <button id="checkout-btn" class="btn btn-primary btn-block" onclick="goToCheckout()" disabled>
-                                    Proceed to Checkout
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <input name="SearchTerm" type="text" placeholder="Tìm món..." value="@Model.SearchTerm" class="input input-bordered" />
+            <input name="MinPrice" type="number" placeholder="Giá từ" value="@Model.MinPrice" class="input input-bordered" />
+            <input name="MaxPrice" type="number" placeholder="Giá đến" value="@Model.MaxPrice" class="input input-bordered" />
 
-        </div>
+            <button type="submit" class="btn btn-primary">Lọc</button>
+        </form>
     </div>
 </section>
 
-<!-- Menu Items Section -->
+<!-- Menu Items -->
 <section class="py-12 bg-slate-50">
     <div class="container mx-auto px-4">
-        @foreach (var category in Model.Categories)
+        @if (Model.MenuItems.Count == 0)
         {
-            <div class="mb-12" id="@category.Name.ToLower()-section">
-                <h2 class="text-2xl font-bold text-slate-800 mb-6">@category.Name</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach (var item in Model.MenuItems.Where(m => m.CategoryId == category.Id))
-                    {
-                        <div class="card bg-base-100 shadow-xl menu-item" data-category="@category.Name.ToLower()">
-                            <figure class="h-48">
-                                <img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" />
-                            </figure>
-                            <div class="card-body">
-                                <h3 class="card-title text-xl">@item.Name</h3>
-
-                                <!-- Removed all badge-related sections -->
-
-                                <p class="text-slate-600">@item.Description</p>
-                                <div class="flex justify-between items-center mt-4">
-                                    <span class="text-xl font-bold">$@item.Price.ToString("F2")</span>
-                                    <button class="btn btn-primary btn-sm" onclick="addToCart('@item.Name', @item.Price)">Add to Cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
+            <div class="text-center text-gray-500 py-8 text-lg font-semibold">Không tìm thấy kết quả phù hợp</div>
         }
-    </div>
-</section>
-
-
-<!-- Recommendations Section -->
-<section class="py-12 bg-white">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-slate-800 mb-4">Chef's Recommendations</h2>
-            <p class="text-lg text-slate-600 max-w-3xl mx-auto">
-                Our chef's picks for a perfectly balanced seafood dining experience
-            </p>
-        </div>
-
-        <div class="carousel carousel-center w-full p-4 space-x-4 rounded-box">
-            @if (Model.TopRecommendations != null && Model.TopRecommendations.Count > 0)
-            {
-                foreach (var rec in Model.TopRecommendations)
+        else
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach (var item in Model.MenuItems)
                 {
-                    <div class="carousel-item w-full md:w-1/2 lg:w-1/3">
-                        <div class="card bg-base-100 shadow-xl">
-                            <figure class="h-64">
-                                <img src="@rec.ImageUrl" alt="@rec.Name" class="w-full h-full object-cover" />
-                            </figure>
-                            <div class="card-body">
-                                <h3 class="card-title text-xl">@rec.Name</h3>
-                                <p class="text-slate-600">@rec.Description</p>
-                                <div class="badge badge-secondary mb-2">Top Seller</div>
-                                <div class="flex justify-between items-center mt-4">
-                                    <span class="text-xl font-bold">$@rec.Price.ToString("F2")</span>
-                                    <button class="btn btn-primary btn-sm" onclick="addToCart('@rec.Name', @rec.Price)">Add to Cart</button>
-                                </div>
+                    <div class="card bg-base-100 shadow-xl">
+                        <figure class="h-48"><img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" /></figure>
+                        <div class="card-body">
+                            <h3 class="card-title text-xl">@item.Name</h3>
+                            <p class="text-slate-600">@item.Description</p>
+                            <div class="flex justify-between items-center mt-4">
+                                <span class="text-xl font-bold">@item.Price.ToString("N0") VNĐ</span>
+                                <span class="badge text-base font-semibold px-4 py-1 @(item.Status == Models.MenuItemStatus.Available ? "badge-success" : "badge-error text-white")">
+                                    @(item.Status == Models.MenuItemStatus.Available ? "Còn món" : "Hết món")
+                                </span>
                             </div>
                         </div>
                     </div>
                 }
-            }
-            else
-            {
-                <p class="text-center text-slate-500 w-full">No top recommendations available at the moment.</p>
-            }
-        </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-center mt-8 gap-2">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a href="@Url.Page("/Menu", null, new {
+                        CurrentPage = i,
+                        CategoryId = Model.CategoryId,
+                        Status = Model.Status,
+                        SearchTerm = Model.SearchTerm,
+                        MinPrice = Model.MinPrice,
+                        MaxPrice = Model.MaxPrice
+                }, null)"
+                       class="btn @(i == Model.CurrentPage ? "btn-primary" : "btn-neutral")">
+                        @i
+                    </a>
+                }
+            </div>
+        }
     </div>
 </section>
-
-
-<!-- JavaScript for Menu Functionality -->
-<script>
-    // Shopping Cart Data
-    let cartItems = [];
-    let cartTotal = 0;
-
-    // Add to Cart Function
-    function addToCart(itemName, price) {
-        // Check if item already exists
-        const existingItem = cartItems.find(item => item.name === itemName);
-
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cartItems.push({
-                name: itemName,
-                price: price,
-                quantity: 1
-            });
-        }
-
-        updateCart();
-
-        // Show toast notification
-        const toast = document.createElement('div');
-        toast.className = 'toast toast-center toast-top';
-        toast.innerHTML = `
-                <div class="alert alert-success">
-                    <span>${itemName} added to cart!</span>
-                </div>
-            `;
-        document.body.appendChild(toast);
-
-        // Remove toast after 3 seconds
-        setTimeout(() => {
-            document.body.removeChild(toast);
-        }, 3000);
-    }
-
-    // Update Cart UI
-    function updateCart() {
-        const cartContainer = document.getElementById('cart-items');
-        const cartCount = document.getElementById('cart-count');
-        const cartTotalElement = document.getElementById('cart-total');
-        const checkoutBtn = document.getElementById('checkout-btn');
-
-        // Reset cart
-        cartContainer.innerHTML = '';
-
-        // Update cart total
-        cartTotal = 0;
-
-        if (cartItems.length === 0) {
-            cartContainer.innerHTML = '<p class="text-center text-gray-500 py-4">Your cart is empty</p>';
-            checkoutBtn.disabled = true;
-        } else {
-            checkoutBtn.disabled = false;
-
-            // Add each item to cart
-            cartItems.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                cartTotal += itemTotal;
-
-                const itemElement = document.createElement('div');
-                itemElement.className = 'flex justify-between items-center mb-3 pb-3 border-b';
-                itemElement.innerHTML = `
-                        <div>
-                            <h4 class="font-medium">${item.name}</h4>
-                            <p class="text-sm text-gray-500">$${item.price.toFixed(2)} × ${item.quantity}</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-medium">$${itemTotal.toFixed(2)}</span>
-                            <button onclick="removeFromCart(${index})" class="btn btn-sm btn-circle btn-ghost">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                    `;
-                cartContainer.appendChild(itemElement);
-            });
-        }
-
-        // Update cart count and total
-        cartCount.textContent = cartItems.reduce((total, item) => total + item.quantity, 0);
-        cartTotalElement.textContent = `$${cartTotal.toFixed(2)}`;
-    }
-
-    // Remove Item from Cart
-    function removeFromCart(index) {
-        cartItems.splice(index, 1);
-        updateCart();
-    }
-
-    // Go to Checkout
-    function goToCheckout() {
-        // Store cart data in localStorage
-        localStorage.setItem('cartItems', JSON.stringify(cartItems));
-        localStorage.setItem('cartTotal', cartTotal.toString());
-
-        // Redirect to checkout page
-        window.location.href = '/checkout';
-    }
-
-    // Filter Menu by Category
-    function filterCategory(category) {
-        // Update active tab
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.classList.remove('tab-active');
-        });
-        document.getElementById(`${category}-tab`).classList.add('tab-active');
-
-        // Show/hide sections based on category
-        if (category === 'all') {
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.style.display = 'block';
-            });
-            document.querySelectorAll('[id$="-section"]').forEach(section => {
-                section.style.display = 'block';
-            });
-        } else {
-            document.querySelectorAll('.menu-item').forEach(item => {
-                if (item.getAttribute('data-category') === category) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-
-            // Hide section headers not matching the category
-            document.querySelectorAll('[id$="-section"]').forEach(section => {
-                if (section.id === `${category}-section`) {
-                    section.style.display = 'block';
-                } else {
-                    section.style.display = 'none';
-                }
-            });
-        }
-    }
-
-    // Search Menu Items
-    function searchMenu() {
-        const searchTerm = document.getElementById('menu-search').value.toLowerCase();
-        const menuItems = document.querySelectorAll('.menu-item');
-
-        if (searchTerm === '') {
-            // Reset to show all items
-            filterCategory('all');
-            return;
-        }
-
-        // Reset category tabs
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.classList.remove('tab-active');
-        });
-        document.getElementById('all-tab').classList.add('tab-active');
-
-        // Show all sections but filter items
-        document.querySelectorAll('[id$="-section"]').forEach(section => {
-            section.style.display = 'block';
-        });
-
-        let hasResults = false;
-
-        menuItems.forEach(item => {
-            const itemName = item.querySelector('.card-title').textContent.toLowerCase();
-            const itemDescription = item.querySelector('p').textContent.toLowerCase();
-
-            if (itemName.includes(searchTerm) || itemDescription.includes(searchTerm)) {
-                item.style.display = 'block';
-                hasResults = true;
-            } else {
-                item.style.display = 'none';
-            }
-        });
-
-        // Hide sections without visible items
-        document.querySelectorAll('[id$="-section"]').forEach(section => {
-            const visibleItems = section.querySelectorAll('.menu-item[style="display: block;"]');
-            if (visibleItems.length === 0) {
-                section.style.display = 'none';
-            }
-        });
-
-        // Show message if no results
-        if (!hasResults) {
-            const noResults = document.createElement('div');
-            noResults.className = 'text-center text-gray-500 py-4';
-            noResults.textContent = 'No results found';
-            document.querySelector('.container.mx-auto.px-4').appendChild(noResults);
-            setTimeout(() => {
-                noResults.remove();
-            }, 3000);
-        }
-    }
-
-    // Initialize cart from localStorage (if navigating back from checkout)
-    document.addEventListener('DOMContentLoaded', function () {
-        const savedCartItems = localStorage.getItem('cartItems');
-        if (savedCartItems) {
-            cartItems = JSON.parse(savedCartItems);
-            updateCart();
-        }
-    });
-</script>
