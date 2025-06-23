@@ -37,6 +37,10 @@ namespace PRN222_Restaurant.Pages
         [BindProperty(SupportsGet = true)]
         public int PageSize { get; set; } = DefaultPageSize;
 
+        [BindProperty(SupportsGet = true)]
+        public string Status { get; set; }
+        public List<string> AllStatuses { get; set; } = new List<string> { "Pending", "Preparing", "Served", "Completed", "Cancelled" };
+
         public async Task OnGetAsync()
         {
             // Ensure valid pagination parameters
@@ -46,8 +50,33 @@ namespace PRN222_Restaurant.Pages
             // Get current user ID
             var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
 
-            // Get paginated orders for the current user
-            OrdersResult = await _orderService.GetPagedUserOrdersAsync(userId, CurrentPage, PageSize);
+            // Get all orders for the user
+            var query = _context.Orders
+                .Include(o => o.Table)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.MenuItem)
+                .Where(o => o.UserId == userId);
+
+            // Filter by status if provided
+            if (!string.IsNullOrEmpty(Status) && AllStatuses.Contains(Status))
+            {
+                query = query.Where(o => o.Status == Status);
+            }
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(o => o.OrderDate)
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            OrdersResult = new PagedResult<Order>
+            {
+                Items = items,
+                Page = CurrentPage,
+                PageSize = PageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<IActionResult> OnGetOrderDetailsAsync(int id)

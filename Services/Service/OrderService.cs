@@ -57,8 +57,7 @@ namespace PRN222_Restaurant.Services.Service
                 Items = items,
                 Page = page,
                 PageSize = pageSize,
-                TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+                TotalCount = totalCount
             };
         }
 

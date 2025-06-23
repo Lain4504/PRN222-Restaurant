@@ -1,4 +1,4 @@
-@page
+@page "/order-list"
 @model PRN222_Restaurant.Pages.OrderListModel
 @{
     ViewData["Title"] = "Đơn hàng của tôi";
@@ -22,6 +22,27 @@
 
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
+                <!-- Status Filter -->
+                <form method="get" class="mb-4 flex flex-wrap gap-4 items-center">
+                    <label for="status" class="font-medium">Lọc theo trạng thái:</label>
+                    <select id="status" name="Status" class="select select-bordered select-sm w-auto max-w-xs" onchange="this.form.submit()">
+                        <option value="">Tất cả</option>
+                        @foreach (var status in Model.AllStatuses)
+                        {
+                            var isSelected = Model.Status == status;
+                            <option value="@status" selected="@(isSelected ? "selected" : null)">
+                                @(status == "Pending" ? "Chờ xử lý" :
+                                  status == "Preparing" ? "Đang chuẩn bị" :
+                                  status == "Served" ? "Đã phục vụ" :
+                                  status == "Completed" ? "Hoàn thành" :
+                                  status == "Cancelled" ? "Đã hủy" : status)
+                            </option>
+                        }
+                    </select>
+                    <input type="hidden" name="CurrentPage" value="@Model.CurrentPage" />
+                    <input type="hidden" name="PageSize" value="@Model.PageSize" />
+                </form>
+
                 <div class="overflow-x-auto">
                     <table class="table w-full">
                         <thead>
@@ -90,7 +111,7 @@
                     <div class="join">
                         @if (Model.OrdersResult.HasPreviousPage)
                         {
-                            <a href="/orderlist?currentPage=@(Model.OrdersResult.Page - 1)&pageSize=@Model.OrdersResult.PageSize" 
+                            <a href="/order-list?currentPage=@(Model.OrdersResult.Page - 1)&pageSize=@Model.OrdersResult.PageSize" 
                                class="join-item btn btn-outline">«</a>
                         }
                         else
@@ -106,14 +127,14 @@
                             }
                             else
                             {
-                                <a href="/orderlist?currentPage=@i&pageSize=@Model.OrdersResult.PageSize" 
+                                <a href="/order-list?currentPage=@i&pageSize=@Model.OrdersResult.PageSize" 
                                    class="join-item btn btn-outline">@i</a>
                             }
                         }
                         
                         @if (Model.OrdersResult.HasNextPage)
                         {
-                            <a href="/orderlist?currentPage=@(Model.OrdersResult.Page + 1)&pageSize=@Model.OrdersResult.PageSize" 
+                            <a href="/order-list?currentPage=@(Model.OrdersResult.Page + 1)&pageSize=@Model.OrdersResult.PageSize" 
                                class="join-item btn btn-outline">»</a>
                         }
                         else
@@ -220,7 +241,7 @@
                     const modal = document.getElementById('order-details-modal');
                     
                     // Fetch order details
-                    fetch(`/orderlist?handler=OrderDetails&id=${orderId}`)
+                    fetch(`/order-list?handler=OrderDetails&id=${orderId}`)
                         .then(response => response.json())
                         .then(data => {
                             document.getElementById('order-id').textContent = data.id;
@@ -260,7 +281,7 @@
             
             // Xử lý thay đổi số mục trên mỗi trang
             document.getElementById('pageSize').addEventListener('change', function() {
-                window.location.href = '/orderlist?currentPage=1&pageSize=' + this.value;
+                window.location.href = '/order-list?currentPage=1&pageSize=' + this.value;
             });
         });
     </script>

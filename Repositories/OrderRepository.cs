@@ -67,8 +67,7 @@ namespace PRN222_Restaurant.Repositories
                 Items = items,
                 Page = page,
                 PageSize = pageSize,
-                TotalCount = totalCount,
-                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+                TotalCount = totalCount
             };
         }
 
@@ -100,7 +99,8 @@ namespace PRN222_Restaurant.Repositories
                 .FirstOrDefaultAsync(o => 
                     o.TableId == tableId && 
                     o.OrderDate.Date == date.Date &&
-                    o.ReservationTime == time &&
+                    o.ReservationTime.HasValue &&
+                    o.ReservationTime.Value.TimeOfDay == time &&
                     o.Status != "Cancelled");
 
             return existingOrder == null;
