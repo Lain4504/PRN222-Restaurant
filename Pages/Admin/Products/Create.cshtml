@@ -21,7 +21,7 @@
 
     <div class="mb-4">
         <label class="label">Giá</label>
-        <input asp-for="MenuItem.Price" type="number" step="1000" class="input input-bordered w-full" />
+        <input asp-for="MenuItem.Price" type="number" step="1000" min="1000" class="input input-bordered w-full" />
         <span asp-validation-for="MenuItem.Price" class="text-red-500 text-sm"></span>
     </div>
 
