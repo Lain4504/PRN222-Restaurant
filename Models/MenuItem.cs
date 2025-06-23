@@ -27,6 +27,8 @@ public class MenuItem
 
     [Required(ErrorMessage = "Tình trạng món ăn là bắt buộc")]
     public MenuItemStatus Status { get; set; }
+
+    public int BuyCount { get; set; } = 0;
 }
 
 public enum MenuItemStatus
