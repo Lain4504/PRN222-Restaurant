@@ -82,6 +82,14 @@ namespace PRN222_Restaurant.Pages
                 return Page();
             }
 
+            // Cập nhật trạng thái bàn thành Reserved khi đặt bàn thành công
+            var table = await _context.Tables.FirstOrDefaultAsync(t => t.Id == TableId);
+            if (table != null)
+            {
+                table.Status = "Reserved";
+                await _context.SaveChangesAsync();
+            }
+
             // Store reservation details in TempData
             TempData["ReservationDate"] = ReservationDate.ToString("yyyy-MM-dd");
             TempData["ReservationTime"] = ReservationTime.ToString();
