@@ -12,7 +12,7 @@ public class MenuItem
     [Required(ErrorMessage = "Mô tả là bắt buộc")]
     public string Description { get; set; } = null!;
 
-    [Range(1000, double.MaxValue, ErrorMessage = "Giá phải từ 1000 trở lên")]
+    [Range(0, double.MaxValue, ErrorMessage = "Giá phải lớn hơn 0")]
     public decimal Price { get; set; }
 
     [Required(ErrorMessage = "URL hình ảnh là bắt buộc")]
@@ -27,6 +27,8 @@ public class MenuItem
 
     [Required(ErrorMessage = "Tình trạng món ăn là bắt buộc")]
     public MenuItemStatus Status { get; set; }
+
+    public int BuyCount { get; set; } = 0;
 }
 
 public enum MenuItemStatus

@@ -13,7 +13,7 @@ public class UserRepository : IUserRepository
     }
     public async Task<PagedResult<User>> GetPagedAsync(int page, int pageSize)
     {
-        var query = _context.Users.OrderBy(u => u.Id); 
+        var query = _context.Users.OrderBy(u => u.Id);
 
         var totalCount = await query.CountAsync();
 

@@ -18,107 +18,65 @@
             </a>
         </div>
 
-        <!-- Search and filters -->
-        <div class="mb-6 grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div class="lg:col-span-2">
-                <div class="join w-full">
-                    <input type="text" id="searchInput" data-search-table="tablesTable" placeholder="Tìm kiếm bàn ăn..."
-                        class="input input-bordered join-item w-full" />
-                    <button class="btn join-item">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </button>
-                </div>
+        <!-- XÓA THANH TÌM KIẾM VÀ THANH TRẠNG THÁI  -->
+        <!-- Table Status Legend -->
+        <div class="flex items-center justify-center gap-8 mb-6">
+            <div class="flex items-center">
+                <div class="w-6 h-6 bg-green-500 rounded-md mr-2"></div>
+                <span>Còn trống</span>
             </div>
-
-            <div>
-                <select class="select select-bordered w-full" id="statusFilter">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="Available">Còn trống</option>
-                    <option value="Reserved">Đã đặt</option>
-                    <option value="Occupied">Đang sử dụng</option>
-                </select>
+            <div class="flex items-center">
+                <div class="w-6 h-6 bg-yellow-400 rounded-md mr-2" style="background-color: #facc15;"></div>
+                <span>Đã đặt</span>
+            </div>
+            <div class="flex items-center">
+                <div class="w-6 h-6 bg-red-500 rounded-md mr-2"></div>
+                <span>Đang sử dụng</span>
             </div>
         </div>
 
-        <!-- Loading skeleton (hidden when data is loaded) -->
-        <div id="loading-skeleton" class="@(Model.Tables.Any() ? "hidden" : "")">
-            @for (int i = 0; i < 5; i++)
-            {
-                <div class="h-20 bg-base-200 animate-pulse rounded-md mb-2"></div>
-            }
-        </div>
-
-        <!-- Tables table -->
-        <div class="overflow-x-auto" id="tables-table-container" class="@(!Model.Tables.Any() ? "hidden" : "")">
-            <table id="tablesTable" class="table table-zebra w-full">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Số bàn</th>
-                        <th>Sức chứa</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < Model.Tables.Count; i++)
-                    {
-                        var table = Model.Tables[i];
-                        <tr>
-                            <td>@table.Id</td>
-                            <td>Bàn @table.TableNumber</td>
-                            <td>@table.Capacity người</td>
-                            <td data-status="@table.Status">
-                                @if (table.Status == "Available")
-                                {
-                                    <span class="badge badge-success">Còn trống</span>
-                                }
-                                else if (table.Status == "Reserved")
-                                {
-                                    <span class="badge badge-warning">Đã đặt</span>
-                                }
-                                else
-                                {
-                                    <span class="badge badge-error">Đang sử dụng</span>
-                                }
-                            </td>
-                            <td>
-                                <div class="flex gap-1">
-                                    <a href="/admin/tables/details/@table.Id" class="btn btn-xs btn-square btn-info">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                    </a>
-                                    <button type="button" class="btn btn-xs btn-square btn-warning"
-                                        onclick="openEditTableModal(@table.Id, @table.TableNumber, @table.Capacity, '@table.Status')">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                    <button onclick="confirmDelete(@table.Id, '@table.TableNumber')"
-                                        class="btn btn-xs btn-square btn-error">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <!-- Restaurant Area -->
+        <div class="relative border-2 border-gray-400 rounded-lg p-6 bg-gray-50 mb-16">
+            <!-- Restaurant Entrance -->
+            <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium">
+                Entrance
+            </div>
+            <!-- Kitchen Area -->
+            <div class="absolute -bottom-4 right-8 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium">
+                Kitchen
+            </div>
+            <!-- Bar Area -->
+            <div class="absolute -left-4 top-1/2 transform -translate-y-1/2 bg-white px-4 py-1 border border-gray-400 rounded-md text-sm font-medium rotate-90">
+                Bar
+            </div>
+            <!-- Tables Grid -->
+            <div class="grid grid-cols-4 gap-4 mb-8">
+                @foreach (var table in Model.Tables)
+                {
+                    string bgColor = table.Status == "Available"
+                        ? "bg-green-500"
+                        : table.Status == "Reserved"
+                            ? "bg-yellow-400"
+                            : "bg-red-500";
+                    string extraStyle = table.Status == "Reserved" ? "background-color: #facc15;" : "";
+                    string opacity = table.Status != "Available" ? "opacity-60" : "";
+                    <div class="flex flex-col items-center">
+                        <div class="rounded-lg p-4 h-28 w-full text-center text-white shadow-md border-2 border-gray-600 @bgColor @opacity flex flex-col justify-between"
+                             style="@extraStyle">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <div class="font-bold text-lg">Bàn @table.TableNumber</div>
+                            <div>@table.Capacity người</div>
+                        </div>
+                        <div class="flex justify-center gap-2 mt-2">
+                            <button type="button" class="btn btn-xs btn-square btn-warning !opacity-100"
+                                onclick="openEditTableModal(@table.Id, @table.TableNumber, @table.Capacity, '@table.Status')">Sửa</button>
+                            <button onclick="confirmDelete(@table.Id, '@table.TableNumber')" class="btn btn-xs btn-square btn-error !opacity-100">Xóa</button>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
 
         <!-- Pagination -->
@@ -185,12 +143,7 @@
                         class="input input-bordered w-full" required />
                 </div>
                 <div class="form-control mb-2">
-                    <label class="label">Trạng thái</label>
-                    <select id="edit-table-status" name="editTable.Status" class="select select-bordered w-full">
-                        <option value="Available">Còn trống</option>
-                        <option value="Reserved">Đã đặt</option>
-                        <option value="Occupied">Đang sử dụng</option>
-                    </select>
+                    <!-- Đã xóa label và select trạng thái -->
                 </div>
                 <div class="modal-action">
                     <button class="btn btn-primary" type="submit">Lưu</button>
@@ -281,7 +234,6 @@
                 document.getElementById('edit-table-id').value = id;
                 document.getElementById('edit-table-number').value = number;
                 document.getElementById('edit-table-capacity').value = capacity;
-                document.getElementById('edit-table-status').value = status;
                 document.getElementById('edit-table-modal').showModal();
             }
             function closeEditTableModal() {

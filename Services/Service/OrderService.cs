@@ -37,6 +37,30 @@ namespace PRN222_Restaurant.Services.Service
             return await _orderRepository.GetPagedAsync(page, pageSize);
         }
 
+        public async Task<PagedResult<Order>> GetPagedUserOrdersAsync(int userId, int page, int pageSize)
+        {
+            var query = _context.Orders
+                .Include(o => o.Table)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.MenuItem)
+                .Where(o => o.UserId == userId)
+                .OrderByDescending(o => o.OrderDate);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Order>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+        }
+
         public async Task<Order> CreateImmediateOrderAsync(Order order, Dictionary<int, int> selectedItems)
         {
             order.OrderType = "Immediate";

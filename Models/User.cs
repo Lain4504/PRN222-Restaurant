@@ -8,9 +8,6 @@ public class User
 
     public string Email { get; set; } = null!;
 
-    // Không đánh dấu [Required] vì bạn không nhập mật khẩu từ form
-    public string? PasswordHash { get; set; }
-
     public string Role { get; set; } = "Customer";
 
     public bool IsActive { get; set; } = true;

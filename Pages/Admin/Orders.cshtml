@@ -348,22 +348,17 @@
                     e.preventDefault();
                     const orderId = this.getAttribute('data-id');
                     const status = this.getAttribute('data-status');
-                    
                     document.getElementById('status-order-id').value = orderId;
                     document.getElementById('status-value').value = status;
-                    
                     document.getElementById('update-status-form').submit();
                 });
             });
-            
             // Xử lý xem chi tiết đơn hàng
             document.querySelectorAll('.view-order-details').forEach(function(link) {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const orderId = this.getAttribute('data-id');
-        
                     const modal = document.getElementById('order-details-modal');
-                    
                     // Fetch order details
                     fetch(`/admin/orders?handler=OrderDetails&id=${orderId}`)
                         .then(response => response.json())
@@ -377,7 +372,6 @@
                             document.getElementById('order-reservation-time').textContent = data.reservationTime ? new Date(data.reservationTime).toLocaleString('vi-VN') : 'N/A';
                             document.getElementById('order-guests').textContent = data.numberOfGuests || 'N/A';
                             document.getElementById('order-note').textContent = data.note || 'N/A';
-                            
                             // Update order items
                             const itemsContainer = document.getElementById('order-items');
                             itemsContainer.innerHTML = '';
@@ -391,36 +385,26 @@
                                 `;
                                 itemsContainer.appendChild(row);
                             });
-                            
                             document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} đ`;
-                            
                             modal.showModal();
                         });
                 });
             });
-             // Xử lý thay đổi số mục trên mỗi trang
+            // Xử lý thay đổi số mục trên mỗi trang
             document.getElementById('pageSize').addEventListener('change', function() {
                 window.location.href = '/admin/orders?currentPage=1&pageSize=' + this.value;
             });
-           
-        });
-
             // Show modal if there are errors
-            @if (!string.IsNullOrEmpty(Model.StatusMessage) && Model.StatusMessage.StartsWith("Error"))
-            {
-                <text>
-                    document.getElementById('create-order-modal').showModal();
-                </text>
+            if (@(!string.IsNullOrEmpty(Model.StatusMessage) && Model.StatusMessage.StartsWith("Error")).ToString().ToLower()) {
+                document.getElementById('create-order-modal').showModal();
             }
         });
-
         // Functions for create order modal
         function incrementQuantity(itemId) {
             const input = document.getElementById(`quantity-${itemId}`);
             input.value = parseInt(input.value) + 1;
             updateQuantity(itemId, input.value);
         }
-
         function decrementQuantity(itemId) {
             const input = document.getElementById(`quantity-${itemId}`);
             if (parseInt(input.value) > 0) {
@@ -428,14 +412,12 @@
                 updateQuantity(itemId, input.value);
             }
         }
-
         function updateQuantity(itemId, value) {
             const quantity = parseInt(value) || 0;
             const input = document.getElementById(`quantity-${itemId}`);
             input.value = Math.max(0, quantity);
-            
             // Update hidden input for quantity
             document.getElementById(`hidden-quantity-${itemId}`).value = quantity;
         }
     </script>
-} 
+}

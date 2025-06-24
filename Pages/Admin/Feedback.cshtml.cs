@@ -1,39 +1,53 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_Restaurant.Models;
-using PRN222_Restaurant.Services;  
+using PRN222_Restaurant.Models.Response;
+using PRN222_Restaurant.Services;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PRN222_Restaurant.Pages.Admin
 {
     public class FeedbackModel : PageModel
     {
         private readonly IFeedbackService _feedbackService;
+        private const int DefaultPageSize = 10;
 
         public FeedbackModel(IFeedbackService feedbackService)
         {
             _feedbackService = feedbackService;
         }
 
-        public List<Feedback> Feedbacks { get; set; } = new();
-        public int CurrentPage { get; set; }
-        public int TotalPages { get; set; }
-        public int PageSize { get; set; } = 5;
+        public PagedResult<Feedback> FeedbackResult { get; set; } = new();
+        public List<Feedback> Feedbacks => FeedbackResult.Items;
 
-        public async Task OnGetAsync(int? pageNumber)
+        [TempData]
+        public string StatusMessage { get; set; }
+
+        [TempData]
+        public string SuccessMessage { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int CurrentPage { get; set; } = 1;
+
+        [BindProperty(SupportsGet = true)]
+        public int PageSize { get; set; } = DefaultPageSize;
+
+        public async Task<IActionResult> OnGetAsync()
         {
-            int currentPage = pageNumber.GetValueOrDefault(1);
-            currentPage = currentPage < 1 ? 1 : currentPage;
+            if (CurrentPage < 1) CurrentPage = 1;
+            if (PageSize < 1) PageSize = DefaultPageSize;
 
-            var (feedbacks, totalCount) = await _feedbackService.GetPagedAsync(CurrentPage, PageSize);
+            FeedbackResult = await _feedbackService.GetPagedFeedbacksAsync(CurrentPage, PageSize);
 
-            Feedbacks = feedbacks.ToList(); 
-            TotalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostDeleteAsync(int id, int currentPage)
+        public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
             await _feedbackService.DeleteAsync(id);
-            return RedirectToPage(new { pageNumber = currentPage }); // giữ lại trang hiện tại
+            SuccessMessage = "Xóa phản hồi thành công.";
+            return RedirectToPage(new { CurrentPage, PageSize });
         }
     }
 }

@@ -18,7 +18,7 @@ namespace PRN222_Restaurant.Pages.Admin
         [BindProperty(SupportsGet = true)]
         public int CurrentPage { get; set; } = 1;
         [BindProperty(SupportsGet = true)]
-        public int PageSize { get; set; } = 10;
+        public int PageSize { get; set; } = 12;
         public int TotalPages => (TotalTables + PageSize - 1) / PageSize;
         public int FromRecord => ((CurrentPage - 1) * PageSize) + 1;
         public int ToRecord => System.Math.Min(CurrentPage * PageSize, TotalTables);
