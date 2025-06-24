@@ -1,5 +1,6 @@
 ﻿@page
 @using PRN222_Restaurant.Models
+@using PRN222_Restaurant.Pages.BlazorComponent
 @model IndexModel
 @{
     ViewData["Title"] = "Home";
@@ -326,55 +327,7 @@
 
 
 
-<!-- Customer Feedback Section -->
-<section class="pb-20 bg-gradient-to-b from-slate-100 to-white mb-8">
-    <div class="max-w-6xl mx-auto px-4">
-        <div class="text-center py-10">
-            <p class="mt-2 text-2xl md:text-3xl font-semibold text-gray-900">Feedback from customers</p>
-        </div>
-        <form style="height: 400px; overflow-y: scroll;" class="bg-white shadow-md rounded-xl p-4 h-[350px] overflow-y-auto space-y-6">
-            @foreach (var feedback in Model.Feedbacks)
-            {
-                <div class="flex items-start gap-4 border-b pb-4">
-                    <!-- Avatar -->
-                    <img class="w-14 h-14 rounded-full object-cover border" src="https://i.pravatar.cc/150?u=@feedback.UserId" alt="Avatar" loading="lazy" />
-
-                    
-                    <div class="flex-1">
-                        <div class="flex justify-between items-center mb-1">
-                            <div>
-                                <h6 class="text-lg font-semibold text-gray-800">@feedback.User?.FullName</h6>
-                                <p class="text-sm text-gray-500">@feedback.User?.Email</p>
-                            </div>
-                            <p class="text-xs text-gray-400">@feedback.CreatedAt.ToString("MMM dd, yyyy")</p>
-                        </div>
-
-                        <!-- Rating -->
-                        <div class="flex items-center gap-0.5 mb-2">
-                            @for (int i = 1; i <= 5; i++)
-                            {
-                                var color = i <= feedback.Rating ? "#facc15" : "#d1d5db"; 
-                                                                                          <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                               style="width: 20px; height: 20px; color: @color;"
-                                                                                               fill="currentColor" viewBox="0 0 20 20">
-                                                                                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.975a1 1 0 00.95.69h4.198c.969 0
-                                                                                                                                                                            1.371 1.24.588 1.81l-3.4 2.469a1 1 0 00-.364 1.118l1.286 3.975c.3.921-.755
-                                                                                                                                                                            1.688-1.54 1.118l-3.4-2.469a1 1 0 00-1.176 0l-3.4
-                                                                                                                                                                            2.469c-.784.57-1.838-.197-1.539-1.118l1.286-3.975a1 1 0
-                                                                                                                                                                            00-.364-1.118L2.228 9.402c-.783-.57-.38-1.81.588-1.81h4.198a1 1 0
-                                                                                                                                                                            00.951-.69l1.286-3.975z" />
-                                                                                          </svg>
-                            }
-                        </div>
-
-                        <!-- Comment -->
-                        <p class="text-gray-700 italic">“@feedback.Comment”</p>
-                    </div>
-                </div>
-            }
-        </form>
-    </div>
-</section>
+<component type="typeof(PRN222_Restaurant.Pages.BlazorComponent.FeedbackPreview)" render-mode="ServerPrerendered" />
 
 
 

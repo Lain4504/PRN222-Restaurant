@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PRN222_Restaurant.Data;
-using PRN222_Restaurant.Repositories.IRepository;
-using PRN222_Restaurant.Services;
-using System.Text;
 using PRN222_Restaurant.Models;
-using PRN222_Restaurant.Services.IService;
+using PRN222_Restaurant.Repositories.IRepository;
 using PRN222_Restaurant.Repositories.Repository;
+using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Services.IService;
 using PRN222_Restaurant.Services.Service;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddHttpContextAccessor();
-
+builder.Services.AddServerSideBlazor();
 
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -121,7 +122,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
 // Session phải đứng trước Authentication & Authorization
