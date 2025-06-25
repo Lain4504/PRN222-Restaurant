@@ -9,6 +9,7 @@ using PRN222_Restaurant.Repositories.Repository;
 using PRN222_Restaurant.Services;
 using PRN222_Restaurant.Services.IService;
 using PRN222_Restaurant.Services.Service;
+using PRN222_Restaurant.Hubs;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -85,6 +86,9 @@ builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+// Add Chat services
+builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 // Add HttpClient
 builder.Services.AddHttpClient();
@@ -135,6 +139,7 @@ app.UseStatusCodePagesWithRedirects("/");
 app.MapRazorPages();
 app.MapBlazorHub();
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
 app.MapFallbackToPage("/blazor/{*clientPath}", "/Blazor/_Host");
 
 app.Run();

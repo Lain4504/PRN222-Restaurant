@@ -1,0 +1,448 @@
+@page "/Chat"
+@model PRN222_Restaurant.Pages.Chat.IndexModel
+@{
+    ViewData["Title"] = "Customer Support Chat";
+    Layout = "~/Pages/Shared/_FrontLayout.cshtml";
+}
+
+<style>
+    /* Force input text to be visible */
+    #messageInput {
+        color: #1f2937 !important;
+        font-weight: 500 !important;
+        -webkit-text-fill-color: #1f2937 !important;
+    }
+
+    #messageInput:focus {
+        color: #1f2937 !important;
+        -webkit-text-fill-color: #1f2937 !important;
+    }
+
+    #messageInput::placeholder {
+        color: #9ca3af !important;
+        opacity: 1 !important;
+    }
+</style>
+
+@* Anti-forgery token for AJAX requests *@
+@Html.AntiForgeryToken()
+
+<div class="container-fluid h-screen flex flex-col">
+    <div class="bg-white shadow-sm border-b p-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-900">Customer Support</h1>
+                    <p class="text-sm text-gray-500" id="connectionStatus">Connecting...</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-500" id="onlineStatus"></span>
+                <div class="w-3 h-3 bg-green-500 rounded-full" id="onlineIndicator" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Chat Messages Area -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messagesContainer">
+            <div class="text-center text-gray-500 py-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p>Welcome to customer support! How can we help you today?</p>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="px-4 py-2" id="typingIndicator" style="display: none;">
+            <div class="flex items-center space-x-2 text-gray-500">
+                <div class="flex space-x-1">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                </div>
+                <span class="text-sm">Support is typing...</span>
+            </div>
+        </div>
+
+        <!-- Message Input Area -->
+        <div class="border-t bg-gray-50 p-4">
+            <div class="flex items-end space-x-3">
+                <div class="flex-1">
+                    <div class="relative">
+                        <input type="text"
+                               id="messageInput"
+                               placeholder="Type your message..."
+                               class="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 shadow-sm transition-all duration-200 hover:border-gray-300"
+                               style="color: #1f2937 !important; font-weight: 500 !important;"
+                               maxlength="1000">
+                    </div>
+                </div>
+                <button id="sendButton"
+                        class="flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg disabled:hover:shadow-md"
+                        disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mt-2 text-xs text-gray-500 px-1">
+                Press Enter to send • Shift+Enter for new line
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Connection Status Modal -->
+<div id="connectionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Connection Lost</h3>
+            <p class="text-gray-600 mb-4">We're trying to reconnect you to the chat...</p>
+            <div class="flex justify-center">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script>
+        class CustomerChat {
+            constructor() {
+                this.connection = null;
+                this.chatRoomId = null;
+                this.userId = @Model.UserId;
+                this.isTyping = false;
+                this.typingTimeout = null;
+                this.init();
+            }
+
+            async init() {
+                await this.setupSignalR();
+                this.setupEventListeners();
+                await this.initializeChat();
+            }
+
+            async setupSignalR() {
+                this.connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/chatHub")
+                    .withAutomaticReconnect()
+                    .build();
+
+                // Connection events
+                this.connection.onreconnecting(() => {
+                    this.updateConnectionStatus("Reconnecting...", false);
+                    document.getElementById('connectionModal').style.display = 'flex';
+                });
+
+                this.connection.onreconnected(() => {
+                    this.updateConnectionStatus("Connected", true);
+                    document.getElementById('connectionModal').style.display = 'none';
+                    if (this.chatRoomId) {
+                        this.connection.invoke("JoinChatRoom", this.chatRoomId);
+                    }
+                });
+
+                this.connection.onclose(() => {
+                    this.updateConnectionStatus("Disconnected", false);
+                    document.getElementById('connectionModal').style.display = 'flex';
+                });
+
+                // Message events
+                this.connection.on("ReceiveMessage", (message) => {
+                    this.displayMessage(message);
+                });
+
+                this.connection.on("UserTyping", (userId, isTyping) => {
+                    if (userId !== this.userId) {
+                        this.showTypingIndicator(isTyping);
+                    }
+                });
+
+                this.connection.on("StaffAssigned", (staffId) => {
+                    this.displaySystemMessage("A support agent has joined the conversation");
+                });
+
+                this.connection.on("Error", (error) => {
+                    this.showError(error);
+                });
+
+                try {
+                    await this.connection.start();
+                    this.updateConnectionStatus("Connected", true);
+                } catch (err) {
+                    console.error("SignalR connection failed:", err);
+                    this.updateConnectionStatus("Connection Failed", false);
+                }
+            }
+
+            setupEventListeners() {
+                const messageInput = document.getElementById('messageInput');
+                const sendButton = document.getElementById('sendButton');
+
+                messageInput.addEventListener('input', (e) => {
+                    const message = e.target.value.trim();
+                    sendButton.disabled = !message;
+
+                    // Handle typing indicator
+                    if (message && !this.isTyping) {
+                        this.isTyping = true;
+                        this.connection.invoke("StartTyping", this.chatRoomId);
+                    }
+
+                    clearTimeout(this.typingTimeout);
+                    this.typingTimeout = setTimeout(() => {
+                        if (this.isTyping) {
+                            this.isTyping = false;
+                            this.connection.invoke("StopTyping", this.chatRoomId);
+                        }
+                    }, 1000);
+                });
+
+                messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                sendButton.addEventListener('click', () => {
+                    this.sendMessage();
+                });
+            }
+
+            async initializeChat() {
+                try {
+                    console.log("Initializing chat for user:", this.userId);
+
+                    const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+
+                    // Create form data for proper anti-forgery token handling
+                    const formData = new FormData();
+                    if (tokenElement) {
+                        formData.append('__RequestVerificationToken', tokenElement.value);
+                        console.log("Anti-forgery token found and added to form data");
+                    } else {
+                        console.warn("Anti-forgery token not found");
+                    }
+
+                    console.log("Making request to create chat room...");
+                    const response = await fetch('/Chat?handler=GetOrCreateChatRoom', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    console.log("Response status:", response.status);
+                    console.log("Response ok:", response.ok);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log("Chat room data:", data);
+                        this.chatRoomId = data.chatRoomId;
+                        console.log("Chat room ID:", this.chatRoomId);
+                        await this.connection.invoke("JoinChatRoom", this.chatRoomId);
+                        await this.loadMessages();
+                    } else {
+                        const errorText = await response.text();
+                        console.error("Failed to initialize chat. Status:", response.status, "Error:", errorText);
+                        this.showError(`Failed to initialize chat: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error("Error initializing chat:", error);
+                    this.showError("Failed to initialize chat");
+                }
+            }
+
+            async loadMessages() {
+                try {
+                    const response = await fetch(`/Chat?handler=GetMessages&chatRoomId=${this.chatRoomId}`);
+                    if (response.ok) {
+                        const messages = await response.json();
+                        const container = document.getElementById('messagesContainer');
+                        container.innerHTML = '';
+                        
+                        messages.forEach(message => {
+                            this.displayMessage(message, false);
+                        });
+                        
+                        this.scrollToBottom();
+                    }
+                } catch (error) {
+                    console.error("Error loading messages:", error);
+                }
+            }
+
+            sendMessage() {
+                const messageInput = document.getElementById('messageInput');
+                const message = messageInput.value.trim();
+                
+                if (!message || !this.chatRoomId) return;
+
+                this.connection.invoke("SendMessage", this.chatRoomId, message)
+                    .catch(err => {
+                        console.error("Error sending message:", err);
+                        this.showError("Failed to send message");
+                    });
+
+                messageInput.value = '';
+                document.getElementById('sendButton').disabled = true;
+                
+                if (this.isTyping) {
+                    this.isTyping = false;
+                    this.connection.invoke("StopTyping", this.chatRoomId);
+                }
+            }
+
+            displayMessage(message, animate = true) {
+                const container = document.getElementById('messagesContainer');
+                const isOwnMessage = message.senderId === this.userId;
+                const isSystemMessage = message.messageType === 'System';
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `mb-4 ${animate ? 'opacity-0' : ''}`;
+
+                if (isSystemMessage) {
+                    messageDiv.innerHTML = `
+                        <div class="text-center text-gray-500 text-sm py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            ${message.content}
+                        </div>
+                    `;
+                } else {
+                    const avatarBg = isOwnMessage ? 'bg-blue-500' : 'bg-green-500';
+                    const bubbleBg = isOwnMessage ? '#3b82f6' : '#10b981';
+                    const alignment = isOwnMessage ? 'flex-row-reverse' : 'flex-row';
+                    const textAlign = isOwnMessage ? 'text-right' : 'text-left';
+                    const marginClass = isOwnMessage ? 'ml-auto mr-2' : 'mr-auto ml-2';
+                    const senderName = isOwnMessage ? 'You' : (message.senderName || 'Support');
+
+                    messageDiv.innerHTML = `
+                        <div class="flex ${alignment} items-start w-full">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center shadow-md">
+                                    <span class="text-xs font-bold text-white">${this.getInitials(senderName)}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col ${marginClass} max-w-xs lg:max-w-md">
+                                <div class="mb-1 ${textAlign}">
+                                    <span class="text-sm font-medium text-gray-700">${senderName}</span>
+                                    <time class="text-xs text-gray-500 ml-2">${this.formatTime(message.sentAt)}</time>
+                                </div>
+                                <div class="px-4 py-2 rounded-lg shadow-sm" style="background-color: ${bubbleBg}; color: white;">
+                                    ${this.escapeHtml(message.content)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(messageDiv);
+
+                if (animate) {
+                    setTimeout(() => {
+                        messageDiv.classList.remove('opacity-0');
+                        messageDiv.classList.add('opacity-100', 'transition-opacity', 'duration-300');
+                    }, 50);
+                }
+
+                this.scrollToBottom();
+            }
+
+            displaySystemMessage(content) {
+                this.displayMessage({
+                    content: content,
+                    messageType: 'System',
+                    sentAt: new Date().toISOString()
+                });
+            }
+
+            showTypingIndicator(show) {
+                const indicator = document.getElementById('typingIndicator');
+                indicator.style.display = show ? 'block' : 'none';
+                if (show) {
+                    this.scrollToBottom();
+                }
+            }
+
+            updateConnectionStatus(status, isConnected) {
+                document.getElementById('connectionStatus').textContent = status;
+                const indicator = document.getElementById('onlineIndicator');
+                const statusText = document.getElementById('onlineStatus');
+                
+                if (isConnected) {
+                    indicator.style.display = 'block';
+                    indicator.className = 'w-3 h-3 bg-green-500 rounded-full';
+                    statusText.textContent = 'Online';
+                } else {
+                    indicator.style.display = 'block';
+                    indicator.className = 'w-3 h-3 bg-red-500 rounded-full';
+                    statusText.textContent = 'Offline';
+                }
+            }
+
+            showError(message) {
+                // You can implement a toast notification here
+                console.error("Chat error:", message);
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            getInitials(name) {
+                return name.split(' ')
+                    .map(word => word.charAt(0))
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2);
+            }
+
+            formatTime(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+                if (diffInMinutes < 1) return 'now';
+                if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+                if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+                return date.toLocaleDateString();
+            }
+
+            scrollToBottom() {
+                const container = document.getElementById('messagesContainer');
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // Initialize chat when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Chat Debug Info:");
+            console.log("User ID from model:", @Model.UserId);
+            console.log("User authenticated:", @(User.Identity?.IsAuthenticated ?? false ? "true" : "false"));
+
+            if (@Model.UserId > 0) {
+                new CustomerChat();
+            } else {
+                console.error("No valid user ID found, redirecting to login...");
+                window.location.href = '/admin/login';
+            }
+        });
+    </script>
+}
