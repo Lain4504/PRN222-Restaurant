@@ -8,16 +8,17 @@ namespace PRN222_Restaurant.Repositories.Repository;
 
 public class NotificationRepository : INotificationRepository
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
 
-    public NotificationRepository(ApplicationDbContext context)
+    public NotificationRepository(IDbContextFactory<ApplicationDbContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
     public async Task<IEnumerable<Notification>> GetAllAsync()
     {
-        return await _context.Notifications
+        using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Notifications
             .Include(n => n.User)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
@@ -25,14 +26,16 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<Notification?> GetByIdAsync(int id)
     {
-        return await _context.Notifications
+        using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Notifications
             .Include(n => n.User)
             .FirstOrDefaultAsync(n => n.Id == id);
     }
 
     public async Task<IEnumerable<Notification>> GetByUserIdAsync(int userId)
     {
-        return await _context.Notifications
+        using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Notifications
             .Where(n => n.UserId == userId)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
@@ -40,7 +43,8 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<IEnumerable<Notification>> GetUnreadByUserIdAsync(int userId)
     {
-        return await _context.Notifications
+        using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Notifications
             .Where(n => n.UserId == userId && !n.IsRead)
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
@@ -48,38 +52,55 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<int> GetUnreadCountByUserIdAsync(int userId)
     {
-        return await _context.Notifications
+        using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Notifications
             .CountAsync(n => n.UserId == userId && !n.IsRead);
     }
 
     public async Task<PagedResult<Notification>> GetPagedByUserIdAsync(int userId, int page, int pageSize)
     {
-        var query = _context.Notifications
-            .Where(n => n.UserId == userId)
-            .OrderByDescending(n => n.CreatedAt);
-
-        var totalCount = await query.CountAsync();
-
-        var items = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        return new PagedResult<Notification>
+        try
         {
-            Items = items,
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = totalCount
-        };
+            Console.WriteLine($"NotificationRepository: GetPagedByUserIdAsync - UserId: {userId}, Page: {page}, PageSize: {pageSize}");
+
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            var query = context.Notifications
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+            Console.WriteLine($"NotificationRepository: Total count for user {userId}: {totalCount}");
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            Console.WriteLine($"NotificationRepository: Retrieved {items.Count} items for page {page}");
+
+            return new PagedResult<Notification>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"NotificationRepository: Error in GetPagedByUserIdAsync: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task AddAsync(Notification notification)
     {
         try
         {
-            await _context.Notifications.AddAsync(notification);
-            await _context.SaveChangesAsync();
+            using var context = await _contextFactory.CreateDbContextAsync();
+            await context.Notifications.AddAsync(notification);
+            await context.SaveChangesAsync();
         }
         catch (DbUpdateException dbEx)
         {
@@ -90,47 +111,66 @@ public class NotificationRepository : INotificationRepository
 
     public async Task UpdateAsync(Notification notification)
     {
-        _context.Notifications.Update(notification);
-        await _context.SaveChangesAsync();
+        using var context = await _contextFactory.CreateDbContextAsync();
+        context.Notifications.Update(notification);
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(int id)
     {
-        var notification = await _context.Notifications.FindAsync(id);
+        using var context = await _contextFactory.CreateDbContextAsync();
+        var notification = await context.Notifications.FindAsync(id);
         if (notification != null)
         {
-            _context.Notifications.Remove(notification);
-            await _context.SaveChangesAsync();
+            context.Notifications.Remove(notification);
+            await context.SaveChangesAsync();
         }
     }
 
     public async Task MarkAsReadAsync(int id)
     {
-        var notification = await _context.Notifications.FindAsync(id);
+        using var context = await _contextFactory.CreateDbContextAsync();
+        var notification = await context.Notifications.FindAsync(id);
         if (notification != null)
         {
             notification.IsRead = true;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
     }
 
     public async Task MarkAllAsReadAsync(int userId)
     {
-        var notifications = await _context.Notifications
-            .Where(n => n.UserId == userId && !n.IsRead)
-            .ToListAsync();
-
-        foreach (var notification in notifications)
+        try
         {
-            notification.IsRead = true;
-        }
+            Console.WriteLine($"NotificationRepository: MarkAllAsReadAsync - UserId: {userId}");
 
-        await _context.SaveChangesAsync();
+            using var context = await _contextFactory.CreateDbContextAsync();
+
+            var notifications = await context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ToListAsync();
+
+            Console.WriteLine($"NotificationRepository: Found {notifications.Count} unread notifications for user {userId}");
+
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+
+            await context.SaveChangesAsync();
+            Console.WriteLine($"NotificationRepository: Successfully marked {notifications.Count} notifications as read");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"NotificationRepository: Error in MarkAllAsReadAsync: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task<IEnumerable<Notification>> GetLatestByUserIdAsync(int userId, int count = 5)
     {
-        return await _context.Notifications
+        using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Notifications
             .Where(n => n.UserId == userId)
             .OrderByDescending(n => n.CreatedAt)
             .Take(count)

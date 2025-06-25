@@ -24,5 +24,34 @@ namespace PRN222_Restaurant.Pages
 
             return Page();
         }
+
+        public async Task<IActionResult> OnPostCreateTestNotificationsAsync()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToPage("/Admin/Login");
+            }
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out int userId))
+            {
+                // Create test notifications
+                for (int i = 1; i <= 15; i++)
+                {
+                    await _notificationService.AddAsync(new Models.Notification
+                    {
+                        UserId = userId,
+                        Title = $"Test Notification {i}",
+                        Message = $"This is test notification number {i} for testing pagination and mark as read functionality.",
+                        Type = i % 4 == 0 ? "Success" : i % 3 == 0 ? "Warning" : i % 2 == 0 ? "Error" : "Info",
+                        CreatedAt = DateTime.Now.AddMinutes(-i * 5),
+                        IsRead = i % 5 == 0, // Some notifications are already read
+                        RelatedUrl = i % 3 == 0 ? "/order-list" : "#"
+                    });
+                }
+            }
+
+            return RedirectToPage();
+        }
     }
 }

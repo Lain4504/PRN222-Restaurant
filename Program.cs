@@ -27,6 +27,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
+// Add DbContextFactory for Blazor components to avoid concurrency issues
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)), ServiceLifetime.Scoped);
+
 // Cấu hình Session
 builder.Services.AddSession(options =>
 {
@@ -73,7 +77,9 @@ builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<INotificationRepository, PRN222_Restaurant.Repositories.Repository.NotificationRepository>();
+builder.Services.AddScoped<INotificationRepository>(provider =>
+    new PRN222_Restaurant.Repositories.Repository.NotificationRepository(
+        provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>()));
 builder.Services.AddScoped<INotificationService, PRN222_Restaurant.Services.Service.NotificationService>();
 builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();

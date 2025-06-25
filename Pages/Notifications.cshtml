@@ -7,7 +7,22 @@
 
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
-        @(await Html.RenderComponentAsync<PRN222_Restaurant.Components.NotificationList>(RenderMode.ServerPrerendered))
+        <!-- Test button for development -->
+        <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-sm text-yellow-800 mb-2">Development Tools:</p>
+            <form method="post" asp-page-handler="CreateTestNotifications" class="inline">
+                <button type="submit" class="btn btn-sm btn-warning">
+                    Tạo Test Notifications (15 items)
+                </button>
+            </form>
+        </div>
+
+        @(await Html.RenderComponentAsync<PRN222_Restaurant.Components.SimpleNotificationTest>(RenderMode.Server))
+
+        <hr class="my-8" />
+
+        <h3 class="text-lg font-bold mb-4">Full NotificationList Component:</h3>
+        @(await Html.RenderComponentAsync<PRN222_Restaurant.Components.NotificationList>(RenderMode.Server))
     </div>
 </div>
 

@@ -55,6 +55,8 @@
         }
     </style>
     <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true"/>
+    <base href="~/" />
+    <component type="typeof(Microsoft.AspNetCore.Components.Web.HeadOutlet)" render-mode="Server" />
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
@@ -84,7 +86,7 @@
                 {
                     <div class="flex items-center space-x-4">
                         <!-- Notification Component -->
-                        @(await Html.RenderComponentAsync<PRN222_Restaurant.Components.NotificationDropdown>(RenderMode.ServerPrerendered))
+                        @(await Html.RenderComponentAsync<PRN222_Restaurant.Components.NotificationDropdown>(RenderMode.Server))
 
                         <!-- Avatar -->
                         <div class="dropdown dropdown-end">
@@ -240,6 +242,7 @@
         </div>
     </footer>
 
+    <script src="_framework/blazor.server.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

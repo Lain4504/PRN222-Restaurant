@@ -1,0 +1,93 @@
+@using PRN222_Restaurant.Services.IService
+@using PRN222_Restaurant.Models
+@using System.Security.Claims
+@inject INotificationService NotificationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ILogger<SimpleNotificationTest> Logger
+
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <h2 class="text-xl font-bold mb-4">Simple Notification Test</h2>
+    
+    @if (isLoading)
+    {
+        <div class="text-center py-4">
+            <span class="loading loading-spinner loading-lg"></span>
+            <p class="mt-2">Loading...</p>
+        </div>
+    }
+    else if (notifications == null || !notifications.Any())
+    {
+        <div class="text-center py-4">
+            <p>No notifications found.</p>
+            <p>User ID: @currentUserId</p>
+            <p>Is Authenticated: @isAuthenticated</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-4">
+            <p>Found @notifications.Count() notifications for user @currentUserId</p>
+            @foreach (var notification in notifications)
+            {
+                <div class="border p-4 rounded">
+                    <h3 class="font-bold">@notification.Title</h3>
+                    <p>@notification.Message</p>
+                    <p class="text-sm text-gray-500">@notification.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="text-sm">Read: @notification.IsRead</p>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private IEnumerable<Notification>? notifications;
+    private bool isLoading = true;
+    private int currentUserId = 0;
+    private bool isAuthenticated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Logger.LogInformation("SimpleNotificationTest: Starting initialization");
+            
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            
+            isAuthenticated = user.Identity?.IsAuthenticated == true;
+            Logger.LogInformation($"SimpleNotificationTest: User authenticated: {isAuthenticated}");
+            
+            if (isAuthenticated)
+            {
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                Logger.LogInformation($"SimpleNotificationTest: User ID claim: {userIdClaim}");
+                
+                if (int.TryParse(userIdClaim, out int userId))
+                {
+                    currentUserId = userId;
+                    Logger.LogInformation($"SimpleNotificationTest: Parsed user ID: {currentUserId}");
+                    
+                    notifications = await NotificationService.GetByUserIdAsync(currentUserId);
+                    Logger.LogInformation($"SimpleNotificationTest: Loaded {notifications?.Count() ?? 0} notifications");
+                }
+                else
+                {
+                    Logger.LogWarning($"SimpleNotificationTest: Failed to parse user ID: {userIdClaim}");
+                }
+            }
+            else
+            {
+                Logger.LogWarning("SimpleNotificationTest: User not authenticated");
+            }
+            
+            isLoading = false;
+            Logger.LogInformation("SimpleNotificationTest: Initialization completed");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "SimpleNotificationTest: Error during initialization");
+            isLoading = false;
+        }
+    }
+}

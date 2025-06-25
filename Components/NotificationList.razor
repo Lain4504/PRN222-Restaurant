@@ -6,12 +6,17 @@
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager Navigation
+@inject ILogger<NotificationList> Logger
 @implements IDisposable
 
 <div class="bg-white rounded-lg shadow-lg p-6">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-900">Thông báo của tôi</h1>
         <button class="btn btn-outline btn-sm" @onclick="MarkAllAsRead" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="loading loading-spinner loading-sm mr-2"></span>
+            }
             Đánh dấu tất cả đã đọc
         </button>
     </div>
@@ -80,19 +85,37 @@
             <div class="btn-group">
                 @if (currentPage > 1)
                 {
-                    <button class="btn btn-outline" @onclick="() => LoadPage(currentPage - 1)">«</button>
+                    <button class="btn btn-outline" @onclick="() => LoadPage(currentPage - 1)" disabled="@isLoading">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
                 }
-                
+
                 @for (int i = GetStartPage(); i <= GetEndPage(); i++)
                 {
-                    <button class="btn btn-outline @(i == currentPage ? "btn-active" : "")" @onclick="() => LoadPage(i)">@i</button>
+                    int pageNumber = i; // Capture loop variable
+                    <button class="btn btn-outline @(i == currentPage ? "btn-active" : "")"
+                            @onclick="() => LoadPage(pageNumber)"
+                            disabled="@isLoading">
+                        @i
+                    </button>
                 }
-                
+
                 @if (currentPage < GetTotalPages())
                 {
-                    <button class="btn btn-outline" @onclick="() => LoadPage(currentPage + 1)">»</button>
+                    <button class="btn btn-outline" @onclick="() => LoadPage(currentPage + 1)" disabled="@isLoading">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
                 }
             </div>
+        </div>
+
+        <!-- Pagination Info -->
+        <div class="mt-3 text-center text-sm text-gray-500">
+            Trang @currentPage / @GetTotalPages() - Tổng @pagedResult.TotalCount thông báo
         </div>
     }
 </div>
@@ -107,26 +130,63 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await GetCurrentUserId();
-        if (currentUserId > 0)
+        try
         {
-            await LoadNotifications();
+            Logger.LogInformation("NotificationList: OnInitializedAsync started");
+            await GetCurrentUserId();
+            Logger.LogInformation($"NotificationList: Current user ID: {currentUserId}");
+
+            if (currentUserId > 0)
+            {
+                await LoadNotifications();
+            }
+            else
+            {
+                Logger.LogWarning("NotificationList: No valid user ID found");
+            }
+
+            isLoading = false;
+            Logger.LogInformation("NotificationList: OnInitializedAsync completed");
         }
-        isLoading = false;
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "NotificationList: Error in OnInitializedAsync");
+            isLoading = false;
+        }
     }
 
     private async Task GetCurrentUserId()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        
-        if (user.Identity?.IsAuthenticated == true)
+        try
         {
-            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(userIdClaim, out int userId))
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            Logger.LogInformation($"NotificationList: User authenticated: {user.Identity?.IsAuthenticated}");
+
+            if (user.Identity?.IsAuthenticated == true)
             {
-                currentUserId = userId;
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                Logger.LogInformation($"NotificationList: User ID claim: {userIdClaim}");
+
+                if (int.TryParse(userIdClaim, out int userId))
+                {
+                    currentUserId = userId;
+                    Logger.LogInformation($"NotificationList: Successfully parsed user ID: {currentUserId}");
+                }
+                else
+                {
+                    Logger.LogWarning($"NotificationList: Failed to parse user ID from claim: {userIdClaim}");
+                }
             }
+            else
+            {
+                Logger.LogWarning("NotificationList: User is not authenticated");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "NotificationList: Error in GetCurrentUserId");
         }
     }
 
@@ -137,22 +197,32 @@
             try
             {
                 isLoading = true;
+                StateHasChanged(); // Update UI to show loading state
+
+                Logger.LogInformation($"Loading notifications for user {currentUserId}, page {currentPage}, pageSize {pageSize}");
                 pagedResult = await NotificationService.GetPagedByUserIdAsync(currentUserId, currentPage, pageSize);
+                Logger.LogInformation($"Loaded {pagedResult?.Items?.Count() ?? 0} notifications, total: {pagedResult?.TotalCount ?? 0}");
+
                 isLoading = false;
-                StateHasChanged();
+                StateHasChanged(); // Update UI with new data
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading notifications: {ex.Message}");
+                Logger.LogError(ex, $"Error loading notifications: {ex.Message}");
                 isLoading = false;
+                StateHasChanged();
             }
         }
     }
 
     private async Task LoadPage(int page)
     {
-        currentPage = page;
-        await LoadNotifications();
+        if (page != currentPage && page > 0 && page <= GetTotalPages())
+        {
+            Logger.LogInformation($"Loading page {page}");
+            currentPage = page;
+            await LoadNotifications();
+        }
     }
 
     private async Task MarkAsRead(int notificationId, string? relatedUrl)
@@ -161,8 +231,9 @@
         {
             try
             {
+                Logger.LogInformation($"Marking notification {notificationId} as read");
                 await NotificationService.MarkAsReadAsync(notificationId);
-                await LoadNotifications();
+                await LoadNotifications(); // Reload current page
 
                 if (!string.IsNullOrEmpty(relatedUrl) && relatedUrl != "#")
                 {
@@ -171,7 +242,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error marking notification as read: {ex.Message}");
+                Logger.LogError(ex, $"Error marking notification as read: {ex.Message}");
             }
         }
     }
@@ -182,12 +253,20 @@
         {
             try
             {
+                isLoading = true;
+                StateHasChanged();
+
+                Logger.LogInformation($"Marking all notifications as read for user {currentUserId}");
                 await NotificationService.MarkAllAsReadAsync(currentUserId);
-                await LoadNotifications();
+                Logger.LogInformation("Mark all as read completed, reloading notifications");
+
+                await LoadNotifications(); // This will set isLoading = false and call StateHasChanged
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error marking all notifications as read: {ex.Message}");
+                Logger.LogError(ex, $"Error marking all notifications as read: {ex.Message}");
+                isLoading = false;
+                StateHasChanged();
             }
         }
     }

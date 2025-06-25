@@ -209,17 +209,25 @@
         {
             try
             {
+                isLoading = true;
+                StateHasChanged();
+
                 Console.WriteLine("Calling NotificationService.MarkAllAsReadAsync");
                 await NotificationService.MarkAllAsReadAsync(currentUserId);
                 Console.WriteLine("MarkAllAsReadAsync completed, reloading notifications");
+
                 await LoadNotifications();
                 await LoadUnreadCount();
+
+                isLoading = false;
                 StateHasChanged();
                 Console.WriteLine("MarkAllAsRead completed successfully");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error marking all notifications as read: {ex.Message}");
+                isLoading = false;
+                StateHasChanged();
             }
         }
         else
