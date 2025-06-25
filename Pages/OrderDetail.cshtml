@@ -1,0 +1,6 @@
+@page "/order-detail/{OrderId:int}"
+@model PRN222_Restaurant.Pages.OrderDetailModel
+@{
+    ViewData["Title"] = $"Chi tiết đơn hàng #{Model.OrderId}";
+}
+<component type="typeof(PRN222_Restaurant.Pages.Blazor.OrderDetail)" render-mode="ServerPrerendered" param-OrderId="@Model.OrderId" />

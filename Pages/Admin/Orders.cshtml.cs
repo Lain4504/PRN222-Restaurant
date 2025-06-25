@@ -166,11 +166,11 @@ namespace PRN222_Restaurant.Pages.Admin
                     OrderItems = new List<OrderItem>() // Initialize empty collection
                 };
 
-                // Đặt trạng thái bàn là 'Reserved' (đã đặt) khi tạo đơn hàng mới
+                // Đặt trạng thái bàn là 'Pending' (đang chờ xử lý) khi tạo đơn hàng mới
                 var table = await _context.Tables.FirstOrDefaultAsync(t => t.Id == CreateOrderModel.TableId);
                 if (table != null)
                 {
-                    table.Status = "Reserved";
+                    table.Status = "Pending"; // Đặt đúng trạng thái là Pending khi vừa tạo đơn hàng
                     await _context.SaveChangesAsync();
                 }
 

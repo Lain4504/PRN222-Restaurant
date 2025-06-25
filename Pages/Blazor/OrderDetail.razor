@@ -1,0 +1,165 @@
+@page "/order-detail/{OrderId:int}"
+@using PRN222_Restaurant.Services.IService
+@inject NavigationManager Navigation
+@inject IOrderService OrderService
+
+@code {
+    [Parameter]
+    public int OrderId { get; set; }
+    private OrderDetailDto? order;
+    private bool loading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var entity = await OrderService.GetOrderByIdAsync(OrderId);
+            if (entity == null)
+            {
+                order = null;
+            }
+            else
+            {
+                order = new OrderDetailDto
+                {
+                    Id = entity.Id,
+                    OrderType = entity.OrderType,
+                    Status = entity.Status,
+                    OrderDate = entity.OrderDate,
+                    ReservationTime = entity.ReservationTime,
+                    TotalPrice = entity.TotalPrice,
+                    Note = entity.Note,
+                    NumberOfGuests = entity.NumberOfGuests,
+                    Customer = entity.User?.FullName ?? "Khách vãng lai",
+                    Table = entity.Table?.TableNumber,
+                    Items = entity.OrderItems?.Select(i => new OrderItemDto
+                    {
+                        Name = i.MenuItem?.Name ?? "",
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
+                        Total = i.UnitPrice * i.Quantity
+                    }).ToList() ?? new List<OrderItemDto>(),
+                    IsPaid = false // Nếu có logic thanh toán, cập nhật lại
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            error = $"Lỗi: {ex.GetType().Name} - {ex.Message}";
+        }
+        loading = false;
+    }
+    public class OrderDetailDto
+    {
+        public int Id { get; set; }
+        public string OrderType { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime OrderDate { get; set; }
+        public DateTime? ReservationTime { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string? Note { get; set; }
+        public int? NumberOfGuests { get; set; }
+        public string Customer { get; set; } = string.Empty;
+        public int? Table { get; set; }
+        public List<OrderItemDto> Items { get; set; } = new();
+        public bool IsPaid { get; set; }
+    }
+    public class OrderItemDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal Total { get; set; }
+    }
+}
+
+@if (loading)
+{
+    <div class="alert alert-info">Đang tải chi tiết đơn hàng...</div>
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-error">Lỗi: @error</div>
+}
+else if (order == null)
+{
+    <div class="alert alert-error">Không tìm thấy đơn hàng.</div>
+}
+else
+{
+    <div class="max-w-4xl mx-auto bg-base-100 shadow-xl rounded-lg p-8 mt-8">
+        <h2 class="text-2xl font-bold mb-6">Chi tiết đơn hàng #@order.Id</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Loại đơn hàng</h4>
+                <p class="text-lg">@(order.OrderType == "Immediate" ? "Tại chỗ" : "Đặt trước")</p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Trạng thái</h4>
+                <p class="text-lg">@order.Status</p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Khách hàng</h4>
+                <p class="text-lg">@order.Customer</p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Bàn</h4>
+                <p class="text-lg">@(order.Table != null ? $"Bàn {order.Table}" : "N/A")</p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Ngày đặt</h4>
+                <p class="text-lg">@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Thời gian đặt bàn</h4>
+                <p class="text-lg">@(order.ReservationTime.HasValue ? order.ReservationTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Số lượng khách</h4>
+                <p class="text-lg">@(order.NumberOfGuests?.ToString() ?? "N/A")</p>
+            </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Đã thanh toán</h4>
+                <p class="text-lg">@(order.IsPaid ? "Đã thanh toán" : "Chưa thanh toán")</p>
+            </div>
+            <div class="md:col-span-2">
+                <h4 class="font-medium text-sm text-gray-500">Ghi chú</h4>
+                <p class="text-lg">@order.Note</p>
+            </div>
+        </div>
+        <h4 class="font-medium text-lg mb-2">Danh sách món</h4>
+        <div class="overflow-x-auto mb-6">
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th>Tên món</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in order.Items)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.UnitPrice.ToString("N0") đ</td>
+                            <td>@item.Total.ToString("N0") đ</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-right font-bold">Tổng cộng:</td>
+                        <td class="font-bold">@order.TotalPrice.ToString("N0") đ</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="flex justify-end">
+            <a href="/order-list" class="btn btn-secondary">Quay lại danh sách</a>
+        </div>
+    </div>
+}

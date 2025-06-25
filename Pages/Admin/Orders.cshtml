@@ -47,7 +47,7 @@
                     <tbody>
                         @foreach (var order in Model.Orders)
                         {
-                            <tr>
+                            <tr class="order-row" data-id="@order.Id" style="cursor:pointer">
                                 <td>@order.Id</td>
                                 <td>
                                     <span class="badge @(order.OrderType == "Immediate" ? "badge-info" : "badge-warning")">
@@ -388,6 +388,15 @@
                             document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} đ`;
                             modal.showModal();
                         });
+                });
+            });
+            // Click vào dòng order để chuyển sang trang chi tiết
+            document.querySelectorAll('.order-row').forEach(function(row) {
+                row.addEventListener('click', function(e) {
+                    // Nếu click vào nút thao tác thì không chuyển trang
+                    if (e.target.closest('.dropdown')) return;
+                    const orderId = this.getAttribute('data-id');
+                    window.location.href = `/admin/order-detail/${orderId}`;
                 });
             });
             // Xử lý thay đổi số mục trên mỗi trang

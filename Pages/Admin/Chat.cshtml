@@ -1,0 +1,483 @@
+@page
+@model PRN222_Restaurant.Pages.Admin.ChatModel
+@{
+    ViewData["Title"] = "Admin Chat Management";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid h-screen flex">
+    <!-- Customer List Sidebar -->
+    <div class="w-1/3 bg-base-200 border-r border-base-300 flex flex-col">
+        <div class="p-4 border-b border-base-300">
+            <h2 class="text-xl font-bold">Customer Conversations</h2>
+            <div class="mt-2">
+                <input type="text" id="searchCustomers" placeholder="Search customers..." 
+                       class="input input-sm input-bordered w-full">
+            </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto" id="customerList">
+            <!-- Customer conversations will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="flex-1 flex flex-col">
+        <!-- Chat Header -->
+        <div class="p-4 border-b border-base-300 bg-base-100" id="chatHeader" style="display: none;">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="avatar">
+                        <div class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
+                            <span id="customerInitials"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold" id="customerName"></h3>
+                        <p class="text-sm text-base-content/70" id="customerEmail"></p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="badge badge-sm" id="chatStatus">Active</span>
+                    <button class="btn btn-sm btn-ghost" onclick="closeChatRoom()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Message -->
+        <div class="flex-1 flex items-center justify-center" id="welcomeMessage">
+            <div class="text-center">
+                <div class="w-24 h-24 mx-auto mb-4 bg-base-200 rounded-full flex items-center justify-center">
+                    <svg class="w-12 h-12 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.681L3 21l2.681-5.094A8.959 8.959 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Welcome to Admin Chat</h3>
+                <p class="text-base-content/70">Select a customer conversation to start chatting</p>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messagesContainer" style="display: none;">
+            <!-- Messages will be loaded here -->
+        </div>
+
+        <!-- Message Input -->
+        <div class="p-4 border-t border-base-300 bg-base-100" id="messageInput" style="display: none;">
+            <div class="flex space-x-2">
+                <input type="text" id="messageText" placeholder="Type your message..." 
+                       class="input input-bordered flex-1" onkeypress="handleKeyPress(event)">
+                <button class="btn btn-primary" onclick="sendMessage()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Anti-forgery token -->
+@Html.AntiForgeryToken()
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+<script>
+    class AdminChat {
+        constructor() {
+            this.connection = null;
+            this.currentChatRoomId = null;
+            this.currentCustomer = null;
+            this.adminId = @Model.UserId;
+            this.customers = [];
+
+            console.log('=== ADMIN CHAT INIT ===');
+            console.log('Admin ID set to:', this.adminId, typeof this.adminId);
+            console.log('=====================');
+
+            this.init();
+        }
+
+        async init() {
+            await this.setupSignalR();
+            await this.loadCustomerConversations();
+            this.setupEventListeners();
+        }
+
+        async setupSignalR() {
+            this.connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .build();
+
+            this.connection.on("ReceiveMessage", (message) => {
+                this.displayMessage(message);
+                this.updateCustomerLastMessage(message);
+            });
+
+            this.connection.on("UserOnline", (userId) => {
+                this.updateUserStatus(userId, true);
+            });
+
+            this.connection.on("UserOffline", (userId) => {
+                this.updateUserStatus(userId, false);
+            });
+
+            this.connection.on("JoinedChatRoom", (chatRoomId) => {
+                console.log("Joined chat room:", chatRoomId);
+            });
+
+            this.connection.on("Error", (error) => {
+                console.error("SignalR Error:", error);
+                this.showError(error);
+            });
+
+            try {
+                await this.connection.start();
+                console.log("Admin SignalR connected");
+            } catch (err) {
+                console.error("SignalR connection failed:", err);
+                this.showError("Failed to connect to chat server");
+            }
+        }
+
+        async loadCustomerConversations() {
+            try {
+                const response = await fetch('/Admin/Chat?handler=GetCustomerConversations', {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.customers = data.conversations || [];
+                    this.renderCustomerList();
+                } else {
+                    console.error("Failed to load customer conversations");
+                }
+            } catch (error) {
+                console.error("Error loading conversations:", error);
+            }
+        }
+
+        renderCustomerList() {
+            const customerList = document.getElementById('customerList');
+            
+            if (this.customers.length === 0) {
+                customerList.innerHTML = `
+                    <div class="p-4 text-center text-base-content/70">
+                        <p>No customer conversations yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            customerList.innerHTML = this.customers.map(customer => `
+                <div class="customer-item p-4 border-b border-base-300 cursor-pointer hover:bg-base-300 transition-colors"
+                     onclick="adminChat.selectCustomer(${customer.chatRoomId})" 
+                     data-customer-id="${customer.customerId}">
+                    <div class="flex items-center space-x-3">
+                        <div class="avatar">
+                            <div class="w-12 h-12 rounded-full bg-primary text-primary-content flex items-center justify-center">
+                                <span>${this.getInitials(customer.customerName)}</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-semibold truncate">${customer.customerName}</h4>
+                                <span class="text-xs text-base-content/70">${this.formatTime(customer.lastMessageAt)}</span>
+                            </div>
+                            <p class="text-sm text-base-content/70 truncate">${customer.customerEmail}</p>
+                            ${customer.lastMessage ? `
+                                <p class="text-sm text-base-content/60 truncate mt-1">${customer.lastMessage}</p>
+                            ` : ''}
+                            ${customer.unreadCount > 0 ? `
+                                <span class="badge badge-primary badge-sm mt-1">${customer.unreadCount}</span>
+                            ` : ''}
+                        </div>
+                        <div class="flex flex-col items-end space-y-1">
+                            <span class="w-3 h-3 rounded-full ${customer.isOnline ? 'bg-success' : 'bg-base-300'}"></span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async selectCustomer(chatRoomId) {
+            try {
+                // Find customer data
+                const customer = this.customers.find(c => c.chatRoomId === chatRoomId);
+                if (!customer) return;
+
+                // Leave current chat room if any
+                if (this.currentChatRoomId) {
+                    await this.connection.invoke("LeaveChatRoom", this.currentChatRoomId);
+                }
+
+                // Join new chat room
+                await this.connection.invoke("JoinChatRoom", chatRoomId);
+                
+                this.currentChatRoomId = chatRoomId;
+                this.currentCustomer = customer;
+
+                // Update UI
+                this.showChatInterface(customer);
+                this.highlightSelectedCustomer(chatRoomId);
+                
+                // Load messages
+                await this.loadMessages(chatRoomId);
+                
+                // Mark messages as read
+                await this.markMessagesAsRead(chatRoomId);
+
+            } catch (error) {
+                console.error("Error selecting customer:", error);
+                this.showError("Failed to open conversation");
+            }
+        }
+
+        showChatInterface(customer) {
+            // Hide welcome message
+            document.getElementById('welcomeMessage').style.display = 'none';
+            
+            // Show chat interface
+            document.getElementById('chatHeader').style.display = 'block';
+            document.getElementById('messagesContainer').style.display = 'block';
+            document.getElementById('messageInput').style.display = 'block';
+            
+            // Update header
+            document.getElementById('customerInitials').textContent = this.getInitials(customer.customerName);
+            document.getElementById('customerName').textContent = customer.customerName;
+            document.getElementById('customerEmail').textContent = customer.customerEmail;
+        }
+
+        highlightSelectedCustomer(chatRoomId) {
+            // Remove previous selection
+            document.querySelectorAll('.customer-item').forEach(item => {
+                item.classList.remove('bg-primary', 'text-primary-content');
+            });
+            
+            // Highlight selected customer
+            const selectedItem = document.querySelector(`[onclick="adminChat.selectCustomer(${chatRoomId})"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('bg-primary', 'text-primary-content');
+            }
+        }
+
+        async loadMessages(chatRoomId) {
+            try {
+                const response = await fetch(`/Admin/Chat?handler=GetMessages&chatRoomId=${chatRoomId}`, {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.displayMessages(data.messages || []);
+                } else {
+                    console.error("Failed to load messages");
+                }
+            } catch (error) {
+                console.error("Error loading messages:", error);
+            }
+        }
+
+        displayMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = messages.map(message => this.createMessageHTML(message)).join('');
+            this.scrollToBottom();
+        }
+
+        createMessageHTML(message) {
+            // Convert both to numbers for proper comparison
+            const senderId = parseInt(message.senderId);
+            const adminId = parseInt(this.adminId);
+            const isFromAdmin = senderId === adminId;
+
+            const avatarBg = isFromAdmin ? 'bg-green-500' : 'bg-blue-500';
+            const bubbleBg = isFromAdmin ? '#10b981' : '#3b82f6';
+            const alignment = isFromAdmin ? 'flex-row-reverse' : 'flex-row';
+            const textAlign = isFromAdmin ? 'text-right' : 'text-left';
+            const marginClass = isFromAdmin ? 'ml-auto mr-2' : 'mr-auto ml-2';
+
+            return `
+                <div class="flex ${alignment} items-start mb-4 w-full">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center shadow-md">
+                            <span class="text-xs font-bold text-white">${this.getInitials(message.senderName)}</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col ${marginClass} max-w-xs lg:max-w-md">
+                        <div class="mb-1 ${textAlign}">
+                            <span class="text-sm font-medium text-gray-700">${message.senderName}</span>
+                            <time class="text-xs text-gray-500 ml-2">${this.formatTime(message.sentAt)}</time>
+                        </div>
+                        <div class="px-4 py-2 rounded-lg shadow-sm" style="background-color: ${bubbleBg}; color: white;">
+                            ${this.escapeHtml(message.content)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        displayMessage(message) {
+            if (message.chatRoomId !== this.currentChatRoomId) return;
+            
+            const container = document.getElementById('messagesContainer');
+            container.insertAdjacentHTML('beforeend', this.createMessageHTML(message));
+            this.scrollToBottom();
+        }
+
+        async sendMessage() {
+            const messageText = document.getElementById('messageText');
+            const content = messageText.value.trim();
+            
+            if (!content || !this.currentChatRoomId) return;
+
+            try {
+                await this.connection.invoke("SendMessage", this.currentChatRoomId, content);
+                messageText.value = '';
+            } catch (error) {
+                console.error("Error sending message:", error);
+                this.showError("Failed to send message");
+            }
+        }
+
+        async markMessagesAsRead(chatRoomId) {
+            try {
+                const formData = new FormData();
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (tokenElement) {
+                    formData.append('__RequestVerificationToken', tokenElement.value);
+                }
+                formData.append('chatRoomId', chatRoomId);
+
+                await fetch('/Admin/Chat?handler=MarkMessagesAsRead', {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (error) {
+                console.error("Error marking messages as read:", error);
+            }
+        }
+
+        setupEventListeners() {
+            // Search functionality
+            document.getElementById('searchCustomers').addEventListener('input', (e) => {
+                this.filterCustomers(e.target.value);
+            });
+        }
+
+        filterCustomers(searchTerm) {
+            const items = document.querySelectorAll('.customer-item');
+            items.forEach(item => {
+                const customerName = item.querySelector('h4').textContent.toLowerCase();
+                const customerEmail = item.querySelector('p').textContent.toLowerCase();
+                const matches = customerName.includes(searchTerm.toLowerCase()) || 
+                               customerEmail.includes(searchTerm.toLowerCase());
+                item.style.display = matches ? 'block' : 'none';
+            });
+        }
+
+        updateCustomerLastMessage(message) {
+            const customer = this.customers.find(c => c.chatRoomId === message.chatRoomId);
+            if (customer) {
+                customer.lastMessage = message.content;
+                customer.lastMessageAt = message.sentAt;
+                if (message.chatRoomId !== this.currentChatRoomId) {
+                    customer.unreadCount = (customer.unreadCount || 0) + 1;
+                }
+                this.renderCustomerList();
+            }
+        }
+
+        updateUserStatus(userId, isOnline) {
+            const customer = this.customers.find(c => c.customerId === userId);
+            if (customer) {
+                customer.isOnline = isOnline;
+                this.renderCustomerList();
+            }
+        }
+
+        closeChatRoom() {
+            if (this.currentChatRoomId) {
+                this.connection.invoke("LeaveChatRoom", this.currentChatRoomId);
+            }
+            
+            this.currentChatRoomId = null;
+            this.currentCustomer = null;
+            
+            // Hide chat interface
+            document.getElementById('chatHeader').style.display = 'none';
+            document.getElementById('messagesContainer').style.display = 'none';
+            document.getElementById('messageInput').style.display = 'none';
+            
+            // Show welcome message
+            document.getElementById('welcomeMessage').style.display = 'flex';
+            
+            // Remove selection highlight
+            document.querySelectorAll('.customer-item').forEach(item => {
+                item.classList.remove('bg-primary', 'text-primary-content');
+            });
+        }
+
+        // Utility functions
+        getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        formatTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        showError(message) {
+            // You can implement a toast notification here
+            console.error(message);
+        }
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            adminChat.sendMessage();
+        }
+    }
+
+    function sendMessage() {
+        adminChat.sendMessage();
+    }
+
+    function closeChatRoom() {
+        adminChat.closeChatRoom();
+    }
+
+    // Initialize admin chat when page loads
+    let adminChat;
+    document.addEventListener('DOMContentLoaded', () => {
+        adminChat = new AdminChat();
+    });
+</script>
