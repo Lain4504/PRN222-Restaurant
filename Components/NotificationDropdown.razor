@@ -1,0 +1,259 @@
+@using PRN222_Restaurant.Services.IService
+@using PRN222_Restaurant.Models
+@using System.Security.Claims
+@inject INotificationService NotificationService
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="dropdown dropdown-end">
+    <label tabindex="0" class="btn btn-ghost btn-circle indicator">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        @if (unreadCount > 0)
+        {
+            <span class="badge badge-sm badge-primary indicator-item">@(unreadCount > 99 ? "99+" : unreadCount.ToString())</span>
+        }
+    </label>
+    <div tabindex="0" class="mt-3 card card-compact dropdown-content w-96 max-w-sm bg-base-100 shadow-xl border border-gray-200 z-50">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="card-title text-base font-semibold">Thông báo</h3>
+                @if (unreadCount > 0)
+                {
+                    <span class="badge badge-primary badge-sm">@unreadCount</span>
+                }
+            </div>
+
+            <div class="space-y-2 max-h-80 overflow-y-auto notification-scroll">
+                @if (isLoading)
+                {
+                    <div class="text-center text-gray-500 py-6">
+                        <span class="loading loading-spinner loading-sm"></span>
+                        <p class="mt-2 text-sm">Đang tải...</p>
+                    </div>
+                }
+                else if (notifications == null || !notifications.Any())
+                {
+                    <div class="text-center text-gray-500 py-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <p class="text-sm">Không có thông báo mới</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var notification in notifications)
+                    {
+                        <div class="notification-item p-3 rounded-lg border @(notification.IsRead ? "bg-gray-50 border-gray-200" : "bg-blue-50 border-blue-200") cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                             @onclick="() => MarkAsRead(notification.Id, notification.RelatedUrl)">
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0 mt-0.5">
+                                    @GetNotificationIcon(notification.Type)
+                                </div>
+                                <div class="flex-1 min-w-0 overflow-hidden">
+                                    <div class="flex items-start justify-between">
+                                        <p class="text-sm font-medium text-gray-900 @(notification.IsRead ? "" : "font-semibold") truncate pr-2">@notification.Title</p>
+                                        @if (!notification.IsRead)
+                                        {
+                                            <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+                                        }
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1 line-clamp-2 break-words">@notification.Message</p>
+                                    <p class="text-xs text-gray-400 mt-2">@FormatDate(notification.CreatedAt)</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="border-t border-gray-200 pt-3 mt-3">
+                <div class="flex items-center justify-between space-x-2">
+                    <button class="btn btn-sm btn-ghost text-xs flex-1" @onclick="MarkAllAsRead" disabled="@isLoading">
+                        Đánh dấu tất cả đã đọc
+                    </button>
+                    <a href="/notifications" class="btn btn-sm btn-primary text-xs flex-1">Xem tất cả</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Notification> notifications = new();
+    private int unreadCount = 0;
+    private bool isLoading = true;
+    private int currentUserId = 0;
+    private Timer? refreshTimer;
+    private bool isDisposed = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("NotificationDropdown: OnInitializedAsync started");
+        await GetCurrentUserId();
+        Console.WriteLine($"NotificationDropdown: Current user ID: {currentUserId}");
+
+        if (currentUserId > 0)
+        {
+            await LoadNotifications();
+            await LoadUnreadCount();
+
+            // Setup auto-refresh every 30 seconds
+            refreshTimer = new Timer(async _ =>
+            {
+                if (!isDisposed)
+                {
+                    try
+                    {
+                        await InvokeAsync(async () =>
+                        {
+                            if (!isDisposed)
+                            {
+                                await LoadUnreadCount();
+                                StateHasChanged();
+                            }
+                        });
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Component has been disposed, ignore
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Timer error: {ex.Message}");
+                    }
+                }
+            }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+        }
+        isLoading = false;
+        Console.WriteLine("NotificationDropdown: OnInitializedAsync completed");
+    }
+
+    private async Task GetCurrentUserId()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out int userId))
+            {
+                currentUserId = userId;
+            }
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        if (currentUserId > 0 && !isDisposed)
+        {
+            try
+            {
+                notifications = (await NotificationService.GetLatestByUserIdAsync(currentUserId, 3)).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading notifications: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task LoadUnreadCount()
+    {
+        if (currentUserId > 0 && !isDisposed)
+        {
+            try
+            {
+                unreadCount = await NotificationService.GetUnreadCountByUserIdAsync(currentUserId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading unread count: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task MarkAsRead(int notificationId, string? relatedUrl)
+    {
+        if (!isDisposed)
+        {
+            try
+            {
+                await NotificationService.MarkAsReadAsync(notificationId);
+                await LoadNotifications();
+                await LoadUnreadCount();
+                StateHasChanged();
+
+                if (!string.IsNullOrEmpty(relatedUrl) && relatedUrl != "#")
+                {
+                    Navigation.NavigateTo(relatedUrl);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error marking notification as read: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        Console.WriteLine($"MarkAllAsRead called. UserId: {currentUserId}, isDisposed: {isDisposed}");
+
+        if (currentUserId > 0 && !isDisposed)
+        {
+            try
+            {
+                Console.WriteLine("Calling NotificationService.MarkAllAsReadAsync");
+                await NotificationService.MarkAllAsReadAsync(currentUserId);
+                Console.WriteLine("MarkAllAsReadAsync completed, reloading notifications");
+                await LoadNotifications();
+                await LoadUnreadCount();
+                StateHasChanged();
+                Console.WriteLine("MarkAllAsRead completed successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error marking all notifications as read: {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("MarkAllAsRead skipped - invalid conditions");
+        }
+    }
+
+    private MarkupString GetNotificationIcon(string type)
+    {
+        var iconHtml = type switch
+        {
+            "Success" => "<div class=\"w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0\"><svg class=\"w-4 h-4 text-green-600\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg></div>",
+            "Error" => "<div class=\"w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0\"><svg class=\"w-4 h-4 text-red-600\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z\" clip-rule=\"evenodd\"></path></svg></div>",
+            "Warning" => "<div class=\"w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0\"><svg class=\"w-4 h-4 text-yellow-600\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z\" clip-rule=\"evenodd\"></path></svg></div>",
+            _ => "<div class=\"w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0\"><svg class=\"w-4 h-4 text-blue-600\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z\" clip-rule=\"evenodd\"></path></svg></div>"
+        };
+        return new MarkupString(iconHtml);
+    }
+
+    private string FormatDate(DateTime date)
+    {
+        var now = DateTime.Now;
+        var diff = now - date;
+        
+        if (diff.TotalMinutes < 1) return "Vừa xong";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} phút trước";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} giờ trước";
+        return $"{(int)diff.TotalDays} ngày trước";
+    }
+
+    public void Dispose()
+    {
+        isDisposed = true;
+        refreshTimer?.Dispose();
+    }
+}

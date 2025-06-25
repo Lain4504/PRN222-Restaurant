@@ -1,160 +1,105 @@
-@page
+@page "/preordermenu"
 @model PRN222_Restaurant.Pages.PreOrderMenuModel
 @{
-    ViewData["Title"] = "Select Your Pre-Order Items";
+    ViewData["Title"] = "Order Details";
 }
 
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold text-center mb-8">Select Your Pre-Order Items</h1>
-        
-        <!-- Reservation Summary -->
-        <div class="bg-base-200 p-6 rounded-lg mb-8">
-            <h2 class="text-xl font-semibold mb-4">Reservation Details</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <p><span class="font-medium">Date:</span> @Model.ReservationDate.ToString("MMMM dd, yyyy")</p>
-                    <p><span class="font-medium">Time:</span> @Model.ReservationTime.ToString("hh\\:mm")</p>
-                </div>
-                <div>
-                    <p><span class="font-medium">Table:</span> @Model.TableNumber</p>
-                    <p><span class="font-medium">Guests:</span> @Model.NumberOfGuests</p>
-                </div>
+        <h1 class="text-3xl font-bold text-center mb-8">Your Order Details</h1>
+
+        @if (!string.IsNullOrEmpty(Model.StatusMessage))
+        {
+            <div class="alert alert-warning mb-6">
+                @Model.StatusMessage
             </div>
-        </div>
-        
-        <!-- Menu Categories -->
-        <div class="tabs tabs-boxed mb-8">
-            <a class="tab tab-active" onclick="filterCategory('all')">All</a>
-            @foreach (var category in Model.Categories)
-            {
-                <a class="tab" onclick="filterCategory('@category.Name.ToLower()')">@category.Name</a>
-            }
-        </div>
-        
-        <!-- Menu Items Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach (var item in Model.MenuItems)
-            {
-                <div class="card bg-base-100 shadow-xl menu-item" data-category="@(item.Category?.Name?.ToLower() ?? "uncategorized")">
-                    <figure class="h-48">
-                        <img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" />
-                    </figure>
-                    <div class="card-body">
-                        <h3 class="card-title">@item.Name</h3>
-                        <p class="text-slate-600">@item.Description</p>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="text-xl font-bold">$@item.Price.ToString("F2")</span>
-                            <div class="flex items-center gap-2">
-                                <button class="btn btn-circle btn-sm" onclick="decrementQuantity(@item.Id)">-</button>
-                                <span id="quantity-@item.Id" class="w-8 text-center">0</span>
-                                <button class="btn btn-circle btn-sm" onclick="incrementQuantity(@item.Id)">+</button>
-                            </div>
-                        </div>
+        }
+
+        @if (Model.CurrentOrder != null)
+        {
+            <!-- Order Summary -->
+            <div class="bg-base-200 p-6 rounded-lg mb-8">
+                <h2 class="text-xl font-semibold mb-4">Reservation Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p><span class="font-medium">Date:</span> @Model.CurrentOrder.ReservationTime?.ToString("MMMM dd, yyyy")</p>
+                        <p><span class="font-medium">Time:</span> @Model.CurrentOrder.ReservationTime?.ToString("HH:mm")</p>
+                    </div>
+                    <div>
+                        <p><span class="font-medium">Table:</span> @Model.CurrentOrder.Table?.TableNumber</p>
+                        <p><span class="font-medium">Guests:</span> @Model.CurrentOrder.NumberOfGuests</p>
                     </div>
                 </div>
-            }
-        </div>
-        
-        <!-- Order Summary -->
-        <div class="fixed bottom-0 left-0 right-0 bg-base-100 shadow-lg p-4">
-            <div class="container mx-auto max-w-6xl">
+                @if (!string.IsNullOrEmpty(Model.CurrentOrder.Note))
+                {
+                    <div class="mt-4">
+                        <p><span class="font-medium">Note:</span> @Model.CurrentOrder.Note</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Order Items -->
+            <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+                <h2 class="text-xl font-semibold mb-4">Order Items</h2>
+
+                @if (Model.CurrentOrder.OrderItems.Any())
+                {
+                    <div class="space-y-4">
+                        @foreach (var orderItem in Model.CurrentOrder.OrderItems)
+                        {
+                            <div class="flex items-center justify-between p-4 border rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <img src="@orderItem.MenuItem.ImageUrl" alt="@orderItem.MenuItem.Name" class="w-16 h-16 object-cover rounded" />
+                                    <div>
+                                        <h3 class="font-semibold">@orderItem.MenuItem.Name</h3>
+                                        <p class="text-gray-600">@orderItem.MenuItem.Description</p>
+                                        <p class="text-primary font-bold">$@orderItem.UnitPrice.ToString("F2") each</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-lg font-semibold">Quantity: @orderItem.Quantity</p>
+                                    <p class="text-xl font-bold text-primary">$@((orderItem.UnitPrice * orderItem.Quantity).ToString("F2"))</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-gray-500 text-center py-8">No items in your order yet.</p>
+                    <div class="text-center">
+                        <a href="/reservation" class="btn btn-primary">Go back to add items</a>
+                    </div>
+                }
+            </div>
+
+            <!-- Order Summary -->
+            <div class="bg-primary text-primary-content p-6 rounded-lg shadow-md mb-8">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h3 class="text-lg font-semibold">Total Items: <span id="total-items">0</span></h3>
-                        <h3 class="text-xl font-bold">Total: $<span id="total-price">0.00</span></h3>
+                        <h3 class="text-lg font-semibold">Total Items: @Model.TotalItems</h3>
+                        <h3 class="text-2xl font-bold">Total: $@Model.TotalPrice.ToString("F2")</h3>
                     </div>
-                    <form method="post" id="preOrderForm">
-                        <input type="hidden" id="selectedItems" name="SelectedItems" />
-                        <button type="submit" class="btn btn-primary btn-lg">Confirm Pre-Order</button>
-                    </form>
+                    <div class="flex gap-4">
+                        <a href="/reservation" class="btn btn-outline btn-lg">
+                            Edit Order
+                        </a>
+                        <form method="post" class="contents">
+                            <button type="submit" class="btn btn-secondary btn-lg" @(Model.TotalItems == 0 ? "disabled" : "")>
+                                Proceed to Confirmation
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <p class="text-gray-500 mb-4">No order found.</p>
+                <a href="/reservation" class="btn btn-primary">Create New Reservation</a>
+            </div>
+        }
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        let selectedItems = {};
-        
-        function filterCategory(category) {
-            // Update active tab
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('tab-active');
-            });
-            event.target.classList.add('tab-active');
-            
-            // Show/hide menu items
-            document.querySelectorAll('.menu-item').forEach(item => {
-                if (category === 'all' || item.dataset.category === category) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }
-        
-        function incrementQuantity(itemId) {
-            const quantityElement = document.getElementById(`quantity-${itemId}`);
-            const currentQuantity = parseInt(quantityElement.textContent);
-            quantityElement.textContent = currentQuantity + 1;
-            updateSelectedItems(itemId, currentQuantity + 1);
-        }
-        
-        function decrementQuantity(itemId) {
-            const quantityElement = document.getElementById(`quantity-${itemId}`);
-            const currentQuantity = parseInt(quantityElement.textContent);
-            if (currentQuantity > 0) {
-                quantityElement.textContent = currentQuantity - 1;
-                updateSelectedItems(itemId, currentQuantity - 1);
-            }
-        }
-        
-        function updateSelectedItems(itemId, quantity) {
-            if (quantity > 0) {
-                selectedItems[itemId] = quantity;
-            } else {
-                delete selectedItems[itemId];
-            }
-            
-            // Update summary
-            updateOrderSummary();
-            
-            // Update hidden input
-            document.getElementById('selectedItems').value = JSON.stringify(selectedItems);
-        }
-        
-        function updateOrderSummary() {
-            const totalItems = Object.values(selectedItems).reduce((sum, qty) => sum + qty, 0);
-            document.getElementById('total-items').textContent = totalItems;
-            
-            // Calculate total price using actual menu item prices
-            const menuItems = @Html.Raw(Model.SerializeMenuItems());
-            let totalPrice = 0;
-            
-            for (const itemId in selectedItems) {
-                const item = menuItems.find(i => i.id === parseInt(itemId));
-                if (item) {
-                    totalPrice += item.price * selectedItems[itemId];
-                }
-            }
-            
-            document.getElementById('total-price').textContent = totalPrice.toFixed(2);
-        }
-        
-        // Form submission
-        document.getElementById('preOrderForm').addEventListener('submit', function(e) {
-            if (Object.keys(selectedItems).length === 0) {
-                e.preventDefault();
-                alert('Please select at least one item');
-                return;
-            }
-            
-            // Set the selected items as JSON in the hidden input
-            const selectedItemsInput = document.getElementById('selectedItems');
-            selectedItemsInput.value = JSON.stringify(selectedItems);
-            console.log('Submitting with items:', selectedItemsInput.value);
-        });
-    </script>
-} 

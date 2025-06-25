@@ -19,12 +19,11 @@ namespace PRN222_Restaurant.Pages
     {
         private readonly IVNPayService _vnPayService;
         private readonly ApplicationDbContext _context;
-        private readonly IFeedbackService _feedbackService;
-        public CheckoutModel(IVNPayService vnPayService, ApplicationDbContext context, IFeedbackService feedbackService)
+
+        public CheckoutModel(IVNPayService vnPayService, ApplicationDbContext context)
         {
             _vnPayService = vnPayService;
             _context = context;
-            _feedbackService = feedbackService;
         }
 
         [BindProperty]
@@ -35,8 +34,6 @@ namespace PRN222_Restaurant.Pages
         public decimal Tax { get; set; }
         public decimal Total { get; set; }
         public int OrderId { get; set; }
-        [BindProperty]
-        public Feedback NewFeedback { get; set; } = new();
         public async Task<IActionResult> OnGetAsync(int? orderId)
         {
             // If orderId is provided, load that specific order
@@ -264,39 +261,6 @@ namespace PRN222_Restaurant.Pages
         }
 
 
-        public async Task<IActionResult> OnPostSubmitFeedbackAsync()
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                TempData["FeedbackError"] = "Bạn phải đăng nhập để gửi phản hồi.";
-                return Page();
-            }
 
-            // Kiểm tra xem user có tồn tại không (tránh lỗi khóa ngoại)
-            if (!await _context.Users.AnyAsync(u => u.Id == userId.Value))
-            {
-                TempData["FeedbackError"] = "Người dùng không hợp lệ.";
-                return Page();
-            }
-
-            NewFeedback.UserId = userId.Value;
-            NewFeedback.CreatedAt = DateTime.Now;
-
-            try
-            {
-                await _feedbackService.AddAsync(NewFeedback);
-                TempData["FeedbackSuccess"] = "Phản hồi của bạn đã được ghi nhận.";
-                return RedirectToPage();
-            }
-            catch (Exception ex)
-            {
-                TempData["FeedbackError"] = "Có lỗi xảy ra khi lưu phản hồi: " + ex.Message;
-                return Page();
-            }
-
-
-
-        }
     }
 }

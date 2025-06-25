@@ -1,0 +1,253 @@
+@using PRN222_Restaurant.Services.IService
+@using PRN222_Restaurant.Models
+@using PRN222_Restaurant.Models.Response
+@using System.Security.Claims
+@inject INotificationService NotificationService
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Thông báo của tôi</h1>
+        <button class="btn btn-outline btn-sm" @onclick="MarkAllAsRead" disabled="@isLoading">
+            Đánh dấu tất cả đã đọc
+        </button>
+    </div>
+
+    <!-- Notification List -->
+    <div class="notification-container">
+        @if (isLoading)
+        {
+            <div class="text-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+                <p class="mt-2 text-gray-500">Đang tải thông báo...</p>
+            </div>
+        }
+        else if (pagedResult?.Items == null || !pagedResult.Items.Any())
+        {
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Không có thông báo</h3>
+                <p class="mt-1 text-sm text-gray-500">Bạn chưa có thông báo nào.</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var notification in pagedResult.Items)
+            {
+                <div class="notification-item border-b border-gray-200 py-4 @(notification.IsRead ? "" : "bg-blue-50") hover:bg-gray-50 transition-colors cursor-pointer"
+                     @onclick="() => MarkAsRead(notification.Id, notification.RelatedUrl)">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            @GetNotificationIcon(notification.Type)
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-medium text-gray-900 @(notification.IsRead ? "" : "font-semibold")">@notification.Title</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-gray-500">@FormatDate(notification.CreatedAt)</span>
+                                    @if (!notification.IsRead)
+                                    {
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    }
+                                </div>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-600">@notification.Message</p>
+                            <div class="mt-2 flex items-center space-x-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @GetTypeClass(notification.Type)">
+                                    @GetTypeText(notification.Type)
+                                </span>
+                                @if (!string.IsNullOrEmpty(notification.RelatedUrl))
+                                {
+                                    <span class="text-xs text-blue-600">Nhấn để xem chi tiết</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (pagedResult != null && GetTotalPages() > 1)
+    {
+        <div class="mt-6 flex justify-center">
+            <div class="btn-group">
+                @if (currentPage > 1)
+                {
+                    <button class="btn btn-outline" @onclick="() => LoadPage(currentPage - 1)">«</button>
+                }
+                
+                @for (int i = GetStartPage(); i <= GetEndPage(); i++)
+                {
+                    <button class="btn btn-outline @(i == currentPage ? "btn-active" : "")" @onclick="() => LoadPage(i)">@i</button>
+                }
+                
+                @if (currentPage < GetTotalPages())
+                {
+                    <button class="btn btn-outline" @onclick="() => LoadPage(currentPage + 1)">»</button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private PagedResult<Notification>? pagedResult;
+    private bool isLoading = true;
+    private int currentUserId = 0;
+    private int currentPage = 1;
+    private const int pageSize = 10;
+    private bool isDisposed = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrentUserId();
+        if (currentUserId > 0)
+        {
+            await LoadNotifications();
+        }
+        isLoading = false;
+    }
+
+    private async Task GetCurrentUserId()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out int userId))
+            {
+                currentUserId = userId;
+            }
+        }
+    }
+
+    private async Task LoadNotifications()
+    {
+        if (currentUserId > 0 && !isDisposed)
+        {
+            try
+            {
+                isLoading = true;
+                pagedResult = await NotificationService.GetPagedByUserIdAsync(currentUserId, currentPage, pageSize);
+                isLoading = false;
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading notifications: {ex.Message}");
+                isLoading = false;
+            }
+        }
+    }
+
+    private async Task LoadPage(int page)
+    {
+        currentPage = page;
+        await LoadNotifications();
+    }
+
+    private async Task MarkAsRead(int notificationId, string? relatedUrl)
+    {
+        if (!isDisposed)
+        {
+            try
+            {
+                await NotificationService.MarkAsReadAsync(notificationId);
+                await LoadNotifications();
+
+                if (!string.IsNullOrEmpty(relatedUrl) && relatedUrl != "#")
+                {
+                    Navigation.NavigateTo(relatedUrl);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error marking notification as read: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        if (currentUserId > 0 && !isDisposed)
+        {
+            try
+            {
+                await NotificationService.MarkAllAsReadAsync(currentUserId);
+                await LoadNotifications();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error marking all notifications as read: {ex.Message}");
+            }
+        }
+    }
+
+    private MarkupString GetNotificationIcon(string type)
+    {
+        var iconHtml = type switch
+        {
+            "Success" => "<div class=\"w-8 h-8 bg-green-100 rounded-full flex items-center justify-center\"><svg class=\"w-5 h-5 text-green-600\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg></div>",
+            "Error" => "<div class=\"w-8 h-8 bg-red-100 rounded-full flex items-center justify-center\"><svg class=\"w-5 h-5 text-red-600\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z\" clip-rule=\"evenodd\"></path></svg></div>",
+            "Warning" => "<div class=\"w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center\"><svg class=\"w-5 h-5 text-yellow-600\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z\" clip-rule=\"evenodd\"></path></svg></div>",
+            _ => "<div class=\"w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center\"><svg class=\"w-5 h-5 text-blue-600\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path fill-rule=\"evenodd\" d=\"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z\" clip-rule=\"evenodd\"></path></svg></div>"
+        };
+        return new MarkupString(iconHtml);
+    }
+
+    private string GetTypeClass(string type)
+    {
+        return type switch
+        {
+            "Success" => "bg-green-100 text-green-800",
+            "Error" => "bg-red-100 text-red-800",
+            "Warning" => "bg-yellow-100 text-yellow-800",
+            _ => "bg-blue-100 text-blue-800"
+        };
+    }
+
+    private string GetTypeText(string type)
+    {
+        return type switch
+        {
+            "Success" => "Thành công",
+            "Error" => "Lỗi",
+            "Warning" => "Cảnh báo",
+            _ => "Thông tin"
+        };
+    }
+
+    private string FormatDate(DateTime date)
+    {
+        return date.ToString("dd/MM/yyyy HH:mm");
+    }
+
+    private int GetTotalPages()
+    {
+        return pagedResult != null ? (int)Math.Ceiling((double)pagedResult.TotalCount / pageSize) : 0;
+    }
+
+    private int GetStartPage()
+    {
+        return Math.Max(1, currentPage - 2);
+    }
+
+    private int GetEndPage()
+    {
+        return Math.Min(GetTotalPages(), currentPage + 2);
+    }
+
+    public void Dispose()
+    {
+        isDisposed = true;
+    }
+}

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PRN222_Restaurant.Data;
@@ -72,8 +73,8 @@ builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationRepository, PRN222_Restaurant.Repositories.Repository.NotificationRepository>();
+builder.Services.AddScoped<INotificationService, PRN222_Restaurant.Services.Service.NotificationService>();
 builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
@@ -83,6 +84,8 @@ builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<PRN222_Restaurant.Helpers.NotificationHelper>();
+builder.Services.AddScoped<AuthenticationStateProvider, PRN222_Restaurant.Services.CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Add HttpClient
