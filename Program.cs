@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -27,6 +28,10 @@ builder.Services.AddServerSideBlazor();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// Add DbContextFactory for Blazor components to avoid concurrency issues
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)), ServiceLifetime.Scoped);
 
 // Cấu hình Session
 builder.Services.AddSession(options =>
@@ -74,8 +79,10 @@ builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationRepository>(provider =>
+    new PRN222_Restaurant.Repositories.Repository.NotificationRepository(
+        provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>()));
+builder.Services.AddScoped<INotificationService, PRN222_Restaurant.Services.Service.NotificationService>();
 builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
@@ -85,6 +92,8 @@ builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<PRN222_Restaurant.Helpers.NotificationHelper>();
+builder.Services.AddScoped<AuthenticationStateProvider, PRN222_Restaurant.Services.CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 // Add Chat services
 builder.Services.AddScoped<IChatRepository, ChatRepository>();

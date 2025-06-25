@@ -5,6 +5,7 @@ using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Models.Response;
 using PRN222_Restaurant.Services.IService;
 using PRN222_Restaurant.Data;
+using PRN222_Restaurant.Helpers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
@@ -16,13 +17,15 @@ namespace PRN222_Restaurant.Pages.Admin
         private readonly IOrderService _orderService;
         private readonly ITableService _tableService;
         private readonly ApplicationDbContext _context;
+        private readonly NotificationHelper _notificationHelper;
         private const int DefaultPageSize = 10;
 
-        public OrdersModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context)
+        public OrdersModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context, NotificationHelper notificationHelper)
         {
             _orderService = orderService;
             _tableService = tableService;
             _context = context;
+            _notificationHelper = notificationHelper;
         }
 
         public PagedResult<Models.Order> OrdersResult { get; set; } = new PagedResult<Models.Order>();
@@ -94,6 +97,13 @@ namespace PRN222_Restaurant.Pages.Admin
                         await _tableService.ChangeStatusAsync(order.TableId.Value, newTableStatus);
                     }
                 }
+
+                // Create notification when order is completed
+                if (OrderStatus == "Completed" && order != null && order.UserId.HasValue)
+                {
+                    await _notificationHelper.NotifyOrderCompletedAsync(order.UserId.Value, order.Id);
+                }
+
                 StatusMessage = $"Order #{OrderId} status updated to {OrderStatus}";
             }
             else

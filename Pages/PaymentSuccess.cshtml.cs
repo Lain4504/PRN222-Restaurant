@@ -4,19 +4,23 @@ using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Pages;
+using PRN222_Restaurant.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace PRN222_Restaurant.Pages
 {
     public class PaymentSuccessModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly NotificationHelper _notificationHelper;
 
-        public PaymentSuccessModel(ApplicationDbContext context)
+        public PaymentSuccessModel(ApplicationDbContext context, NotificationHelper notificationHelper)
         {
             _context = context;
+            _notificationHelper = notificationHelper;
         }
         
         public Order? Order { get; set; }
@@ -34,7 +38,7 @@ namespace PRN222_Restaurant.Pages
                 Order = await _context.Orders
                     .Include(o => o.OrderItems)
                     .FirstOrDefaultAsync(o => o.Id == orderId.Value);
-                
+
                 if (Order != null)
                 {
                     // Get table number
@@ -43,12 +47,18 @@ namespace PRN222_Restaurant.Pages
                         var table = await _context.Tables.FindAsync(Order.TableId.Value);
                         TableNumber = table?.TableNumber ?? 0;
                     }
-                    
+
                     // Load order items
                     await LoadOrderItems(Order);
+
+                    // Create payment success notification
+                    if (User.Identity.IsAuthenticated && Order.UserId.HasValue)
+                    {
+                        await _notificationHelper.NotifyPaymentSuccessAsync(Order.UserId.Value, Order.Id, Order.TotalPrice);
+                    }
                 }
             }
-            
+
             return Page();
         }
         

@@ -205,13 +205,13 @@
                                 @foreach (var item in Model.MenuItems)
                                 {
                                     <div class="card bg-base-100 shadow-md menu-item" data-category="@item.CategoryId"
-                                        data-name="@item.Name.ToLower()">
+                                        data-name="@item.Name.ToLower()" data-item-id="@item.Id">
                                         <figure class="h-36">
                                             <img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" />
                                         </figure>
                                         <div class="card-body p-4">
-                                            <h4 class="card-title text-base">@item.Name</h4>
-                                            <p class="text-primary font-bold">$@item.Price.ToString("F2")</p>
+                                            <h4 class="card-title text-base item-name">@item.Name</h4>
+                                            <p class="text-primary font-bold item-price">$@item.Price.ToString("F2")</p>
                                             <div class="card-actions justify-end">
                                                 <button type="button" class="btn btn-circle btn-sm"
                                                     onclick="viewMenuItem(@item.Id)">
@@ -297,6 +297,13 @@
         document.addEventListener('DOMContentLoaded', function () {
             const dateInput = document.getElementById('reservationDate');
             const timeInput = document.getElementById('reservationTime');
+
+            // Add form submit listener for debugging
+            const form = document.getElementById('reservationForm');
+            form.addEventListener('submit', function(e) {
+                const selectedItemsInput = document.getElementById('selectedItemsJson');
+                console.log('Form submitting with SelectedItems:', selectedItemsInput.value);
+            });
 
             // Set minimum date to today
             const today = new Date().toISOString().split('T')[0];
@@ -439,18 +446,72 @@
 
         function updateSelectedItems(itemId, quantity) {
             // Get menu item details
-            const menuItems = @Html.Raw(Model.SerializeMenuItems());
-            const item = menuItems.find(i => i.id === itemId);
+            const menuItemsJson = @Html.Raw(Model.SerializeMenuItems());
+            console.log('menuItemsJson:', menuItemsJson);
+            console.log('typeof menuItemsJson:', typeof menuItemsJson);
 
-            if (quantity > 0) {
-                selectedItems[itemId] = {
-                    id: itemId,
-                    name: item.name,
-                    price: item.price,
-                    quantity: quantity
-                };
+            let menuItems;
+            if (typeof menuItemsJson === 'string') {
+                try {
+                    menuItems = JSON.parse(menuItemsJson);
+                } catch (e) {
+                    console.error('Error parsing menuItems JSON:', e);
+                    return;
+                }
             } else {
-                delete selectedItems[itemId];
+                menuItems = menuItemsJson;
+            }
+
+            // Handle case where JsonSerializer creates object with $values property
+            if (menuItems && menuItems.$values && Array.isArray(menuItems.$values)) {
+                menuItems = menuItems.$values;
+                console.log('Extracted menuItems from $values:', menuItems);
+            }
+
+            console.log('menuItems array:', menuItems);
+            console.log('Array.isArray(menuItems):', Array.isArray(menuItems));
+
+            if (!Array.isArray(menuItems)) {
+                console.error('menuItems is not an array:', menuItems);
+                return;
+            }
+
+            const item = menuItems.find(i => i.id === itemId || i.Id === itemId);
+            console.log('Found item:', item);
+
+            if (!item) {
+                console.error('Item not found for itemId:', itemId);
+                // Fallback: get item info from DOM
+                const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+                if (itemElement) {
+                    const itemName = itemElement.querySelector('.item-name')?.textContent || 'Unknown Item';
+                    const itemPrice = parseFloat(itemElement.querySelector('.item-price')?.textContent?.replace('$', '') || '0');
+
+                    if (quantity > 0) {
+                        selectedItems[itemId] = {
+                            id: itemId,
+                            name: itemName,
+                            price: itemPrice,
+                            quantity: quantity
+                        };
+                    } else {
+                        delete selectedItems[itemId];
+                    }
+                } else {
+                    console.error('Could not find item element for itemId:', itemId);
+                    return;
+                }
+            } else {
+                if (quantity > 0) {
+                    selectedItems[itemId] = {
+                        id: itemId,
+                        name: item.name || item.Name,
+                        price: item.price || item.Price,
+                        quantity: quantity
+                    };
+                } else {
+                    delete selectedItems[itemId];
+                }
             }
 
             updateSelectedItemsSummary();
@@ -496,6 +557,7 @@
                 selectedItemsData[id] = selectedItems[id].quantity;
             }
             selectedItemsJson.value = JSON.stringify(selectedItemsData);
+            console.log('Updated selectedItemsJson.value:', selectedItemsJson.value);
         }
     </script>
 }

@@ -72,7 +72,7 @@ namespace PRN222_Restaurant.Pages
                 await LoadMenuData();
                 return Page();
             }
-            
+
             // Check if table is available
             if (!await _orderService.IsTableAvailableAsync(TableId, ReservationDate, ReservationTime))
             {
@@ -82,30 +82,88 @@ namespace PRN222_Restaurant.Pages
                 return Page();
             }
 
-            // Cập nhật trạng thái bàn thành Reserved khi đặt bàn thành công
-            var table = await _context.Tables.FirstOrDefaultAsync(t => t.Id == TableId);
-            if (table != null)
+            try
             {
-                table.Status = "Reserved";
+                // Create the order directly here
+                var order = new Order
+                {
+                    UserId = User.Identity.IsAuthenticated ? int.Parse(User.FindFirst("UserId")?.Value ?? "1") : 1,
+                    TableId = TableId,
+                    OrderDate = DateTime.Now,
+                    ReservationTime = ReservationDate.Date.Add(ReservationTime),
+                    NumberOfGuests = NumberOfGuests,
+                    Note = Note,
+                    OrderType = "PreOrder",
+                    Status = "Pending",
+                    OrderItems = new List<OrderItem>()
+                };
+
+                // Parse selected items and add to order
+                Console.WriteLine($"SelectedItems received: '{SelectedItems}'");
+
+                if (!string.IsNullOrEmpty(SelectedItems) && SelectedItems != "{}")
+                {
+                    try
+                    {
+                        var selectedItemsDict = JsonSerializer.Deserialize<Dictionary<int, int>>(SelectedItems);
+                        Console.WriteLine($"Parsed selectedItemsDict: {selectedItemsDict?.Count ?? 0} items");
+
+                        if (selectedItemsDict != null)
+                        {
+                            foreach (var item in selectedItemsDict)
+                            {
+                                Console.WriteLine($"Processing item: MenuItemId={item.Key}, Quantity={item.Value}");
+                                var menuItem = await _context.MenuItems.FindAsync(item.Key);
+                                if (menuItem != null && item.Value > 0)
+                                {
+                                    order.OrderItems.Add(new OrderItem
+                                    {
+                                        MenuItemId = item.Key,
+                                        Quantity = item.Value,
+                                        UnitPrice = menuItem.Price
+                                    });
+                                    Console.WriteLine($"Added OrderItem: {menuItem.Name} x {item.Value}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error parsing selected items: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No selected items found or SelectedItems is empty/null");
+                }
+
+                // Save order to database first
+                _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
+
+                // Calculate and update total price after OrderItems are saved
+                order.TotalPrice = order.OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity);
+                Console.WriteLine($"Calculated TotalPrice: {order.TotalPrice}");
+                Console.WriteLine($"OrderItems count: {order.OrderItems.Count}");
+
+                // Update the order with calculated total price
+                _context.Orders.Update(order);
+                await _context.SaveChangesAsync();
+
+                // Store OrderId in TempData and Session
+                TempData["OrderId"] = order.Id.ToString();
+                HttpContext.Session.SetString("OrderId", order.Id.ToString());
+
+                // Redirect to PreOrderMenu to show the created order
+                return RedirectToPage("/preordermenu");
             }
-
-            // Store reservation details in TempData
-            TempData["ReservationDate"] = ReservationDate.ToString("yyyy-MM-dd");
-            TempData["ReservationTime"] = ReservationTime.ToString();
-            TempData["TableId"] = TableId.ToString();
-            TempData["NumberOfGuests"] = NumberOfGuests.ToString();
-            TempData["Note"] = Note;
-
-            // If menu items were selected, store them in TempData
-            if (!string.IsNullOrEmpty(SelectedItems))
+            catch (Exception ex)
             {
-                TempData["SelectedItems"] = SelectedItems;
-                return RedirectToPage("/PreOrderConfirmation");
+                ModelState.AddModelError("", $"Error creating order: {ex.Message}");
+                await LoadAvailableTables();
+                await LoadMenuData();
+                return Page();
             }
-
-            // If no menu items were selected, redirect to menu selection page
-            return RedirectToPage("/PreOrderMenu");
         }
 
         private async Task LoadAvailableTables()
@@ -166,7 +224,34 @@ namespace PRN222_Restaurant.Pages
         // Serializes menu items without circular references
         public string SerializeMenuItems()
         {
-            return JsonSerializer.Serialize(MenuItems, _jsonOptions);
+            try
+            {
+                var simplifiedItems = MenuItems.Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Price = m.Price,
+                    Description = m.Description,
+                    CategoryId = m.CategoryId,
+                    CategoryName = m.Category?.Name
+                }).ToList();
+
+                // Use simple JsonSerializer options without ReferenceHandler
+                var simpleOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    WriteIndented = false
+                };
+
+                var json = JsonSerializer.Serialize(simplifiedItems, simpleOptions);
+                Console.WriteLine($"SerializeMenuItems result: {json}");
+                return json;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error serializing menu items: {ex.Message}");
+                return "[]";
+            }
         }
     }
 
