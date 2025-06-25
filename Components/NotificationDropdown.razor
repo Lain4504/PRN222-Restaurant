@@ -93,9 +93,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("NotificationDropdown: OnInitializedAsync started");
+        // Console.WriteLine("NotificationDropdown: OnInitializedAsync started");
         await GetCurrentUserId();
-        Console.WriteLine($"NotificationDropdown: Current user ID: {currentUserId}");
+        // Console.WriteLine($"NotificationDropdown: Current user ID: {currentUserId}");
 
         if (currentUserId > 0)
         {
@@ -124,13 +124,13 @@
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Timer error: {ex.Message}");
+                        // Console.WriteLine($"Timer error: {ex.Message}");
                     }
                 }
             }, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         }
         isLoading = false;
-        Console.WriteLine("NotificationDropdown: OnInitializedAsync completed");
+        // Console.WriteLine("NotificationDropdown: OnInitializedAsync completed");
     }
 
     private async Task GetCurrentUserId()
@@ -158,7 +158,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading notifications: {ex.Message}");
+                // Console.WriteLine($"Error loading notifications: {ex.Message}");
             }
         }
     }
@@ -173,7 +173,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading unread count: {ex.Message}");
+                // Console.WriteLine($"Error loading unread count: {ex.Message}");
             }
         }
     }
@@ -196,14 +196,14 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error marking notification as read: {ex.Message}");
+                // Console.WriteLine($"Error marking notification as read: {ex.Message}");
             }
         }
     }
 
     private async Task MarkAllAsRead()
     {
-        Console.WriteLine($"MarkAllAsRead called. UserId: {currentUserId}, isDisposed: {isDisposed}");
+        // Console.WriteLine($"MarkAllAsRead called. UserId: {currentUserId}, isDisposed: {isDisposed}");
 
         if (currentUserId > 0 && !isDisposed)
         {
@@ -212,27 +212,27 @@
                 isLoading = true;
                 StateHasChanged();
 
-                Console.WriteLine("Calling NotificationService.MarkAllAsReadAsync");
+                // Console.WriteLine("Calling NotificationService.MarkAllAsReadAsync");
                 await NotificationService.MarkAllAsReadAsync(currentUserId);
-                Console.WriteLine("MarkAllAsReadAsync completed, reloading notifications");
+                // Console.WriteLine("MarkAllAsReadAsync completed, reloading notifications");
 
                 await LoadNotifications();
                 await LoadUnreadCount();
 
                 isLoading = false;
                 StateHasChanged();
-                Console.WriteLine("MarkAllAsRead completed successfully");
+                // Console.WriteLine("MarkAllAsRead completed successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error marking all notifications as read: {ex.Message}");
+                // Console.WriteLine($"Error marking all notifications as read: {ex.Message}");
                 isLoading = false;
                 StateHasChanged();
             }
         }
         else
         {
-            Console.WriteLine("MarkAllAsRead skipped - invalid conditions");
+            // Console.WriteLine("MarkAllAsRead skipped - invalid conditions");
         }
     }
 

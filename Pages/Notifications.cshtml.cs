@@ -25,6 +25,8 @@ namespace PRN222_Restaurant.Pages
             return Page();
         }
 
+        // Test method - commented out for production
+        /*
         public async Task<IActionResult> OnPostCreateTestNotificationsAsync()
         {
             if (!User.Identity.IsAuthenticated)
@@ -53,5 +55,6 @@ namespace PRN222_Restaurant.Pages
 
             return RedirectToPage();
         }
+        */
     }
 }

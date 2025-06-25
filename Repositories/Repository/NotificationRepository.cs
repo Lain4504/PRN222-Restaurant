@@ -61,7 +61,7 @@ public class NotificationRepository : INotificationRepository
     {
         try
         {
-            Console.WriteLine($"NotificationRepository: GetPagedByUserIdAsync - UserId: {userId}, Page: {page}, PageSize: {pageSize}");
+            // Console.WriteLine($"NotificationRepository: GetPagedByUserIdAsync - UserId: {userId}, Page: {page}, PageSize: {pageSize}");
 
             using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -70,14 +70,14 @@ public class NotificationRepository : INotificationRepository
                 .OrderByDescending(n => n.CreatedAt);
 
             var totalCount = await query.CountAsync();
-            Console.WriteLine($"NotificationRepository: Total count for user {userId}: {totalCount}");
+            // Console.WriteLine($"NotificationRepository: Total count for user {userId}: {totalCount}");
 
             var items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            Console.WriteLine($"NotificationRepository: Retrieved {items.Count} items for page {page}");
+            // Console.WriteLine($"NotificationRepository: Retrieved {items.Count} items for page {page}");
 
             return new PagedResult<Notification>
             {
@@ -142,7 +142,7 @@ public class NotificationRepository : INotificationRepository
     {
         try
         {
-            Console.WriteLine($"NotificationRepository: MarkAllAsReadAsync - UserId: {userId}");
+            // Console.WriteLine($"NotificationRepository: MarkAllAsReadAsync - UserId: {userId}");
 
             using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -150,7 +150,7 @@ public class NotificationRepository : INotificationRepository
                 .Where(n => n.UserId == userId && !n.IsRead)
                 .ToListAsync();
 
-            Console.WriteLine($"NotificationRepository: Found {notifications.Count} unread notifications for user {userId}");
+            // Console.WriteLine($"NotificationRepository: Found {notifications.Count} unread notifications for user {userId}");
 
             foreach (var notification in notifications)
             {
@@ -158,7 +158,7 @@ public class NotificationRepository : INotificationRepository
             }
 
             await context.SaveChangesAsync();
-            Console.WriteLine($"NotificationRepository: Successfully marked {notifications.Count} notifications as read");
+            // Console.WriteLine($"NotificationRepository: Successfully marked {notifications.Count} notifications as read");
         }
         catch (Exception ex)
         {

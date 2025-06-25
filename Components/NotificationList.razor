@@ -113,10 +113,10 @@
             </div>
         </div>
 
-        <!-- Pagination Info -->
-        <div class="mt-3 text-center text-sm text-gray-500">
+        @* Pagination Info - commented out for cleaner UI *@
+        @* <div class="mt-3 text-center text-sm text-gray-500">
             Trang @currentPage / @GetTotalPages() - Tổng @pagedResult.TotalCount thông báo
-        </div>
+        </div> *@
     }
 </div>
 
@@ -132,9 +132,9 @@
     {
         try
         {
-            Logger.LogInformation("NotificationList: OnInitializedAsync started");
+            // Logger.LogInformation("NotificationList: OnInitializedAsync started");
             await GetCurrentUserId();
-            Logger.LogInformation($"NotificationList: Current user ID: {currentUserId}");
+            // Logger.LogInformation($"NotificationList: Current user ID: {currentUserId}");
 
             if (currentUserId > 0)
             {
@@ -142,11 +142,11 @@
             }
             else
             {
-                Logger.LogWarning("NotificationList: No valid user ID found");
+                // Logger.LogWarning("NotificationList: No valid user ID found");
             }
 
             isLoading = false;
-            Logger.LogInformation("NotificationList: OnInitializedAsync completed");
+            // Logger.LogInformation("NotificationList: OnInitializedAsync completed");
         }
         catch (Exception ex)
         {
@@ -162,17 +162,17 @@
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
 
-            Logger.LogInformation($"NotificationList: User authenticated: {user.Identity?.IsAuthenticated}");
+            // Logger.LogInformation($"NotificationList: User authenticated: {user.Identity?.IsAuthenticated}");
 
             if (user.Identity?.IsAuthenticated == true)
             {
                 var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                Logger.LogInformation($"NotificationList: User ID claim: {userIdClaim}");
+                // Logger.LogInformation($"NotificationList: User ID claim: {userIdClaim}");
 
                 if (int.TryParse(userIdClaim, out int userId))
                 {
                     currentUserId = userId;
-                    Logger.LogInformation($"NotificationList: Successfully parsed user ID: {currentUserId}");
+                    // Logger.LogInformation($"NotificationList: Successfully parsed user ID: {currentUserId}");
                 }
                 else
                 {
@@ -199,9 +199,9 @@
                 isLoading = true;
                 StateHasChanged(); // Update UI to show loading state
 
-                Logger.LogInformation($"Loading notifications for user {currentUserId}, page {currentPage}, pageSize {pageSize}");
+                // Logger.LogInformation($"Loading notifications for user {currentUserId}, page {currentPage}, pageSize {pageSize}");
                 pagedResult = await NotificationService.GetPagedByUserIdAsync(currentUserId, currentPage, pageSize);
-                Logger.LogInformation($"Loaded {pagedResult?.Items?.Count() ?? 0} notifications, total: {pagedResult?.TotalCount ?? 0}");
+                // Logger.LogInformation($"Loaded {pagedResult?.Items?.Count() ?? 0} notifications, total: {pagedResult?.TotalCount ?? 0}");
 
                 isLoading = false;
                 StateHasChanged(); // Update UI with new data
@@ -219,7 +219,7 @@
     {
         if (page != currentPage && page > 0 && page <= GetTotalPages())
         {
-            Logger.LogInformation($"Loading page {page}");
+            // Logger.LogInformation($"Loading page {page}");
             currentPage = page;
             await LoadNotifications();
         }
@@ -231,7 +231,7 @@
         {
             try
             {
-                Logger.LogInformation($"Marking notification {notificationId} as read");
+                // Logger.LogInformation($"Marking notification {notificationId} as read");
                 await NotificationService.MarkAsReadAsync(notificationId);
                 await LoadNotifications(); // Reload current page
 
@@ -256,9 +256,9 @@
                 isLoading = true;
                 StateHasChanged();
 
-                Logger.LogInformation($"Marking all notifications as read for user {currentUserId}");
+                // Logger.LogInformation($"Marking all notifications as read for user {currentUserId}");
                 await NotificationService.MarkAllAsReadAsync(currentUserId);
-                Logger.LogInformation("Mark all as read completed, reloading notifications");
+                // Logger.LogInformation("Mark all as read completed, reloading notifications");
 
                 await LoadNotifications(); // This will set isLoading = false and call StateHasChanged
             }
