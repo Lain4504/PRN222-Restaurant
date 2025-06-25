@@ -4,30 +4,23 @@ using PRN222_Restaurant.Services.IService;
 using System.Text.Json;
 using System.Security.Claims;
 
-namespace PRN222_Restaurant.Pages.Chat
+namespace PRN222_Restaurant.Pages.Admin
 {
-    public class IndexModel : PageModel
+    public class ChatModel : PageModel
     {
         private readonly IChatService _chatService;
-        private readonly ILogger<IndexModel> _logger;
+        private readonly IUserService _userService;
 
-        public IndexModel(IChatService chatService, ILogger<IndexModel> logger)
+        public ChatModel(IChatService chatService, IUserService userService)
         {
             _chatService = chatService;
-            _logger = logger;
+            _userService = userService;
         }
 
         public int UserId { get; set; }
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
-            // Check if user is authenticated
-            if (!User.Identity?.IsAuthenticated ?? true)
-            {
-                Response.Redirect("/admin/login");
-                return;
-            }
-
             // Get user ID from claims or session
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdClaim, out int claimUserId))
@@ -40,38 +33,52 @@ namespace PRN222_Restaurant.Pages.Chat
                 UserId = HttpContext.Session.GetInt32("UserId") ?? 0;
             }
 
-            // If still no user ID, redirect to login
+            // If no user ID, redirect to login
             if (UserId == 0)
             {
-                Response.Redirect("/admin/login");
-                return;
+                return Redirect("/admin/login");
             }
+
+            // Check if user is admin or staff
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? HttpContext.Session.GetString("UserRole");
+            if (userRole != "Admin" && userRole != "Staff")
+            {
+                return Redirect("/admin/login");
+            }
+
+            return Page();
         }
 
-        [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> OnPostGetOrCreateChatRoomAsync()
+        public async Task<IActionResult> OnGetGetCustomerConversationsAsync()
         {
             try
             {
-                // Get authenticated user ID
                 var userId = GetAuthenticatedUserId();
                 if (userId == 0)
                 {
                     return BadRequest(new { error = "User not authenticated" });
                 }
-                var chatRoom = await _chatService.GetOrCreateChatRoomAsync(userId);
-                
-                if (chatRoom == null)
-                {
-                    return BadRequest(new { error = "Failed to create chat room" });
-                }
 
-                return new JsonResult(new { chatRoomId = chatRoom.Id });
+                var conversations = await _chatService.GetAllChatRoomsForAdminAsync();
+                
+                var result = conversations.Select(chat => new
+                {
+                    chatRoomId = chat.Id,
+                    customerId = chat.CustomerId,
+                    customerName = chat.Customer?.FullName ?? "Unknown Customer",
+                    customerEmail = chat.Customer?.Email ?? "",
+                    lastMessage = chat.Messages?.OrderByDescending(m => m.SentAt).FirstOrDefault()?.Content ?? "",
+                    lastMessageAt = chat.LastMessageAt.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                    unreadCount = chat.Messages?.Count(m => !m.IsRead && m.SenderId != userId) ?? 0,
+                    isOnline = false, // You can implement online status tracking
+                    status = chat.Status
+                }).OrderByDescending(c => c.lastMessageAt).ToList();
+
+                return new JsonResult(new { conversations = result });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating or getting chat room");
-                return BadRequest(new { error = "Internal server error" });
+                return BadRequest(new { error = "Failed to load conversations", details = ex.Message });
             }
         }
 
@@ -84,37 +91,34 @@ namespace PRN222_Restaurant.Pages.Chat
                 {
                     return BadRequest(new { error = "User not authenticated" });
                 }
-                
-                // Verify user has access to this chat room
-                var chatRoom = await _chatService.GetChatRoomByIdAsync(chatRoomId);
-                if (chatRoom == null || chatRoom.CustomerId != userId)
-                {
-                    return Forbid();
-                }
 
                 var messages = await _chatService.GetRecentMessagesAsync(chatRoomId, 50);
                 
-                var messageData = messages.Select(m => new
+                var result = messages.Select(m => new
                 {
                     id = m.Id,
                     chatRoomId = m.ChatRoomId,
                     senderId = m.SenderId,
-                    senderName = m.Sender?.FullName ?? (m.SenderId == 0 ? "System" : "Unknown"),
+                    senderName = !string.IsNullOrEmpty(m.Sender?.FullName)
+                        ? m.Sender.FullName
+                        : !string.IsNullOrEmpty(m.Sender?.Email)
+                            ? m.Sender.Email
+                            : $"User {m.SenderId}",
                     content = m.Content,
-                    sentAt = m.SentAt,
-                    messageType = m.MessageType,
-                    isRead = m.IsRead
+                    sentAt = m.SentAt.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                    isRead = m.IsRead,
+                    messageType = m.MessageType
                 }).ToList();
 
-                return new JsonResult(messageData);
+                return new JsonResult(new { messages = result });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting messages for chat room {ChatRoomId}", chatRoomId);
-                return BadRequest(new { error = "Failed to load messages" });
+                return BadRequest(new { error = "Failed to load messages", details = ex.Message });
             }
         }
 
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> OnPostMarkMessagesAsReadAsync(int chatRoomId)
         {
             try
@@ -124,21 +128,13 @@ namespace PRN222_Restaurant.Pages.Chat
                 {
                     return BadRequest(new { error = "User not authenticated" });
                 }
-                
-                // Verify user has access to this chat room
-                var chatRoom = await _chatService.GetChatRoomByIdAsync(chatRoomId);
-                if (chatRoom == null || chatRoom.CustomerId != userId)
-                {
-                    return Forbid();
-                }
 
                 await _chatService.MarkMessagesAsReadAsync(chatRoomId, userId);
                 return new JsonResult(new { success = true });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error marking messages as read for chat room {ChatRoomId}", chatRoomId);
-                return BadRequest(new { error = "Failed to mark messages as read" });
+                return BadRequest(new { error = "Failed to mark messages as read", details = ex.Message });
             }
         }
 

@@ -10,7 +10,6 @@ using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services.IService;
 using PRN222_Restaurant.Services.Service;
 using PRN222_Restaurant.Hubs;
-using PRN222_Restaurant.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +85,7 @@ builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<ITableService, TableService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+// Add Chat services
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<IChatService, ChatService>();
 

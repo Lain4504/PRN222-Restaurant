@@ -12,7 +12,7 @@
         }
     </style>
     <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true"/>
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous" defer></script>
+    <!-- FontAwesome removed to avoid CORS issues - using SVG icons instead -->
 </head>
 <body>
     <!-- Navigation -->
@@ -40,6 +40,17 @@
                 @if (User.Identity.IsAuthenticated)
                 {
                     <div class="flex items-center space-x-4">
+                        <!-- Customer Chat Button -->
+                        <a href="/Chat" class="btn btn-ghost btn-circle relative" title="Chat Support">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            <!-- Unread message badge -->
+                            <span id="customerChatBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">
+                                <span id="customerChatCount">0</span>
+                            </span>
+                        </a>
+
                         <!-- Avatar -->
                         <div class="dropdown dropdown-end">
                             <label tabindex="0" class="btn btn-ghost btn-circle avatar">
@@ -193,6 +204,13 @@
             </div>
         </div>
     </footer>
+
+    <!-- Customer Chat Widget removed - using dedicated chat page instead -->
+
+    <!-- SignalR Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+
+    <!-- Simple Chat Navigation - No complex JavaScript needed -->
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

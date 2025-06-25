@@ -20,6 +20,8 @@ namespace PRN222_Restaurant.Hubs
             try
             {
                 var userId = GetUserId();
+                _logger.LogInformation("ChatHub OnConnectedAsync - User ID: {UserId}, Connection: {ConnectionId}", userId, Context.ConnectionId);
+
                 if (userId.HasValue)
                 {
                     await _chatService.AddUserConnectionAsync(userId.Value, Context.ConnectionId);
@@ -76,8 +78,11 @@ namespace PRN222_Restaurant.Hubs
             try
             {
                 var userId = GetUserId();
+                _logger.LogInformation("JoinChatRoom - User ID: {UserId}, Chat Room: {ChatRoomId}, Connection: {ConnectionId}", userId, chatRoomId, Context.ConnectionId);
+
                 if (!userId.HasValue)
                 {
+                    _logger.LogWarning("JoinChatRoom - User not authenticated for connection {ConnectionId}", Context.ConnectionId);
                     await Clients.Caller.SendAsync("Error", "User not authenticated");
                     return;
                 }
@@ -250,12 +255,40 @@ namespace PRN222_Restaurant.Hubs
 
         private int? GetUserId()
         {
-            var userIdClaim = Context.GetHttpContext()?.Session.GetInt32("UserId");
-            return userIdClaim;
+            // Try to get from JWT claims first
+            var userIdClaim = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out int claimUserId))
+            {
+                return claimUserId;
+            }
+
+            // Fallback to session
+            var sessionUserId = Context.GetHttpContext()?.Session.GetInt32("UserId");
+            if (sessionUserId.HasValue)
+            {
+                return sessionUserId.Value;
+            }
+
+            // Try custom UserId claim
+            var customUserIdClaim = Context.User?.FindFirst("UserId")?.Value;
+            if (int.TryParse(customUserIdClaim, out int customUserId))
+            {
+                return customUserId;
+            }
+
+            return null;
         }
 
         private string? GetUserRole()
         {
+            // Try to get from JWT claims first
+            var roleClaim = Context.User?.FindFirst(ClaimTypes.Role)?.Value;
+            if (!string.IsNullOrEmpty(roleClaim))
+            {
+                return roleClaim;
+            }
+
+            // Fallback to session
             return Context.GetHttpContext()?.Session.GetString("UserRole");
         }
     }

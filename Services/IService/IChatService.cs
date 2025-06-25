@@ -6,6 +6,7 @@ namespace PRN222_Restaurant.Services.IService
     {
         // ChatRoom operations
         Task<IEnumerable<ChatRoom>> GetAllChatRoomsAsync();
+        Task<List<ChatRoom>> GetAllChatRoomsForAdminAsync();
         Task<ChatRoom?> GetChatRoomByIdAsync(int id);
         Task<ChatRoom?> GetOrCreateChatRoomAsync(int customerId);
         Task<IEnumerable<ChatRoom>> GetChatRoomsByStaffIdAsync(int staffId);

@@ -23,6 +23,11 @@ namespace PRN222_Restaurant.Services.Service
             return await _chatRepository.GetAllChatRoomsAsync();
         }
 
+        public async Task<List<ChatRoom>> GetAllChatRoomsForAdminAsync()
+        {
+            return await _chatRepository.GetAllChatRoomsForAdminAsync();
+        }
+
         public async Task<ChatRoom?> GetChatRoomByIdAsync(int id)
         {
             return await _chatRepository.GetChatRoomByIdAsync(id);

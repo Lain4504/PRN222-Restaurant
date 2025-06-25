@@ -25,6 +25,18 @@ namespace PRN222_Restaurant.Repositories.Repository
                 .ToListAsync();
         }
 
+        public async Task<List<ChatRoom>> GetAllChatRoomsForAdminAsync()
+        {
+            return await _context.ChatRooms
+                .Include(cr => cr.Customer)
+                .Include(cr => cr.Staff)
+                .Include(cr => cr.Messages.OrderByDescending(m => m.SentAt).Take(1))
+                    .ThenInclude(m => m.Sender)
+                .Where(cr => cr.IsActive)
+                .OrderByDescending(cr => cr.LastMessageAt)
+                .ToListAsync();
+        }
+
         public async Task<ChatRoom?> GetChatRoomByIdAsync(int id)
         {
             return await _context.ChatRooms

@@ -6,6 +6,7 @@ namespace PRN222_Restaurant.Repositories.IRepository
     {
         // ChatRoom methods
         Task<IEnumerable<ChatRoom>> GetAllChatRoomsAsync();
+        Task<List<ChatRoom>> GetAllChatRoomsForAdminAsync();
         Task<ChatRoom?> GetChatRoomByIdAsync(int id);
         Task<ChatRoom?> GetChatRoomByCustomerIdAsync(int customerId);
         Task<IEnumerable<ChatRoom>> GetChatRoomsByStaffIdAsync(int staffId);
