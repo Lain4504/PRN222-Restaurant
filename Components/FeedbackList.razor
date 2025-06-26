@@ -1,0 +1,155 @@
+﻿@using PRN222_Restaurant.Models
+@using PRN222_Restaurant.Models.Response
+@using PRN222_Restaurant.Services.IService
+@inject IFeedbackService FeedbackService
+@inject ILogger<FeedbackList> Logger
+
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Phản hồi của khách hàng</h1>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-8">
+            <span class="loading loading-spinner loading-lg"></span>
+            <p class="mt-2 text-gray-500">Đang tải phản hồi...</p>
+        </div>
+    }
+    else if (pagedResult?.Items == null || !pagedResult.Items.Any())
+    {
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 13h6m-6 4h6M7 7h10a2 2 0 012 2v6a2 2 0 01-2 2H7a2 2 0 01-2-2V9a2 2 0 012-2z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Chưa có phản hồi nào</h3>
+            <p class="mt-1 text-sm text-gray-500">Phản hồi sẽ hiển thị tại đây khi có.</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var feedback in pagedResult.Items)
+        {
+            <div class="flex items-start gap-4 border-b pb-4">
+                <img class="w-14 h-14 rounded-full object-cover border"
+                     src="https://i.pravatar.cc/150?u=@feedback.UserId"
+                     alt="Avatar" loading="lazy" />
+
+                <div class="flex-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <div>
+                            <h6 class="text-lg font-semibold text-gray-800">@feedback.User?.FullName</h6>
+                            <p class="text-sm text-gray-500">@feedback.User?.Email</p>
+                        </div>
+                        <p class="text-xs text-gray-400">@feedback.CreatedAt.ToString("MMM dd, yyyy")</p>
+                    </div>
+
+                    <div class="flex items-center gap-0.5 mb-2">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            var color = i <= feedback.Rating ? "#facc15" : "#d1d5db";
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 style="width: 20px; height: 20px; color: @color;"
+                                 fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.975a1 1 0 00.95.69h4.198c.969 0
+                                                                              1.371 1.24.588 1.81l-3.4 2.469a1 1 0 00-.364 1.118l1.286 3.975c.3.921-.755
+                                                                              1.688-1.54 1.118l-3.4-2.469a1 1 0 00-1.176 0l-3.4
+                                                                              2.469c-.784.57-1.838-.197-1.539-1.118l1.286-3.975a1 1 0
+                                                                              00-.364-1.118L2.228 9.402c-.783-.57-.38-1.81.588-1.81h4.198a1 1 0
+                                                                              00.951-.69l1.286-3.975z" />
+                            </svg>
+                        }
+                    </div>
+
+                    <p class="text-gray-700 italic">“@feedback.Comment”</p>
+                </div>
+            </div>
+        }
+    }
+
+    @if (pagedResult != null && GetTotalPages() > 1)
+    {
+        <div class="mt-6 flex justify-center">
+            <div class="btn-group">
+                @if (currentPage > 1)
+                {
+                    <button class="btn btn-outline" @onclick="() => LoadPage(currentPage - 1)" disabled="@isLoading">«</button>
+                }
+
+                @for (int i = GetStartPage(); i <= GetEndPage(); i++)
+                {
+                    int pageNumber = i;
+                    <button class="btn btn-outline @(i == currentPage ? "btn-active" : "")"
+                            @onclick="() => LoadPage(pageNumber)"
+                            disabled="@isLoading">
+                        @i
+                    </button>
+                }
+
+                @if (currentPage < GetTotalPages())
+                {
+                    <button class="btn btn-outline" @onclick="() => LoadPage(currentPage + 1)" disabled="@isLoading">»</button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private PagedResult<Feedback>? pagedResult;
+    private bool isLoading = true;
+    private int currentPage = 1;
+    private const int pageSize = 10;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFeedbacks();
+    }
+
+    private async Task LoadFeedbacks()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            pagedResult = await FeedbackService.GetPagedFeedbacksAsync(currentPage, pageSize);
+
+            isLoading = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Lỗi khi tải danh sách phản hồi");
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadPage(int page)
+    {
+        if (page != currentPage && page > 0 && page <= GetTotalPages())
+        {
+            currentPage = page;
+            await LoadFeedbacks();
+        }
+    }
+
+    private int GetTotalPages()
+    {
+        return pagedResult != null ? (int)Math.Ceiling((double)pagedResult.TotalCount / pageSize) : 0;
+    }
+
+    private int GetStartPage() => Math.Max(1, currentPage - 2);
+
+    private int GetEndPage() => Math.Min(GetTotalPages(), currentPage + 2);
+
+    private RenderFragment RenderRatingStars(int rating) => builder =>
+    {
+        for (int i = 1; i <= 5; i++)
+        {
+            var color = i <= rating ? "text-yellow-400" : "text-gray-300";
+            builder.AddMarkupContent(i, $"<svg class=\"w-5 h-5 {color}\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path d=\"M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.285 3.96a1 1 0 00.95.69h4.174c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.285 3.96c.3.921-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.785.57-1.84-.197-1.54-1.118l1.285-3.96a1 1 0 00-.364-1.118L2.048 9.387c-.783-.57-.38-1.81.588-1.81h4.174a1 1 0 00.95-.69l1.285-3.96z\"></path></svg>");
+        }
+    };
+}
