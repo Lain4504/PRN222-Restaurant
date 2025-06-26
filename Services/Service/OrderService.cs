@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Models.Response;
@@ -37,17 +37,21 @@ namespace PRN222_Restaurant.Services.Service
             return await _orderRepository.GetPagedAsync(page, pageSize);
         }
 
-        public async Task<PagedResult<Order>> GetPagedUserOrdersAsync(int userId, int page, int pageSize)
+        public async Task<PagedResult<Order>> GetPagedUserOrdersAsync(int userId, int page, int pageSize, string statusFilter)
         {
             var query = _context.Orders
                 .Include(o => o.Table)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.MenuItem)
-                .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.OrderDate);
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.MenuItem)
+                .Where(o => o.UserId == userId);
+
+            if (!string.IsNullOrWhiteSpace(statusFilter))
+            {
+                query = query.Where(o => o.Status == statusFilter);
+            }
 
             var totalCount = await query.CountAsync();
             var items = await query
+                .OrderByDescending(o => o.OrderDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

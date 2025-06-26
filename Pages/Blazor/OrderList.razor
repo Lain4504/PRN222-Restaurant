@@ -1,0 +1,167 @@
+﻿@using PRN222_Restaurant.Services.IService
+@using PRN222_Restaurant.Models
+@using PRN222_Restaurant.Models.Response
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IOrderService OrderService
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthProvider
+
+<div class="mt-14">
+    <h1 class="text-3xl font-bold text-center mb-8 mt-8">Đơn hàng của tôi</h1>
+
+    @if (isLoading)
+    {
+        <p class="text-center">Đang tải...</p>
+    }
+    else if (OrdersResult == null || !OrdersResult.Items.Any())
+    {
+        <p class="text-center">Không có đơn hàng nào.</p>
+    }
+    else
+    {
+        <div class="max-w-5xl mx-auto">
+            <!-- Bộ lọc trạng thái -->
+            <div class="flex justify-between items-center mb-4">
+                <label class="text-sm font-medium">
+                    Lọc theo trạng thái:
+                    <select class="ml-2 p-1 border rounded text-black bg-white"
+                            @bind="statusFilter"
+                            @bind:event="onchange"
+                            @onchange="OnStatusFilterChanged">
+                        <option value="">Tất cả</option>
+                        <option value="Pending">Chờ xử lý</option>
+                        <option value="Preparing">Đang chuẩn bị</option>
+                        <option value="Served">Đã phục vụ</option>
+                        <option value="Completed">Hoàn thành</option>
+                        <option value="Cancelled">Đã hủy</option>
+                    </select>
+                </label>
+
+                <p class="text-sm text-gray-600 text-white">
+                    Tổng cộng: <strong>@OrdersResult.TotalCount</strong> đơn hàng
+                </p>
+            </div>
+
+            <!-- Bảng đơn hàng -->
+            <table class="table w-full border border-gray-300">
+                <thead class="bg-gray-100 text-gray-700">
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Loại</th>
+                        <th>Bàn</th>
+                        <th>Ngày đặt</th>
+                        <th>Thời gian</th>
+                        <th>Tổng</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in OrdersResult.Items)
+                    {
+                        <tr class="border-t">
+                            <td>#@order.Id</td>
+                            <td>@(order.OrderType == "Immediate" ? "Tại chỗ" : "Đặt trước")</td>
+                            <td>@(order.Table != null ? $"Bàn {order.Table.TableNumber}" : "N/A")</td>
+                            <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@(order.ReservationTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                            <td>@order.TotalPrice.ToString("N0") đ</td>
+                            <td>@TranslateStatus(order.Status)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Phân trang -->
+            <div class="flex justify-center mt-6 gap-2">
+                <button type="button" class="btn btn-sm" @onclick="PreviousPage" disabled="@(!CanGoPrevious)">«</button>
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    <button type="button" class="btn btn-sm @(i == currentPage ? "btn-primary" : "btn-outline")"
+                            @onclick="@(() => GoToPage(i))">
+                        @i
+                    </button>
+                }
+                <button type="button" class="btn btn-sm" @onclick="NextPage" disabled="@(!CanGoNext)">»</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    public PagedResult<Order> OrdersResult { get; set; }
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private string statusFilter = "";
+    private int userId;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is { IsAuthenticated: true })
+        {
+            userId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            await LoadOrders();
+        }
+        isLoading = false;
+    }
+
+    private async Task LoadOrders()
+    {
+        OrdersResult = await OrderService.GetPagedUserOrdersAsync(userId, currentPage, pageSize, statusFilter);
+    }
+
+    private int TotalPages => OrdersResult?.TotalPages ?? 1;
+    private bool CanGoPrevious => currentPage > 1;
+    private bool CanGoNext => currentPage < TotalPages;
+
+    private async Task GoToPage(int page)
+    {
+        if (page != currentPage)
+        {
+            currentPage = page;
+            await LoadOrders();
+        }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (CanGoPrevious)
+        {
+            currentPage--;
+            await LoadOrders();
+        }
+    }
+
+    private async Task NextPage()
+    {
+        if (CanGoNext)
+        {
+            currentPage++;
+            await LoadOrders();
+        }
+    }
+
+    private async Task OnStatusFilterChanged(ChangeEventArgs e)
+    {
+        statusFilter = e.Value?.ToString() ?? "";
+        currentPage = 1;
+        await LoadOrders();
+    }
+
+    private string TranslateStatus(string status)
+    {
+        return status switch
+        {
+            "Pending" => "Chờ xử lý",
+            "Preparing" => "Đang chuẩn bị",
+            "Served" => "Đã phục vụ",
+            "Completed" => "Hoàn thành",
+            "Cancelled" => "Đã hủy",
+            _ => status
+        };
+    }
+}
