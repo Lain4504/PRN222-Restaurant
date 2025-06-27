@@ -50,7 +50,8 @@ else
             <tbody>
                 @foreach (var order in Orders)
                 {
-                    <tr @onclick="() => Nav.NavigateTo($"/order-detail/{order.Id}")" style="cursor:pointer;">
+                    var a = $"/order-detail/{order.Id}";
+                    <tr @onclick="() => Nav.NavigateTo(a)" style="cursor:pointer;">
                         <td>#@order.Id</td>
                         <td>
                             <span class="badge @(order.OrderType == "Immediate" ? "badge-info" : "badge-warning")">
@@ -67,7 +68,7 @@ else
                             </span>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-info" @onclick:stopPropagation="true" @onclick="() => Nav.NavigateTo($"/order-detail/{order.Id}")">
+                            <button class="btn btn-sm btn-info" @onclick:stopPropagation="true" @onclick="() => Nav.NavigateTo(a)">
                                 Chi tiết
                             </button>
                         </td>
