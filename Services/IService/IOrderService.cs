@@ -11,7 +11,7 @@ namespace PRN222_Restaurant.Services.IService
         Task<List<Order>> GetUserOrdersAsync(int userId);
         Task<List<Order>> GetAllOrdersAsync();
         Task<PagedResult<Order>> GetPagedOrdersAsync(int page, int pageSize);
-        Task<PagedResult<Order>> GetPagedUserOrdersAsync(int userId, int page, int pageSize);
+        Task<PagedResult<Order>> GetPagedUserOrdersAsync(int userId, int page, int pageSize, string status);
         Task<Order> CreateImmediateOrderAsync(Order order, Dictionary<int, int> selectedItems);
         Task<Order> CreatePreOrderAsync(Order order, Dictionary<int, int> selectedItems);
         Task<bool> UpdateOrderStatusAsync(int id, string status);

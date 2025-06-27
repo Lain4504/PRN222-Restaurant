@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Models.Response;
@@ -37,16 +37,27 @@ namespace PRN222_Restaurant.Services.Service
             return await _orderRepository.GetPagedAsync(page, pageSize);
         }
 
-        public async Task<PagedResult<Order>> GetPagedUserOrdersAsync(int userId, int page, int pageSize)
+        public async Task<PagedResult<Order>> GetPagedUserOrdersAsync(int userId, int page, int pageSize, string? status = null)
         {
             var query = _context.Orders
                 .Include(o => o.Table)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
-                .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.OrderDate);
+                .Where(o => o.UserId == userId);
 
+            // Nếu có lọc trạng thái
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(o => o.Status == status);
+            }
+
+            // Sắp xếp theo thời gian đặt hàng mới nhất
+            query = query.OrderByDescending(o => o.OrderDate);
+
+            // Tổng số đơn thỏa điều kiện
             var totalCount = await query.CountAsync();
+
+            // Lấy dữ liệu theo trang
             var items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
