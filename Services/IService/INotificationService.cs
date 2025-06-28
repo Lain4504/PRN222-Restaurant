@@ -24,4 +24,9 @@ public interface INotificationService
     Task CreatePaymentSuccessNotificationAsync(int userId, int orderId, decimal amount);
     Task CreatePaymentFailedNotificationAsync(int userId, int orderId);
     Task CreateOrderCompletedNotificationAsync(int userId, int orderId);
+
+    // Points-related notifications
+    Task CreatePointsEarnedNotificationAsync(int userId, int points, int orderId);
+    Task CreatePointsRedeemedNotificationAsync(int userId, int points, decimal discount, int orderId);
+    Task CreateWelcomeBonusNotificationAsync(int userId, int points);
 }

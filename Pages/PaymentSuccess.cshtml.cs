@@ -5,6 +5,7 @@ using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Pages;
 using PRN222_Restaurant.Helpers;
+using PRN222_Restaurant.Services.IService;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,17 +17,21 @@ namespace PRN222_Restaurant.Pages
     {
         private readonly ApplicationDbContext _context;
         private readonly NotificationHelper _notificationHelper;
+        private readonly IPointsService _pointsService;
 
-        public PaymentSuccessModel(ApplicationDbContext context, NotificationHelper notificationHelper)
+        public PaymentSuccessModel(ApplicationDbContext context, NotificationHelper notificationHelper, IPointsService pointsService)
         {
             _context = context;
             _notificationHelper = notificationHelper;
+            _pointsService = pointsService;
         }
         
         public Order? Order { get; set; }
         public int TableNumber { get; set; }
         public List<OrderItemViewModel> OrderItems { get; set; } = new List<OrderItemViewModel>();
         public decimal TotalAmount { get; set; }
+        public int PointsEarned { get; set; }
+        public int TotalPoints { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -51,9 +56,13 @@ namespace PRN222_Restaurant.Pages
                     // Load order items
                     await LoadOrderItems(Order);
 
-                    // Create payment success notification
+                    // Load points information
                     if (User.Identity.IsAuthenticated && Order.UserId.HasValue)
                     {
+                        PointsEarned = await _pointsService.CalculatePointsEarnedAsync(Order.TotalPrice);
+                        TotalPoints = await _pointsService.GetUserPointsAsync(Order.UserId.Value);
+
+                        // Create payment success notification
                         await _notificationHelper.NotifyPaymentSuccessAsync(Order.UserId.Value, Order.Id, Order.TotalPrice);
                     }
                 }

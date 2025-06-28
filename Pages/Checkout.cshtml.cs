@@ -6,6 +6,7 @@ using PRN222_Restaurant.Data;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Pages;
 using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Services.IService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +20,13 @@ namespace PRN222_Restaurant.Pages
     {
         private readonly IVNPayService _vnPayService;
         private readonly ApplicationDbContext _context;
+        private readonly IPointsService _pointsService;
 
-        public CheckoutModel(IVNPayService vnPayService, ApplicationDbContext context)
+        public CheckoutModel(IVNPayService vnPayService, ApplicationDbContext context, IPointsService pointsService)
         {
             _vnPayService = vnPayService;
             _context = context;
+            _pointsService = pointsService;
         }
 
         [BindProperty]
@@ -34,6 +37,14 @@ namespace PRN222_Restaurant.Pages
         public decimal Tax { get; set; }
         public decimal Total { get; set; }
         public int OrderId { get; set; }
+
+        // Points-related properties
+        public int UserPoints { get; set; }
+        public int MaxUsablePoints { get; set; }
+        [BindProperty]
+        public int PointsToUse { get; set; }
+        public decimal PointsDiscount { get; set; }
+        public decimal FinalTotal { get; set; }
         public async Task<IActionResult> OnGetAsync(int? orderId)
         {
             // If orderId is provided, load that specific order
@@ -160,6 +171,36 @@ namespace PRN222_Restaurant.Pages
             // Calculate tax and total
             Tax = Math.Round(Subtotal * 0.1m, 2);
             Total = Subtotal + Tax;
+
+            // Load points information for authenticated users
+            if (User.Identity.IsAuthenticated)
+            {
+                var userId = GetCurrentUserId();
+                if (userId.HasValue)
+                {
+                    UserPoints = await _pointsService.GetUserPointsAsync(userId.Value);
+                    MaxUsablePoints = await _pointsService.GetMaxUsablePointsAsync(userId.Value, Total);
+
+                    // Check if there's a stored points selection from PreOrderConfirmation
+                    var storedPoints = HttpContext.Session.GetInt32("PointsToUse");
+                    if (storedPoints.HasValue && PointsToUse == 0)
+                    {
+                        PointsToUse = storedPoints.Value;
+                    }
+
+                    // Calculate points discount if points are being used
+                    if (PointsToUse > 0 && PointsToUse <= MaxUsablePoints)
+                    {
+                        PointsDiscount = await _pointsService.CalculatePointsDiscountAsync(PointsToUse);
+                    }
+
+                    FinalTotal = Total - PointsDiscount;
+                }
+            }
+            else
+            {
+                FinalTotal = Total;
+            }
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -180,11 +221,33 @@ namespace PRN222_Restaurant.Pages
                 return RedirectToPage("/Error");
             }
 
+            // Handle points redemption if applicable
+            decimal finalAmount = order.TotalPrice;
+            if (PointsToUse > 0 && User.Identity.IsAuthenticated)
+            {
+                var userId = GetCurrentUserId();
+                if (userId.HasValue)
+                {
+                    var pointsDiscount = await _pointsService.RedeemPointsAsync(userId.Value, PointsToUse, order.Id, "Points redemption for order");
+                    if (pointsDiscount > 0)
+                    {
+                        finalAmount = Math.Max(0, order.TotalPrice - pointsDiscount);
+                        // Update order total price to reflect discount
+                        order.TotalPrice = finalAmount;
+                        _context.Orders.Update(order);
+                        await _context.SaveChangesAsync();
+
+                        // Clear points selection from session after successful redemption
+                        HttpContext.Session.Remove("PointsToUse");
+                    }
+                }
+            }
+
             // Create payment information
             PaymentInfo = new PaymentInformation
             {
                 OrderId = order.Id.ToString(),
-                Amount = order.TotalPrice,
+                Amount = finalAmount,
                 OrderDescription = $"Payment for reservation #{order.Id}",
                 OrderType = "PreOrder",
                 Name = User.Identity?.Name ?? "Guest"
@@ -229,6 +292,19 @@ namespace PRN222_Restaurant.Pages
                         // Update order status
                         order.Status = "Paid";
                         await _context.SaveChangesAsync();
+
+                        // Award points for successful payment
+                        if (order.UserId.HasValue)
+                        {
+                            await _pointsService.AwardPointsAsync(order.UserId.Value, order.Id, payment.Amount);
+
+                            // Check and award welcome bonus for new users
+                            if (await _pointsService.IsEligibleForWelcomeBonusAsync(order.UserId.Value))
+                            {
+                                await _pointsService.AwardWelcomeBonusAsync(order.UserId.Value);
+                            }
+                        }
+
                         TempData["PaymentSuccess"] = true;
                         TempData["PaymentMessage"] = "Payment successful!";
                         TempData["TransactionId"] = response.TransactionId;

@@ -74,7 +74,9 @@ builder.Services.AddAuthentication("Bearer")
 
 // Add your services
 builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("Vnpay"));
+builder.Services.Configure<PointsConfig>(builder.Configuration.GetSection("Points"));
 builder.Services.AddScoped<IVNPayService, VNPayService>();
+builder.Services.AddScoped<IPointsService, PointsService>();
 builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

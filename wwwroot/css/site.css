@@ -46,3 +46,81 @@
   transform: translateY(-2px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
+
+/* Dropdown improvements */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 9999;
+  min-width: 280px;
+  max-width: 320px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Prevent white space issues */
+}
+
+.dropdown-content .menu li > a {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 2px 0;
+  transition: all 0.2s ease;
+}
+
+.dropdown-content .menu li > a:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
+}
+
+/* Responsive dropdown */
+@media (max-width: 640px) {
+  .dropdown-content {
+    min-width: 260px;
+    max-width: 280px;
+    right: -10px;
+  }
+}
+
+/* Smooth dropdown animation - Remove this to use DaisyUI default behavior */
+/* .dropdown:focus-within .dropdown-content,
+.dropdown:hover .dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-content {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease-in-out;
+} */
+
+/* Use DaisyUI default dropdown behavior instead */
+.dropdown-content {
+  display: none;
+}
+
+.dropdown:focus-within .dropdown-content,
+.dropdown.dropdown-open .dropdown-content {
+  display: block;
+}
+
+/* Menu item improvements */
+.menu li > a {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.menu li > a svg {
+  flex-shrink: 0;
+}
+
+/* Points display improvements */
+.dropdown-content .bg-gradient-to-br {
+  background-attachment: fixed;
+}
