@@ -1,3 +1,28 @@
+@using PRN222_Restaurant.Helpers
+@using PRN222_Restaurant.Services.IService
+@using System.Security.Claims
+@inject IPointsService PointsService
+@{
+    int userPoints = 0;
+    string debugInfo = "";
+    if (User.Identity.IsAuthenticated)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            userPoints = await PointsService.GetUserPointsAsync(userId);
+            debugInfo = $"User ID: {userId}, Points: {userPoints}";
+        }
+        else
+        {
+            debugInfo = "No valid user ID claim found";
+        }
+    }
+    else
+    {
+        debugInfo = "User not authenticated";
+    }
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,10 +107,13 @@
                     <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">About Us</a></li>
                     <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Contact</a></li>
                 </ul>
-               
                 @if (User.Identity.IsAuthenticated)
                 {
                     <div class="flex items-center space-x-4">
+                        <!-- Points Display -->
+                        <a href="/points-history" class="flex items-center bg-white border-2 border-gray-300 px-3 py-1 rounded-full text-sm font-bold shadow-md hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer" title="View Points History">
+                            <span class="text-black">@userPoints Point</span>
+                        </a>
                         <!-- Notification Component -->
                         @(await Html.RenderComponentAsync<PRN222_Restaurant.Components.NotificationDropdown>(RenderMode.Server))
                         <!-- Customer Chat Button -->
@@ -106,18 +134,46 @@
                                     <img src="@(User.FindFirst("avatar_url")?.Value ?? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/2048px-User_icon_2.svg.png")" alt="User Avatar" />
                                 </div>
                             </label>
-                            <ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
-                                <li><a href="/profile">Tài khoản</a></li>
-                                <li><a href="/order-list">Đơn hàng của tôi</a></li>
-                                <li><a href="/admin/logout">Đăng xuất</a></li>
-                            </ul>
+                            <div tabindex="0" class="mt-3 p-0 shadow-lg dropdown-content bg-white rounded-lg w-64 border border-gray-200 z-50">
+                                <!-- Menu Items -->
+                                <ul class="menu p-3 space-y-1">
+                                    <li>
+                                        <a href="/profile" class="flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                            <span>Tài khoản</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="/order-list" class="flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                            </svg>
+                                            <span>Đơn hàng của tôi</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="border-t border-gray-200 pt-2 mt-2">
+                                        <a href="/admin/logout" class="flex items-center space-x-3 text-red-600 hover:text-red-700 hover:bg-red-50">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            </svg>
+                                            <span>Đăng xuất</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 }
                 else
                 {
-                    <div class="flex space-x-4">
-                   
+                    <div class="flex items-center space-x-4">
+                        <!-- Points Display for non-authenticated users -->
+                        <a href="/login" class="flex items-center bg-white border-2 border-gray-300 px-3 py-1 rounded-full text-sm font-bold shadow-md hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer" title="Login to earn points">
+                            <span class="text-black">0 Point</span>
+                        </a>
                         <a href="/login" class="btn btn-primary btn-sm">Login</a>
                     </div>
                 }

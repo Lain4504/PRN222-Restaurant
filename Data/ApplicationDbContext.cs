@@ -25,6 +25,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages { get; set; }
     public DbSet<UserConnection> UserConnections { get; set; }
     public DbSet<VerificationCode> VerificationCodes { get; set; }
+    public DbSet<PointTransaction> PointTransactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,7 +96,21 @@ public class ApplicationDbContext : DbContext
             .WithMany()
             .HasForeignKey(uc => uc.UserId)
             .OnDelete(DeleteBehavior.Cascade);
-        // Note: We don't seed Orders and OrderItems in OnModelCreating because they have 
+
+        // Configure PointTransaction relationships
+        modelBuilder.Entity<PointTransaction>()
+            .HasOne(pt => pt.User)
+            .WithMany(u => u.PointTransactions)
+            .HasForeignKey(pt => pt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PointTransaction>()
+            .HasOne(pt => pt.RelatedOrder)
+            .WithMany()
+            .HasForeignKey(pt => pt.RelatedOrderId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Note: We don't seed Orders and OrderItems in OnModelCreating because they have
         // navigation properties that EF Core can't handle well in HasData.
         // Instead, these are seeded using the SeedData class during application startup.
     }

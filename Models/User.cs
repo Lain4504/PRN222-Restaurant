@@ -12,10 +12,14 @@ public class User
 
     public bool IsActive { get; set; } = true;
 
+    public int Points { get; set; } = 0; // Current point balance
+
     // Khởi tạo để không bị null
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 
     public ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public ICollection<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
  
 }
 

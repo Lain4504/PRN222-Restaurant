@@ -159,4 +159,54 @@ public class NotificationService : INotificationService
 
         await _notificationRepository.AddAsync(notification);
     }
+
+    public async Task CreatePointsEarnedNotificationAsync(int userId, int points, int orderId)
+    {
+        var notification = new Notification
+        {
+            UserId = userId,
+            Title = "Điểm thưởng mới",
+            Message = $"Bạn đã nhận được {points} điểm từ đơn hàng #{orderId}. Tổng điểm hiện tại của bạn đã được cập nhật!",
+            Type = "Success",
+            RelatedUrl = "/points-history",
+            RelatedId = orderId,
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        };
+
+        await _notificationRepository.AddAsync(notification);
+    }
+
+    public async Task CreatePointsRedeemedNotificationAsync(int userId, int points, decimal discount, int orderId)
+    {
+        var notification = new Notification
+        {
+            UserId = userId,
+            Title = "Điểm đã sử dụng",
+            Message = $"Bạn đã sử dụng {points} điểm để được giảm giá {discount:C} cho đơn hàng #{orderId}.",
+            Type = "Info",
+            RelatedUrl = "/points-history",
+            RelatedId = orderId,
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        };
+
+        await _notificationRepository.AddAsync(notification);
+    }
+
+    public async Task CreateWelcomeBonusNotificationAsync(int userId, int points)
+    {
+        var notification = new Notification
+        {
+            UserId = userId,
+            Title = "Chào mừng bạn đến với chương trình thành viên!",
+            Message = $"Bạn đã nhận được {points} điểm chào mừng! Hãy sử dụng điểm để được giảm giá trong các đơn hàng tiếp theo.",
+            Type = "Success",
+            RelatedUrl = "/points-history",
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        };
+
+        await _notificationRepository.AddAsync(notification);
+    }
 }

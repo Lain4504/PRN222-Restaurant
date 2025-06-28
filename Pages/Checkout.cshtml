@@ -92,20 +92,76 @@
                             </h2>
                         </div>
                         <div class="p-6">
+                            <!-- Points Redemption Section -->
+                            @if (User.Identity.IsAuthenticated && Model.UserPoints > 0)
+                            {
+                                <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-6">
+                                    <div class="text-center mb-4">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Your Points</h3>
+                                        <div class="text-3xl font-bold text-purple-600">@Model.UserPoints</div>
+                                        <p class="text-sm text-gray-600">Worth @((Model.UserPoints * 1.0m).ToString("C"))</p>
+                                    </div>
+
+                                    @if (Model.MaxUsablePoints > 0)
+                                    {
+                                        <div class="mb-4">
+                                            <label for="pointsToUse" class="block text-sm font-medium text-gray-700 mb-2">
+                                                Points to Use (0 - @Model.MaxUsablePoints)
+                                            </label>
+                                            <input type="range"
+                                                   id="pointsToUse"
+                                                   name="PointsToUse"
+                                                   min="0"
+                                                   max="@Model.MaxUsablePoints"
+                                                   value="@Model.PointsToUse"
+                                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                                   oninput="updatePointsDisplay(this.value)">
+                                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                                <span>0</span>
+                                                <span id="selectedPoints">@Model.PointsToUse</span>
+                                                <span>@Model.MaxUsablePoints</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-sm text-gray-600">Discount: <span id="pointsDiscount" class="font-semibold text-green-600">@((Model.PointsToUse * 1.0m).ToString("C"))</span></p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center text-gray-500">
+                                            <p class="text-sm">You need at least 1 point to redeem</p>
+                                            <a href="/points-history" class="text-purple-600 hover:text-purple-800 text-sm underline">View Points History</a>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
                             <!-- Payment Amount Display -->
                             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
                                 <div class="text-center">
-                                    <p class="text-gray-600 text-sm mb-2">Total Amount</p>
-                                    <p class="text-3xl font-bold text-blue-600">${@Model.Total.ToString("F2")}</p>
+                                    <p class="text-gray-600 text-sm mb-2">Order Total</p>
+                                    <p class="text-2xl font-bold text-gray-800">${@Model.Total.ToString("F2")}</p>
+                                    @if (Model.PointsDiscount > 0)
+                                    {
+                                        <p class="text-sm text-green-600 mt-1">- <span id="displayDiscount">@Model.PointsDiscount.ToString("C")</span> (Points)</p>
+                                        <hr class="my-2">
+                                        <p class="text-gray-600 text-sm">Final Amount</p>
+                                        <p class="text-3xl font-bold text-blue-600" id="finalAmount">${@Model.FinalTotal.ToString("F2")}</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-3xl font-bold text-blue-600" id="finalAmount">${@Model.Total.ToString("F2")}</p>
+                                    }
                                 </div>
                             </div>
 
                             <form method="post" class="space-y-4">
                                 <input type="hidden" asp-for="PaymentInfo.OrderId" value="@Model.OrderId" />
-                                <input type="hidden" asp-for="PaymentInfo.Amount" value="@Model.Total" />
+                                <input type="hidden" asp-for="PaymentInfo.Amount" value="@(Model.FinalTotal > 0 ? Model.FinalTotal : Model.Total)" />
                                 <input type="hidden" asp-for="PaymentInfo.OrderDescription" value="Payment for reservation #@Model.OrderId" />
                                 <input type="hidden" asp-for="PaymentInfo.OrderType" value="PreOrder" />
                                 <input type="hidden" asp-for="PaymentInfo.Name" value="@(User.Identity.IsAuthenticated? User.Identity.Name : "Guest")" />
+                                <input type="hidden" asp-for="PointsToUse" value="@Model.PointsToUse" />
 
                                 <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition duration-300 transform hover:scale-105 shadow-lg">
                                     <div class="flex items-center justify-center">
@@ -170,3 +226,47 @@
         </div>
     </div>
 </div>
+
+<script>
+function updatePointsDisplay(points) {
+    const pointValue = 1.0; // $1 per point
+    const orderTotal = @Model.Total;
+
+    // Update selected points display
+    document.getElementById('selectedPoints').textContent = points;
+
+    // Calculate discount
+    const discount = points * pointValue;
+    document.getElementById('pointsDiscount').textContent = '$' + discount.toFixed(2);
+
+    // Update display discount if visible
+    const displayDiscountElement = document.getElementById('displayDiscount');
+    if (displayDiscountElement) {
+        displayDiscountElement.textContent = '$' + discount.toFixed(2);
+    }
+
+    // Calculate and update final amount
+    const finalAmount = Math.max(0, orderTotal - discount);
+    document.getElementById('finalAmount').textContent = '$' + finalAmount.toFixed(2);
+
+    // Update the hidden form field for points to use
+    const pointsInput = document.querySelector('input[name="PointsToUse"]');
+    if (pointsInput) {
+        pointsInput.value = points;
+    }
+
+    // Update the payment amount field
+    const amountInput = document.querySelector('input[name="PaymentInfo.Amount"]');
+    if (amountInput) {
+        amountInput.value = finalAmount;
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const pointsSlider = document.getElementById('pointsToUse');
+    if (pointsSlider) {
+        updatePointsDisplay(pointsSlider.value);
+    }
+});
+</script>
