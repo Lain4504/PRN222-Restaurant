@@ -45,6 +45,7 @@
                         <th>Aavatar</th>
                         <th>Email</th>
                         <th>Vai trò</th>
+                        <th>Điểm</th>
                         <th>Trạng thái</th>
                         <th>Hành động</th>
                     </tr>
@@ -71,6 +72,16 @@
                                 <span class="badge @(user.Role == "Admin" ? "badge-error" : (user.Role == "Manager" ? "badge-warning" : "badge-info"))">
                                     @user.Role
                                 </span>
+                            </td>
+                            <td>
+                                @if (user.Role == "Customer" || user.Role == "User")
+                                {
+                                    <div class="badge badge-primary">@user.Points Point</div>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400">-</span>
+                                }
                             </td>
                             <td>
                                 @if (user.IsActive)
