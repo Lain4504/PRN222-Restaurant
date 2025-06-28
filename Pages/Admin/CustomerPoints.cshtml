@@ -1,0 +1,189 @@
+@page "/admin/customer-points"
+@model PRN222_Restaurant.Pages.Admin.CustomerPointsModel
+@{
+    ViewData["Title"] = "Quản lý điểm khách hàng";
+}
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+            <h1 class="text-3xl font-bold text-center mb-2">Quản lý điểm khách hàng</h1>
+            <p class="text-center text-gray-600">Xem và quản lý điểm tích lũy của tất cả khách hàng</p>
+        </div>
+    </div>
+
+    <!-- Customer Points Overview -->
+    <div class="card bg-base-100 shadow-md">
+        <div class="card-body">
+            <h2 class="card-title text-xl mb-4">Tổng quan điểm khách hàng</h2>
+            
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="stat bg-primary text-primary-content rounded-lg">
+                    <div class="stat-title text-primary-content">Tổng khách hàng</div>
+                    <div class="stat-value">@Model.Customers.Count</div>
+                </div>
+                <div class="stat bg-secondary text-secondary-content rounded-lg">
+                    <div class="stat-title text-secondary-content">Tổng điểm đã phát</div>
+                    <div class="stat-value">@Model.Customers.Sum(c => c.CurrentPoints)</div>
+                </div>
+                <div class="stat bg-accent text-accent-content rounded-lg">
+                    <div class="stat-title text-accent-content">Khách hàng có điểm</div>
+                    <div class="stat-value">@Model.Customers.Count(c => c.CurrentPoints > 0)</div>
+                </div>
+            </div>
+
+            <!-- Customers Table -->
+            <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Khách hàng</th>
+                            <th>Email</th>
+                            <th>Điểm hiện tại</th>
+                            <th>Giao dịch gần đây</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var customer in Model.Customers)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="flex items-center gap-3">
+                                        <div class="avatar">
+                                            <div class="mask mask-squircle w-10 h-10">
+                                                <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(customer.User.FullName)&background=random" alt="@customer.User.FullName" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold">@customer.User.FullName</div>
+                                            <div class="text-sm opacity-50">ID: @customer.User.Id</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@customer.User.Email</td>
+                                <td>
+                                    <div class="badge badge-primary badge-lg">
+                                        @customer.CurrentPoints Point
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (customer.RecentTransactions.Any())
+                                    {
+                                        <div class="text-sm">
+                                            @foreach (var transaction in customer.RecentTransactions.Take(2))
+                                            {
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="@(transaction.Points > 0 ? "text-green-600" : "text-red-600")">
+                                                        @(transaction.Points > 0 ? "+" : "")@transaction.Points
+                                                    </span>
+                                                    <span class="text-xs text-gray-500">
+                                                        @transaction.CreatedAt.ToString("dd/MM")
+                                                    </span>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400">Chưa có giao dịch</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="/admin/customer-points?SelectedCustomerId=@customer.User.Id" 
+                                       class="btn btn-sm btn-outline btn-primary">
+                                        Xem chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selected Customer Details -->
+    @if (Model.SelectedCustomer != null)
+    {
+        <div class="card bg-base-100 shadow-md">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title text-xl">
+                        Chi tiết điểm của @Model.SelectedCustomer.FullName
+                    </h2>
+                    <a href="/admin/customer-points" class="btn btn-sm btn-ghost">
+                        ← Quay lại
+                    </a>
+                </div>
+
+                <!-- Customer Info -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Điểm hiện tại</div>
+                        <div class="stat-value text-primary">@Model.SelectedCustomer.Points</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Tổng giao dịch</div>
+                        <div class="stat-value">@Model.SelectedCustomerTransactions.Count</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Điểm đã sử dụng</div>
+                        <div class="stat-value text-secondary">
+                            @Model.SelectedCustomerTransactions.Where(t => t.Points < 0).Sum(t => Math.Abs(t.Points))
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction History -->
+                <h3 class="text-lg font-semibold mb-4">Lịch sử giao dịch điểm</h3>
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead>
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Loại</th>
+                                <th>Điểm</th>
+                                <th>Mô tả</th>
+                                <th>Đơn hàng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var transaction in Model.SelectedCustomerTransactions)
+                            {
+                                <tr>
+                                    <td>@transaction.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <div class="badge @(transaction.Type == "Earned" ? "badge-success" : 
+                                                           transaction.Type == "Redeemed" ? "badge-warning" : 
+                                                           transaction.Type == "Bonus" ? "badge-info" : "badge-error")">
+                                            @transaction.Type
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="font-bold @(transaction.Points > 0 ? "text-green-600" : "text-red-600")">
+                                            @(transaction.Points > 0 ? "+" : "")@transaction.Points
+                                        </span>
+                                    </td>
+                                    <td>@transaction.Description</td>
+                                    <td>
+                                        @if (transaction.RelatedOrderId.HasValue)
+                                        {
+                                            <span class="badge badge-outline">#@transaction.RelatedOrderId</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
