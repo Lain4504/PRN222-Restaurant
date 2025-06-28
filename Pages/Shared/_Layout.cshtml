@@ -14,6 +14,7 @@
     <base href="~/" />
     <component type="typeof(Microsoft.AspNetCore.Components.Web.HeadOutlet)" render-mode="ServerPrerendered" />
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
     <script src="~/js/dashboard.js" asp-append-version="true" defer></script>
 
 </head>
@@ -139,13 +140,13 @@
                         </a>
                     </li>
                     <li>
-                        <a href="/admin/stats" class="@(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Stats") == true ? "active" : "")">
+                        <a href="/admin/stats-blazor" class="@(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Stats") == true ? "active" : "")">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
                             Thống kê
                         </a>
-                    </li>      
+                    </li>
                     <li>
                         <a href="/admin/feedback" class="@(ViewContext.RouteData.Values["page"]?.ToString()?.Contains("Stats") == true ? "active" : "")">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

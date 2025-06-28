@@ -144,6 +144,69 @@ function initThemeToggle() {
     }
 }
 
+// Render ApexCharts for Blazor components
+window.renderApexChart = function(elementId, options) {
+    try {
+        // Rendering chart for element
+
+        // Check if ApexCharts is loaded
+        if (typeof ApexCharts === 'undefined') {
+            console.error('ApexCharts is not loaded yet');
+            // Retry after a delay
+            setTimeout(() => window.renderApexChart(elementId, options), 500);
+            return;
+        }
+
+        // Check if element exists
+        const element = document.querySelector("#" + elementId);
+        if (!element) {
+            console.error('Chart element not found:', elementId);
+            return;
+        }
+
+        // Destroy existing chart if it exists
+        if (window.charts && window.charts[elementId]) {
+            // Destroying existing chart
+            try {
+                window.charts[elementId].destroy();
+            } catch (destroyError) {
+                console.warn('Error destroying existing chart:', destroyError);
+            }
+        }
+
+        // Initialize charts object if it doesn't exist
+        if (!window.charts) {
+            window.charts = {};
+        }
+
+        // Create new chart
+        // Creating new chart
+        const chart = new ApexCharts(element, options);
+
+        chart.render().then(() => {
+            // Chart rendered successfully
+        }).catch((error) => {
+            console.error('Error during chart render:', error);
+        });
+
+        // Store chart reference for later cleanup
+        window.charts[elementId] = chart;
+    } catch (error) {
+        console.error('Error rendering chart:', error);
+        console.error('Element ID:', elementId);
+        console.error('Options:', options);
+
+        // Retry once after a delay
+        setTimeout(() => {
+            try {
+                window.renderApexChart(elementId, options);
+            } catch (retryError) {
+                console.error('Retry failed:', retryError);
+            }
+        }, 1000);
+    }
+};
+
 // Document ready
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize any search tables
@@ -152,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tableId = input.getAttribute('data-search-table');
         setupTableSearch(tableId, input.id);
     });
-    
+
     // Initialize form validation
     const forms = document.querySelectorAll('form[data-validate]');
     forms.forEach(form => {
@@ -163,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Theme toggle initialization
     initThemeToggle();
 });
