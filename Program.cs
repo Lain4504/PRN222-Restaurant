@@ -111,6 +111,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
+// Add Statistics service
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IStatisticsNotificationService, StatisticsNotificationService>();
+
 var app = builder.Build();
 
 // Seed database
@@ -133,9 +137,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
-
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 

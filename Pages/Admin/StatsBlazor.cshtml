@@ -1,0 +1,8 @@
+@page "/admin/stats-blazor"
+@model PRN222_Restaurant.Pages.Admin.StatsBlazorModel
+@{
+    ViewData["Title"] = "Thống kê";
+    Layout = "_Layout";
+}
+
+<component type="typeof(PRN222_Restaurant.Components.Admin.Statistics)" render-mode="ServerPrerendered" />

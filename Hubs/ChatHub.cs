@@ -229,7 +229,7 @@ namespace PRN222_Restaurant.Hubs
             {
                 var userId = GetUserId();
                 var userRole = GetUserRole();
-                
+
                 if (userRole != "Admin" && userRole != "Staff")
                 {
                     await Clients.Caller.SendAsync("Error", "Access denied");
@@ -237,19 +237,50 @@ namespace PRN222_Restaurant.Hubs
                 }
 
                 await _chatService.AssignStaffToChatRoomAsync(chatRoomId, staffId);
-                
+
                 // Notify all users in the chat room
                 await Clients.Group($"ChatRoom_{chatRoomId}").SendAsync("StaffAssigned", staffId);
-                
+
                 // Notify the assigned staff
                 await Clients.Group($"User_{staffId}").SendAsync("AssignedToChat", chatRoomId);
-                
+
                 _logger.LogInformation("Staff {StaffId} assigned to chat room {ChatRoomId} by user {UserId}", staffId, chatRoomId, userId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error assigning staff to chat room {ChatRoomId}", chatRoomId);
                 await Clients.Caller.SendAsync("Error", "Failed to assign staff");
+            }
+        }
+
+        // Statistics real-time updates
+        public async Task JoinStatisticsGroup()
+        {
+            try
+            {
+                var userRole = GetUserRole();
+                if (userRole == "Admin" || userRole == "Staff")
+                {
+                    await Groups.AddToGroupAsync(Context.ConnectionId, "Statistics");
+                    _logger.LogInformation("User joined statistics group with connection {ConnectionId}", Context.ConnectionId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error joining statistics group for connection {ConnectionId}", Context.ConnectionId);
+            }
+        }
+
+        public async Task LeaveStatisticsGroup()
+        {
+            try
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Statistics");
+                _logger.LogInformation("User left statistics group with connection {ConnectionId}", Context.ConnectionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error leaving statistics group for connection {ConnectionId}", Context.ConnectionId);
             }
         }
 
