@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Services.IService;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
@@ -10,10 +11,12 @@ namespace PRN222_Restaurant.Pages.Admin
     public class LoginModel : PageModel
     {
         private readonly IUserService _userService;
+        private readonly IReservationSessionService _reservationSessionService;
 
-        public LoginModel(IUserService userService)
+        public LoginModel(IUserService userService, IReservationSessionService reservationSessionService)
         {
             _userService = userService;
+            _reservationSessionService = reservationSessionService;
         }
 
         [BindProperty]
@@ -21,6 +24,8 @@ namespace PRN222_Restaurant.Pages.Admin
 
         public string ErrorMessage { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
+
+
 
         public class InputModel
         {
@@ -111,7 +116,15 @@ namespace PRN222_Restaurant.Pages.Admin
             // Lưu token vào session
             HttpContext.Session.SetString("AuthToken", loginResult.Token);
 
-            // Điều hướng dựa trên vai trò
+            // Check if there's saved reservation data for both Admin and Customer
+            var savedReservationData = _reservationSessionService.GetReservationData();
+            if (savedReservationData != null)
+            {
+                // Redirect to PreOrderMenu for both Admin and Customer with saved reservation data
+                return RedirectToPage("/PreOrderMenu");
+            }
+
+            // No reservation data, điều hướng dựa trên vai trò
             switch (loginResult.Role)
             {
                 case "Admin":

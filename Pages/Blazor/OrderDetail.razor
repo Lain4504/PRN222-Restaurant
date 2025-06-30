@@ -1,5 +1,6 @@
 @page "/order-detail/{OrderId:int}"
 @using PRN222_Restaurant.Services.IService
+@using PRN222_Restaurant.Components
 @inject NavigationManager Navigation
 @inject IOrderService OrderService
 
@@ -89,41 +90,41 @@ else if (order == null)
 else
 {
     <div class="max-w-4xl mx-auto bg-base-100 shadow-xl rounded-lg p-8 mt-8">
-        <h2 class="text-2xl font-bold mb-6">Chi tiết đơn hàng #@order.Id</h2>
+        <h1 class="text-3xl font-bold text-center mb-8">Chi tiết đơn hàng @order.Id</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
+            <div class="text-center">
                 <h4 class="font-medium text-sm text-gray-500">Loại đơn hàng</h4>
                 <p class="text-lg">@(order.OrderType == "Immediate" ? "Tại chỗ" : "Đặt trước")</p>
             </div>
-            <div>
+            <div class="text-center">
                 <h4 class="font-medium text-sm text-gray-500">Trạng thái</h4>
                 <p class="text-lg">@order.Status</p>
             </div>
-            <div>
+            <div class="text-center">
                 <h4 class="font-medium text-sm text-gray-500">Khách hàng</h4>
                 <p class="text-lg">@order.Customer</p>
             </div>
-            <div>
+            <div class="text-center">
                 <h4 class="font-medium text-sm text-gray-500">Bàn</h4>
                 <p class="text-lg">@(order.Table != null ? $"Bàn {order.Table}" : "N/A")</p>
             </div>
-            <div>
+            <div class="text-center">
                 <h4 class="font-medium text-sm text-gray-500">Ngày đặt</h4>
                 <p class="text-lg">@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
             </div>
-            <div>
+            <div class="text-center">
                 <h4 class="font-medium text-sm text-gray-500">Thời gian đặt bàn</h4>
                 <p class="text-lg">@(order.ReservationTime.HasValue ? order.ReservationTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</p>
             </div>
-            <div>
+            <div class="text-center">
                 <h4 class="font-medium text-sm text-gray-500">Số lượng khách</h4>
                 <p class="text-lg">@(order.NumberOfGuests?.ToString() ?? "N/A")</p>
             </div>
-            <div>
+            <div class="text-center">
                 <h4 class="font-medium text-sm text-gray-500">Đã thanh toán</h4>
                 <p class="text-lg">@(order.IsPaid ? "Đã thanh toán" : "Chưa thanh toán")</p>
             </div>
-            <div class="md:col-span-2">
+            <div class="md:col-span-2 text-center">
                 <h4 class="font-medium text-sm text-gray-500">Ghi chú</h4>
                 <p class="text-lg">@order.Note</p>
             </div>
@@ -161,5 +162,11 @@ else
         <div class="flex justify-end">
             <a href="/order-list" class="btn btn-secondary">Quay lại danh sách</a>
         </div>
+
+        @* Hiển thị form feedback nếu đơn hàng đã hoàn thành *@
+        @if (order.Status == "Completed")
+        {
+            <FeedbackForm OrderId="@order.Id" />
+        }
     </div>
 }

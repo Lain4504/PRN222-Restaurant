@@ -17,12 +17,14 @@ namespace PRN222_Restaurant.Pages
         private readonly ITableService _tableService;
         private readonly ApplicationDbContext _context;
         private readonly JsonSerializerOptions _jsonOptions;
+        private readonly IReservationSessionService _reservationSessionService;
 
-        public ReservationModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context)
+        public ReservationModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context, IReservationSessionService reservationSessionService)
         {
             _orderService = orderService;
             _tableService = tableService;
             _context = context;
+            _reservationSessionService = reservationSessionService;
             _jsonOptions = new JsonSerializerOptions
             {
                 ReferenceHandler = ReferenceHandler.Preserve,
@@ -66,6 +68,26 @@ namespace PRN222_Restaurant.Pages
         
         public async Task<IActionResult> OnPostAsync()
         {
+            // Check if user is authenticated first
+            if (!User.Identity.IsAuthenticated)
+            {
+                // Save reservation data before redirecting to login
+                var reservationData = new ReservationSessionData
+                {
+                    TableId = TableId,
+                    ReservationDate = ReservationDate,
+                    ReservationTime = ReservationTime,
+                    NumberOfGuests = NumberOfGuests,
+                    Note = Note ?? "",
+                    SelectedItems = SelectedItems ?? ""
+                };
+
+                _reservationSessionService.SaveReservationData(reservationData);
+
+                // Redirect to login page
+                return Redirect("/login");
+            }
+
             if (!ModelState.IsValid)
             {
                 await LoadAvailableTables();
@@ -149,6 +171,18 @@ namespace PRN222_Restaurant.Pages
                 // Update the order with calculated total price
                 _context.Orders.Update(order);
                 await _context.SaveChangesAsync();
+
+                // Update table status to Pending when order is created
+                if (order.TableId.HasValue && order.TableId.Value > 0)
+                {
+                    var table = await _context.Tables.FindAsync(order.TableId.Value);
+                    if (table != null)
+                    {
+                        table.Status = "Pending";
+                        await _context.SaveChangesAsync();
+                        Console.WriteLine($"Updated table {order.TableId} status to Pending");
+                    }
+                }
 
                 // Store OrderId in TempData and Session
                 TempData["OrderId"] = order.Id.ToString();

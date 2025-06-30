@@ -122,6 +122,17 @@ namespace PRN222_Restaurant.Pages
 
             await _context.SaveChangesAsync();
 
+            // Update table status to Pending when order is created
+            if (testOrder.TableId.HasValue && testOrder.TableId.Value > 0)
+            {
+                var table = await _context.Tables.FindAsync(testOrder.TableId.Value);
+                if (table != null)
+                {
+                    table.Status = "Pending";
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             // Store order ID in session for later use
             HttpContext.Session.SetInt32("CurrentOrderId", testOrder.Id);
             OrderId = testOrder.Id;

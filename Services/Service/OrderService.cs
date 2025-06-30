@@ -96,7 +96,20 @@ namespace PRN222_Restaurant.Services.Service
             }
             order.TotalPrice = totalPrice;
 
-            return await _orderRepository.CreateAsync(order);
+            var createdOrder = await _orderRepository.CreateAsync(order);
+
+            // Update table status to Pending when order is created
+            if (createdOrder.TableId.HasValue && createdOrder.TableId.Value > 0)
+            {
+                var table = await _context.Tables.FindAsync(createdOrder.TableId.Value);
+                if (table != null)
+                {
+                    table.Status = "Pending";
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            return createdOrder;
         }
 
         public async Task<Order> CreatePreOrderAsync(Order order, Dictionary<int, int> selectedItems)
@@ -135,7 +148,18 @@ namespace PRN222_Restaurant.Services.Service
 
             var createdOrder = await _orderRepository.CreateAsync(order);
             Console.WriteLine($"Created order with ID: {createdOrder.Id}");
-            
+
+            // Update table status to Pending when order is created
+            if (createdOrder.TableId.HasValue && createdOrder.TableId.Value > 0)
+            {
+                var table = await _context.Tables.FindAsync(createdOrder.TableId.Value);
+                if (table != null)
+                {
+                    table.Status = "Pending";
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             await SendOrderConfirmationEmailAsync(createdOrder);
             return createdOrder;
         }
