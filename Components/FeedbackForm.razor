@@ -1,0 +1,163 @@
+@using PRN222_Restaurant.Models
+@using PRN222_Restaurant.Services.IService
+@using System.Security.Claims
+@using System.ComponentModel.DataAnnotations
+@inject IFeedbackService FeedbackService
+@inject AuthenticationStateProvider AuthProvider
+@inject IJSRuntime JSRuntime
+
+<div class="bg-base-100 shadow-xl rounded-lg p-6 mt-8">
+    <h3 class="text-xl font-bold mb-4">Đánh giá đơn hàng</h3>
+    
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert @(isSuccess ? "alert-success" : "alert-error") shadow-lg mb-4">
+            <div>
+                <span>@message</span>
+            </div>
+        </div>
+    }
+
+    @if (!hasSubmitted)
+    {
+        <EditForm Model="feedbackModel" OnValidSubmit="SubmitFeedback">
+            <DataAnnotationsValidator />
+            
+            <!-- Rating -->
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text font-medium">Đánh giá của bạn</span>
+                </label>
+                <div class="rating rating-lg">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        int rating = i;
+                        <input type="radio" 
+                               name="rating" 
+                               class="mask mask-star-2 bg-orange-400" 
+                               checked="@(feedbackModel.Rating == rating)"
+                               @onchange="@(() => feedbackModel.Rating = rating)" />
+                    }
+                </div>
+                <ValidationMessage For="@(() => feedbackModel.Rating)" class="text-error text-sm mt-1" />
+            </div>
+
+            <!-- Comment -->
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text font-medium">Nhận xét</span>
+                </label>
+                <textarea class="textarea textarea-bordered h-24" 
+                          placeholder="Chia sẻ trải nghiệm của bạn về đơn hàng này..."
+                          @bind="feedbackModel.Comment"></textarea>
+                <ValidationMessage For="@(() => feedbackModel.Comment)" class="text-error text-sm mt-1" />
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-control">
+                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span class="loading loading-spinner loading-sm"></span>
+                        <span>Đang gửi...</span>
+                    }
+                    else
+                    {
+                        <span>Gửi đánh giá</span>
+                    }
+                </button>
+            </div>
+        </EditForm>
+    }
+    else
+    {
+        <div class="text-center py-8">
+            <div class="text-success text-6xl mb-4">✓</div>
+            <h4 class="text-lg font-medium">Cảm ơn bạn đã đánh giá!</h4>
+            <p class="text-gray-600">Phản hồi của bạn sẽ giúp chúng tôi cải thiện dịch vụ.</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+    
+    private FeedbackModel feedbackModel = new();
+    private bool isSubmitting = false;
+    private bool hasSubmitted = false;
+    private string message = string.Empty;
+    private bool isSuccess = false;
+    private int currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrentUserId();
+        feedbackModel.OrderId = OrderId;
+        feedbackModel.UserId = currentUserId;
+    }
+
+    private async Task GetCurrentUserId()
+    {
+        var state = await AuthProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            int.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out currentUserId);
+        }
+    }
+
+    private async Task SubmitFeedback()
+    {
+        if (currentUserId <= 0)
+        {
+            message = "Bạn cần đăng nhập để gửi đánh giá.";
+            isSuccess = false;
+            return;
+        }
+
+        isSubmitting = true;
+        message = string.Empty;
+
+        try
+        {
+            var feedback = new Feedback
+            {
+                UserId = feedbackModel.UserId,
+                OrderId = feedbackModel.OrderId,
+                Comment = feedbackModel.Comment,
+                Rating = feedbackModel.Rating,
+                CreatedAt = DateTime.Now
+            };
+
+            await FeedbackService.AddAsync(feedback);
+            
+            hasSubmitted = true;
+            message = "Đánh giá của bạn đã được gửi thành công!";
+            isSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            message = $"Có lỗi xảy ra: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    public class FeedbackModel
+    {
+        public int UserId { get; set; }
+        public int OrderId { get; set; }
+        
+        [Required(ErrorMessage = "Vui lòng chọn đánh giá.")]
+        [Range(1, 5, ErrorMessage = "Đánh giá phải từ 1 đến 5 sao.")]
+        public int Rating { get; set; }
+        
+        [Required(ErrorMessage = "Vui lòng nhập nhận xét.")]
+        [StringLength(500, ErrorMessage = "Nhận xét tối đa 500 ký tự.")]
+        public string Comment { get; set; } = string.Empty;
+    }
+}

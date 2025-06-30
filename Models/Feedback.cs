@@ -9,6 +9,8 @@ public class Feedback
     [Required(ErrorMessage = "UserId là bắt buộc.")]
     public int UserId { get; set; }
 
+    public int? OrderId { get; set; }
+
     [Required(ErrorMessage = "Nội dung phản hồi không được để trống.")]
     [StringLength(500, ErrorMessage = "Nội dung phản hồi tối đa 500 ký tự.")]
     public string Comment { get; set; } = null!;
@@ -19,4 +21,5 @@ public class Feedback
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     public User User { get; set; } = null!;
+    public Order? Order { get; set; }
 }
