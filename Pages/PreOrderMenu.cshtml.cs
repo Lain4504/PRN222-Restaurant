@@ -16,15 +16,18 @@ namespace PRN222_Restaurant.Pages
         private readonly ApplicationDbContext _context;
         private readonly NotificationHelper _notificationHelper;
         private readonly JsonSerializerOptions _jsonOptions;
+        private readonly IReservationSessionService _reservationSessionService;
 
         public PreOrderMenuModel(
             IOrderService orderService,
             ApplicationDbContext context,
-            NotificationHelper notificationHelper)
+            NotificationHelper notificationHelper,
+            IReservationSessionService reservationSessionService)
         {
             _orderService = orderService;
             _context = context;
             _notificationHelper = notificationHelper;
+            _reservationSessionService = reservationSessionService;
             _jsonOptions = new JsonSerializerOptions
             {
                 ReferenceHandler = ReferenceHandler.Preserve,
@@ -41,8 +44,20 @@ namespace PRN222_Restaurant.Pages
         {
             try
             {
-                // Load order from TempData or Session
-                await LoadCurrentOrder();
+                // Check for saved reservation data first
+                var savedReservationData = _reservationSessionService.GetReservationData();
+                if (savedReservationData != null)
+                {
+                    // Create order from saved reservation data
+                    await CreateOrderFromReservationData(savedReservationData);
+                    // Clear the saved data after using it
+                    _reservationSessionService.ClearReservationData();
+                }
+                else
+                {
+                    // Load order from TempData or Session
+                    await LoadCurrentOrder();
+                }
 
                 if (CurrentOrder == null)
                 {
@@ -69,6 +84,13 @@ namespace PRN222_Restaurant.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Check if user is authenticated first
+            if (!User.Identity.IsAuthenticated)
+            {
+                // Redirect to login page
+                return Redirect("/login");
+            }
+
             try
             {
                 // Load current order
@@ -163,6 +185,77 @@ namespace PRN222_Restaurant.Pages
             }
         }
 
+        private async Task CreateOrderFromReservationData(ReservationSessionData reservationData)
+        {
+            // Create order from saved reservation data
+            var order = new Order
+            {
+                UserId = User.Identity.IsAuthenticated ? int.Parse(User.FindFirst("UserId")?.Value ?? "1") : 1,
+                TableId = reservationData.TableId,
+                OrderDate = DateTime.Now,
+                ReservationTime = reservationData.ReservationDate.Date.Add(reservationData.ReservationTime),
+                NumberOfGuests = reservationData.NumberOfGuests,
+                Note = reservationData.Note,
+                OrderType = "PreOrder",
+                Status = "Pending",
+                OrderItems = new List<OrderItem>()
+            };
+
+            // Parse selected items if any
+            if (!string.IsNullOrEmpty(reservationData.SelectedItems) && reservationData.SelectedItems != "{}")
+            {
+                try
+                {
+                    var selectedItemsDict = JsonSerializer.Deserialize<Dictionary<int, int>>(reservationData.SelectedItems);
+                    if (selectedItemsDict != null)
+                    {
+                        foreach (var item in selectedItemsDict)
+                        {
+                            var menuItem = await _context.MenuItems.FindAsync(item.Key);
+                            if (menuItem != null && item.Value > 0)
+                            {
+                                order.OrderItems.Add(new OrderItem
+                                {
+                                    MenuItemId = item.Key,
+                                    Quantity = item.Value,
+                                    UnitPrice = menuItem.Price
+                                });
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error parsing selected items: {ex.Message}");
+                }
+            }
+
+            // Update table status to Pending
+            var table = await _context.Tables.FindAsync(reservationData.TableId);
+            if (table != null)
+            {
+                table.Status = "Pending";
+            }
+
+            // Calculate and set total price before saving
+            order.TotalPrice = order.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice);
+
+            // Save order to database
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            // Set current order
+            CurrentOrder = order;
+
+            // Save OrderId to TempData and Session for future requests
+            TempData["OrderId"] = order.Id.ToString();
+            TempData.Keep("OrderId");
+            HttpContext.Session.SetString("OrderId", order.Id.ToString());
+
+            // Calculate totals for display
+            TotalPrice = order.TotalPrice;
+            TotalItems = order.OrderItems.Sum(oi => oi.Quantity);
+        }
 
     }
 }

@@ -15,12 +15,18 @@ public class FeedbackRepository : IFeedbackRepository
 
     public async Task<IEnumerable<Feedback>> GetAllAsync()
     {
-        return await _context.Feedbacks.Include(f => f.User).ToListAsync();
+        return await _context.Feedbacks
+            .Include(f => f.User)
+            .Include(f => f.Order)
+            .ToListAsync();
     }
 
     public async Task<Feedback?> GetByIdAsync(int id)
     {
-        return await _context.Feedbacks.Include(f => f.User).FirstOrDefaultAsync(f => f.Id == id);
+        return await _context.Feedbacks
+            .Include(f => f.User)
+            .Include(f => f.Order)
+            .FirstOrDefaultAsync(f => f.Id == id);
     }
 
     public async Task AddAsync(Feedback feedback)
@@ -39,8 +45,10 @@ public class FeedbackRepository : IFeedbackRepository
     }
     public async Task<PagedResult<Feedback>> GetPagedAsync(int page, int pageSize)
     {
-        var query = _context.Feedbacks.Include(f => f.User)
-                            .OrderBy(f => f.Id);
+        var query = _context.Feedbacks
+            .Include(f => f.User)
+            .Include(f => f.Order)
+            .OrderBy(f => f.Id);
 
         var totalCount = await query.CountAsync();
 
