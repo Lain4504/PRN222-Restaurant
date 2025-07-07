@@ -14,6 +14,8 @@ using PRN222_Restaurant.Services.IService;
 using PRN222_Restaurant.Services.Service;
 using PRN222_Restaurant.Hubs;
 using System.Text;
+using Hangfire;
+using Hangfire.MemoryStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,11 +114,23 @@ builder.Services.AddHttpContextAccessor();
 
 // Add Order services
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IOrderService, OrderService>();
+// Đăng ký DI cho OrderService với đầy đủ dependency
+builder.Services.AddScoped<IOrderService, OrderService>(provider =>
+{
+    var orderRepo = provider.GetRequiredService<IOrderRepository>();
+    var dbContext = provider.GetRequiredService<ApplicationDbContext>();
+    var tableService = provider.GetRequiredService<ITableService>();
+    var notificationHelper = provider.GetRequiredService<PRN222_Restaurant.Helpers.NotificationHelper>();
+    return new OrderService(orderRepo, dbContext, tableService, notificationHelper);
+});
 
 // Add Statistics service
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<IStatisticsNotificationService, StatisticsNotificationService>();
+
+// Add Hangfire
+builder.Services.AddHangfire(config => config.UseMemoryStorage());
+builder.Services.AddHangfireServer();
 
 var app = builder.Build();
 
@@ -158,5 +172,12 @@ app.MapBlazorHub();
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 app.MapFallbackToPage("/blazor/{*clientPath}", "/Blazor/_Host");
+app.UseHangfireDashboard();
+// Đăng ký background job tự động hủy đơn chưa thanh toán quá 10 phút
+RecurringJob.AddOrUpdate<IOrderService>(
+    "auto-cancel-unpaid-orders",
+    service => service.AutoCancelUnpaidOrdersAsync(),
+    Cron.Minutely
+);
 
 app.Run();
