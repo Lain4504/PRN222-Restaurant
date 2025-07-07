@@ -10,11 +10,15 @@ namespace PRN222_Restaurant.Services.Service
     {
         private readonly IOrderRepository _orderRepository;
         private readonly ApplicationDbContext _context;
+        private readonly ITableService _tableService;
+        private readonly Helpers.NotificationHelper _notificationHelper;
 
-        public OrderService(IOrderRepository orderRepository, ApplicationDbContext context)
+        public OrderService(IOrderRepository orderRepository, ApplicationDbContext context, ITableService tableService, Helpers.NotificationHelper notificationHelper)
         {
             _orderRepository = orderRepository;
             _context = context;
+            _tableService = tableService;
+            _notificationHelper = notificationHelper;
         }
 
         public async Task<Order> GetOrderByIdAsync(int id)
@@ -226,6 +230,46 @@ namespace PRN222_Restaurant.Services.Service
         public async Task DeleteAsync(int id)
         {
             await _orderRepository.DeleteAsync(id);
+        }
+
+        public async Task<int> AutoCancelUnpaidOrdersAsync()
+        {
+            Console.WriteLine($"[Hangfire] AutoCancelUnpaidOrdersAsync running at {DateTime.Now}");
+            var tenMinutesAgo = DateTime.Now.AddMinutes(-10);
+            // Lấy các đơn chưa thanh toán, status còn hoạt động, và đã tạo hơn 10 phút
+            var unpaidOrders = await _context.Orders
+                .Where(o => (o.Status == "Pending" || o.Status == "Preparing")
+                    && o.OrderDate <= tenMinutesAgo)
+                .ToListAsync();
+
+            int cancelledCount = 0;
+            foreach (var order in unpaidOrders)
+            {
+                // Kiểm tra có payment thành công không
+                var hasPaid = await _context.Payments.AnyAsync(p => p.OrderId == order.Id && p.Status == "Paid");
+                if (!hasPaid)
+                {
+                    order.Status = "Cancelled"; // hoặc "AutoCancelled" nếu muốn phân biệt
+                    _context.Orders.Update(order);
+                    cancelledCount++;
+
+                    // Gửi thông báo cho khách nếu có UserId
+                    if (order.UserId.HasValue)
+                    {
+                        await _notificationHelper.NotifyOrderAutoCancelledAsync(order.UserId.Value, order.Id);
+                    }
+                    // Cập nhật trạng thái bàn về Available nếu có TableId
+                    if (order.TableId.HasValue)
+                    {
+                        await _tableService.ChangeStatusAsync(order.TableId.Value, "Available");
+                    }
+                }
+            }
+            if (cancelledCount > 0)
+            {
+                await _context.SaveChangesAsync();
+            }
+            return cancelledCount;
         }
     }
 } 

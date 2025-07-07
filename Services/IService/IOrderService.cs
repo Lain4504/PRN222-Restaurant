@@ -25,5 +25,6 @@ namespace PRN222_Restaurant.Services.IService
         Task<Order> CreateAsync(Order order);
         Task UpdateAsync(Order order);
         Task DeleteAsync(int id);
+        Task<int> AutoCancelUnpaidOrdersAsync();
     }
 } 

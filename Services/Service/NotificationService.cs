@@ -209,4 +209,17 @@ public class NotificationService : INotificationService
 
         await _notificationRepository.AddAsync(notification);
     }
+
+    public async Task CreateOrderAutoCancelledNotificationAsync(int userId, int orderId)
+    {
+        var notification = new Notification
+        {
+            UserId = userId,
+            Title = "Đơn hàng bị hủy tự động",
+            Message = $"Đơn hàng #{orderId} của bạn đã bị hủy do chưa thanh toán trong vòng 10 phút.",
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        };
+        await AddAsync(notification);
+    }
 }
