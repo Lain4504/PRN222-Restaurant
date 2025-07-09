@@ -211,7 +211,7 @@
                                         </figure>
                                         <div class="card-body p-4">
                                             <h4 class="card-title text-base item-name">@item.Name</h4>
-                                            <p class="text-primary font-bold item-price">$@item.Price.ToString("F2")</p>
+                                            <p class="text-primary font-bold item-price">@item.Price.ToString("N0") VNĐ</p>
                                             <div class="card-actions justify-end">
                                                 <button type="button" class="btn btn-circle btn-sm"
                                                     onclick="viewMenuItem(@item.Id)">
@@ -242,7 +242,7 @@
                                 <h4 class="font-bold mb-2">Selected Items</h4>
                                 <ul id="selectedItemsList" class="list-disc pl-5 mb-4"></ul>
                                 <div class="text-right">
-                                    <p class="font-bold">Total: $<span id="totalPrice">0.00</span></p>
+                                    <p class="font-bold">Tổng cộng: <span id="totalPrice">0</span> VNĐ</p>
                                 </div>
                                 <input type="hidden" id="selectedItemsJson" name="SelectedItems" />
                             </div>
@@ -278,7 +278,7 @@
         <div class="py-4">
             <img id="modalItemImage" src="" alt="" class="w-full h-48 object-cover rounded-lg mb-4">
             <p id="modalItemDescription" class="mb-4"></p>
-            <p class="font-bold text-lg">Price: $<span id="modalItemPrice"></span></p>
+            <p class="font-bold text-lg">Giá: <span id="modalItemPrice"></span> VNĐ</p>
         </div>
         <div class="modal-action">
             <button class="btn" onclick="document.getElementById('menuItemModal').close()">Close</button>
@@ -422,7 +422,7 @@
                 document.getElementById('modalItemName').textContent = item.name;
                 document.getElementById('modalItemImage').src = item.imageUrl;
                 document.getElementById('modalItemDescription').textContent = item.description;
-                document.getElementById('modalItemPrice').textContent = item.price.toFixed(2);
+                document.getElementById('modalItemPrice').textContent = item.price.toLocaleString('vi-VN');
 
                 document.getElementById('menuItemModal').showModal();
             }
@@ -485,7 +485,7 @@
                 const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
                 if (itemElement) {
                     const itemName = itemElement.querySelector('.item-name')?.textContent || 'Unknown Item';
-                    const itemPrice = parseFloat(itemElement.querySelector('.item-price')?.textContent?.replace('$', '') || '0');
+                    const itemPrice = parseFloat(itemElement.querySelector('.item-price')?.textContent?.replace(/[^\d]/g, '') || '0');
 
                     if (quantity > 0) {
                         selectedItems[itemId] = {
@@ -542,14 +542,14 @@
             for (const id in selectedItems) {
                 const item = selectedItems[id];
                 const li = document.createElement('li');
-                li.textContent = `${item.name} x ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`;
+                li.textContent = `${item.name} x ${item.quantity} - ${(item.price * item.quantity).toLocaleString('vi-VN')} VNĐ`;
                 selectedItemsList.appendChild(li);
 
                 totalPrice += item.price * item.quantity;
             }
 
             // Update total price
-            totalPriceElement.textContent = totalPrice.toFixed(2);
+            totalPriceElement.textContent = totalPrice.toLocaleString('vi-VN');
 
             // Update hidden input with JSON data
             const selectedItemsData = {};

@@ -222,4 +222,19 @@ public class NotificationService : INotificationService
         };
         await AddAsync(notification);
     }
+
+    public async Task CreatePaymentCompletedNotificationAsync(int userId, int orderId, decimal amount)
+    {
+        var notification = new Notification
+        {
+            UserId = userId,
+            Title = "Thanh toán hoàn tất",
+            Message = $"Bạn đã thanh toán thành công {amount:N0} VNĐ cho đơn hàng #{orderId}. Đơn hàng của bạn đã được thanh toán đầy đủ.",
+            Type = "Success",
+            RelatedUrl = $"/order-detail/{orderId}",
+            CreatedAt = DateTime.Now,
+            IsRead = false
+        };
+        await AddAsync(notification);
+    }
 }

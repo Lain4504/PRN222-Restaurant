@@ -16,4 +16,5 @@ public class Order
     public User? User { get; set; }
     public Table? Table { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; }
+    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

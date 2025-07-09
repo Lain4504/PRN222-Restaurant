@@ -40,4 +40,9 @@ public class NotificationHelper
     {
         await _notificationService.CreateOrderAutoCancelledNotificationAsync(userId, orderId);
     }
+
+    public async Task NotifyPaymentCompletedAsync(int userId, int orderId, decimal amount)
+    {
+        await _notificationService.CreatePaymentCompletedNotificationAsync(userId, orderId, amount);
+    }
 }

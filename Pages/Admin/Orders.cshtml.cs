@@ -113,23 +113,32 @@ namespace PRN222_Restaurant.Pages.Admin
             return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
         }
 
-        public async Task<IActionResult> OnPostCompleteOrderAsync(int id)
+        public async Task<IActionResult> OnPostConfirmRemainingPaymentAsync(int id)
         {
             var order = await _orderService.GetOrderByIdAsync(id);
             if (order == null)
             {
-                StatusMessage = "Order not found.";
+                StatusMessage = "Không tìm thấy đơn hàng.";
                 return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
             }
 
-            // Check if this is a pre-order with deposit payment
-            var existingPayment = await _context.Payments
-                .FirstOrDefaultAsync(p => p.OrderId == id && p.PaymentType == "Deposit");
+            // Check existing payments
+            var existingPayments = await _context.Payments
+                .Where(p => p.OrderId == id)
+                .ToListAsync();
 
-            if (existingPayment != null && order.OrderType == "PreOrder")
+            var totalPaid = existingPayments.Sum(p => p.Amount);
+            var remainingAmount = order.TotalPrice - totalPaid;
+
+            if (remainingAmount <= 0)
             {
-                // Create final payment record for remaining amount
-                var remainingAmount = order.TotalPrice - existingPayment.Amount;
+                StatusMessage = "Đơn hàng đã được thanh toán đầy đủ.";
+                return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+            }
+
+            try
+            {
+                // Create payment record for remaining amount
                 var finalPayment = new Payment
                 {
                     OrderId = order.Id,
@@ -137,9 +146,45 @@ namespace PRN222_Restaurant.Pages.Admin
                     PaymentDate = DateTime.Now,
                     Status = "Paid",
                     PaymentType = "Final",
-                    Method = "Cash" // Assuming cash payment at restaurant
+                    Method = "Cash" // Payment at restaurant counter
                 };
                 _context.Payments.Add(finalPayment);
+
+                // Update order status to Paid
+                var success = await _orderService.UpdateOrderStatusAsync(id, "Paid");
+
+                if (success)
+                {
+                    await _context.SaveChangesAsync();
+
+                    // Create notification for payment completion
+                    if (order.UserId.HasValue)
+                    {
+                        await _notificationHelper.NotifyPaymentCompletedAsync(order.UserId.Value, order.Id, remainingAmount);
+                    }
+
+                    StatusMessage = $"Đã xác nhận thanh toán phần còn lại {remainingAmount:N0} VNĐ cho đơn hàng #{id}.";
+                }
+                else
+                {
+                    StatusMessage = $"Lỗi: Không thể cập nhật trạng thái đơn hàng #{id}";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Lỗi: {ex.Message}";
+            }
+
+            return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+        }
+
+        public async Task<IActionResult> OnPostCompleteOrderAsync(int id)
+        {
+            var order = await _orderService.GetOrderByIdAsync(id);
+            if (order == null)
+            {
+                StatusMessage = "Không tìm thấy đơn hàng.";
+                return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
             }
 
             // Update order status to completed
@@ -159,11 +204,11 @@ namespace PRN222_Restaurant.Pages.Admin
                     await _notificationHelper.NotifyOrderCompletedAsync(order.UserId.Value, order.Id);
                 }
 
-                StatusMessage = $"Order #{id} has been completed successfully.";
+                StatusMessage = $"Đơn hàng #{id} đã được hoàn thành thành công.";
             }
             else
             {
-                StatusMessage = $"Error: Failed to complete order #{id}";
+                StatusMessage = $"Lỗi: Không thể hoàn thành đơn hàng #{id}";
             }
 
             return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
