@@ -100,7 +100,7 @@
                     @if (Model.PointsToUse > 0)
                     {
                         <div class="mt-4 p-3 bg-success/10 rounded-lg">
-                            <p class="text-sm">Using <span id="selectedPoints">@Model.PointsToUse</span> points for <span id="pointsDiscount">$@Model.PointsDiscount.ToString("F2")</span> discount</p>
+                            <p class="text-sm">Sử dụng <span id="selectedPoints">@Model.PointsToUse</span> điểm để giảm <span id="pointsDiscount">@Model.PointsDiscount.ToString("N0") VNĐ</span></p>
                         </div>
                     }
                 </div>
@@ -110,24 +110,24 @@
             <div class="bg-primary text-primary-content p-6 rounded-lg shadow-md mb-8">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h3 class="text-lg font-semibold">Total Items: @Model.TotalItems</h3>
-                        <h3 class="text-xl font-bold">Subtotal: $@Model.TotalPrice.ToString("F2")</h3>
+                        <h3 class="text-lg font-semibold">Tổng số món: @Model.TotalItems</h3>
+                        <h3 class="text-xl font-bold">Tạm tính: @Model.TotalPrice.ToString("N0") VNĐ</h3>
                         @if (Model.PointsDiscount > 0)
                         {
-                            <p class="text-sm opacity-90">Points Discount: -$@Model.PointsDiscount.ToString("F2")</p>
+                            <p class="text-sm opacity-90">Giảm giá điểm: -@Model.PointsDiscount.ToString("N0") VNĐ</p>
                         }
                         <h3 class="text-2xl font-bold border-t border-primary-content/20 pt-2 mt-2">
-                            Final Total: $<span id="finalAmount">@Model.FinalTotal.ToString("F2")</span>
+                            Tổng cộng: <span id="finalAmount">@Model.FinalTotal.ToString("N0") VNĐ</span>
                         </h3>
-                        <p class="text-sm opacity-75 mt-1">Deposit Required (20%): $@((Model.FinalTotal * 0.2m).ToString("F2"))</p>
+                        <p class="text-sm opacity-75 mt-1">Cọc trước (20%): @((Model.FinalTotal * 0.2m).ToString("N0")) VNĐ</p>
                     </div>
                     <div class="flex gap-4">
                         <a href="/reservation" class="btn btn-outline btn-lg">
-                            Edit Order
+                            Chỉnh sửa đơn hàng
                         </a>
                         <form method="post" class="contents">
                             <button type="submit" class="btn btn-secondary btn-lg" @(Model.TotalItems == 0 ? "disabled" : "")>
-                                Pay Deposit Now
+                                Thanh toán cọc ngay
                             </button>
                         </form>
                     </div>
@@ -137,8 +137,8 @@
         else
         {
             <div class="text-center py-12">
-                <p class="text-gray-500 mb-4">No order found.</p>
-                <a href="/reservation" class="btn btn-primary">Create New Reservation</a>
+                <p class="text-gray-500 mb-4">Không tìm thấy đơn hàng.</p>
+                <a href="/reservation" class="btn btn-primary">Tạo đặt bàn mới</a>
             </div>
         }
     </div>

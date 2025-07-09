@@ -171,7 +171,7 @@ namespace PRN222_Restaurant.Components.Admin
                         {
                             y = new
                             {
-                                formatter = "function(val) { return val.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',') + 'đ'; }"
+                                formatter = "function(val) { return val.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',') + ' VNĐ'; }"
                             }
                         },
                         colors = new[] { "#3B82F6" }

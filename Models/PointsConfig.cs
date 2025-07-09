@@ -5,19 +5,19 @@ public class PointsConfig
     public static string ConfigName => "Points";
     
     /// <summary>
-    /// Points earned per dollar spent (e.g., 0.05 = 5% of order value)
+    /// Points earned per VND spent (e.g., 0.05 = 5% of order value)
     /// </summary>
     public decimal PointsPerDollar { get; set; } = 0.05m; // 5% of order value
 
     /// <summary>
-    /// Minimum order amount to earn points
+    /// Minimum order amount to earn points (in VND)
     /// </summary>
-    public decimal MinimumOrderAmount { get; set; } = 10;
+    public decimal MinimumOrderAmount { get; set; } = 250000; // 250,000 VND
 
     /// <summary>
-    /// Value of each point in dollars (e.g., 1 point = $1)
+    /// Value of each point in VND (e.g., 1 point = 25,000 VND)
     /// </summary>
-    public decimal PointValue { get; set; } = 1.0m; // 1 point = $1
+    public decimal PointValue { get; set; } = 25000m; // 1 point = 25,000 VND
 
     /// <summary>
     /// Minimum points required for redemption

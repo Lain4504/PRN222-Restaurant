@@ -393,12 +393,12 @@
                                 row.innerHTML = `
                                     <td>${item.name}</td>
                                     <td>${item.quantity}</td>
-                                    <td>${item.unitPrice.toLocaleString('vi-VN')} đ</td>
-                                    <td>${item.total.toLocaleString('vi-VN')} đ</td>
+                                    <td>${item.unitPrice.toLocaleString('vi-VN')} VNĐ</td>
+                                    <td>${item.total.toLocaleString('vi-VN')} VNĐ</td>
                                 `;
                                 itemsContainer.appendChild(row);
                             });
-                            document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} đ`;
+                            document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} VNĐ`;
                             modal.showModal();
                         });
                 });

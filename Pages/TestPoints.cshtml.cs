@@ -20,7 +20,7 @@ namespace PRN222_Restaurant.Pages
         public IEnumerable<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
 
         // Debug properties
-        public decimal TestOrderAmount { get; set; } = 50.0m; // Test with $50 order
+        public decimal TestOrderAmount { get; set; } = 1250000m; // Test with 1,250,000 VND order
         public int MaxUsablePoints { get; set; }
         public string DebugInfo { get; set; } = "";
 

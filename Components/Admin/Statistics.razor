@@ -38,7 +38,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h2 class="card-title text-lg">Tổng doanh thu</h2>
-                            <p class="text-3xl font-bold">@statistics.TotalRevenue.ToString("N0")đ</p>
+                            <p class="text-3xl font-bold">@statistics.TotalRevenue.ToString("N0") VNĐ</p>
                             <p class="text-sm @(statistics.RevenueGrowth >= 0 ? "text-success" : "text-error") mt-1">
                                 <span class="inline-flex items-center">
                                     @if (statistics.RevenueGrowth >= 0)
@@ -175,7 +175,7 @@
                                     </div>
                                     <div class="text-right">
                                         <p class="font-bold">@product.QuantitySold</p>
-                                        <p class="text-sm text-base-content/70">@product.Revenue.ToString("N0")đ</p>
+                                        <p class="text-sm text-base-content/70">@product.Revenue.ToString("N0") VNĐ</p>
                                     </div>
                                 </div>
                             }

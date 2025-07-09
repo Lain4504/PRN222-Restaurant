@@ -11,7 +11,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h2 class="card-title text-lg">Tổng doanh thu</h2>
-                    <p class="text-3xl font-bold">@Model.TotalRevenue.ToString("N0")đ</p>
+                    <p class="text-3xl font-bold">@Model.TotalRevenue.ToString("N0") VNĐ</p>
                     <p class="text-sm text-success mt-1">
                         <span class="inline-flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -150,7 +150,7 @@
                                 </td>
                                 <td>@product.Category</td>
                                 <td>@product.QuantitySold</td>
-                                <td>@product.Revenue.ToString("N0")đ</td>
+                                <td>@product.Revenue.ToString("N0") VNĐ</td>
                             </tr>
                         }
                     </tbody>
@@ -227,7 +227,7 @@
                 tooltip: {
                     y: {
                         formatter: function(val) {
-                            return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "đ";
+                            return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " VNĐ";
                         }
                     }
                 }
