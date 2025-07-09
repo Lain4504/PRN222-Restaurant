@@ -18,14 +18,16 @@ namespace PRN222_Restaurant.Pages.Admin
         private readonly ITableService _tableService;
         private readonly ApplicationDbContext _context;
         private readonly NotificationHelper _notificationHelper;
+        private readonly IPointsService _pointsService;
         private const int DefaultPageSize = 10;
 
-        public OrdersModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context, NotificationHelper notificationHelper)
+        public OrdersModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context, NotificationHelper notificationHelper, IPointsService pointsService)
         {
             _orderService = orderService;
             _tableService = tableService;
             _context = context;
             _notificationHelper = notificationHelper;
+            _pointsService = pointsService;
         }
 
         public PagedResult<Models.Order> OrdersResult { get; set; } = new PagedResult<Models.Order>();
@@ -71,9 +73,11 @@ namespace PRN222_Restaurant.Pages.Admin
 
         public async Task<IActionResult> OnPostUpdateStatusAsync()
         {
+            Console.WriteLine($"UpdateStatus called: OrderId={OrderId}, OrderStatus={OrderStatus}"); // Debug log
+
             if (string.IsNullOrEmpty(OrderStatus) || OrderId <= 0)
             {
-                StatusMessage = "Error: Invalid order information";
+                StatusMessage = $"Error: Invalid order information - OrderId: {OrderId}, Status: {OrderStatus}";
                 return RedirectToPage("/admin/orders", new { CurrentPage, PageSize });
             }
 
@@ -157,9 +161,12 @@ namespace PRN222_Restaurant.Pages.Admin
                 {
                     await _context.SaveChangesAsync();
 
-                    // Create notification for payment completion
+                    // Award points for completed order
                     if (order.UserId.HasValue)
                     {
+                        await _pointsService.AwardPointsAsync(order.UserId.Value, order.Id, order.TotalPrice, "Order completion");
+
+                        // Create notification for payment completion
                         await _notificationHelper.NotifyPaymentCompletedAsync(order.UserId.Value, order.Id, remainingAmount);
                     }
 

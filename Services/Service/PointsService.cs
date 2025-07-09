@@ -24,7 +24,7 @@ public class PointsService : IPointsService
         if (orderAmount < _config.MinimumOrderAmount)
             return 0;
 
-        return (int)Math.Floor(orderAmount * _config.PointsPerDollar);
+        return (int)Math.Floor(orderAmount * _config.PointsPerVND);
     }
 
     public async Task<bool> AwardPointsAsync(int userId, int orderId, decimal orderAmount, string description = "Order payment")

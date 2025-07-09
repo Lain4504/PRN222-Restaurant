@@ -337,10 +337,10 @@ namespace PRN222_Restaurant.Pages
                         order.Status = orderStatus;
                         await _context.SaveChangesAsync();
 
-                        // Award points for successful payment
-                        if (order.UserId.HasValue)
+                        // Award points only for full payment, not deposit
+                        if (order.UserId.HasValue && paymentType == "Full")
                         {
-                            await _pointsService.AwardPointsAsync(order.UserId.Value, order.Id, payment.Amount);
+                            await _pointsService.AwardPointsAsync(order.UserId.Value, order.Id, order.TotalPrice, "Order payment");
 
                             // Check and award welcome bonus for new users
                             if (await _pointsService.IsEligibleForWelcomeBonusAsync(order.UserId.Value))

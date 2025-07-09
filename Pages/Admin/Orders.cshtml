@@ -100,71 +100,59 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="dropdown dropdown-left">
-                                        <div tabindex="0" role="button" class="btn btn-sm m-1">Thao tác</div>
-                                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Pending" class="update-status">
-                                                    Đánh dấu chờ xử lý
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Preparing" class="update-status">
-                                                    Đánh dấu đang chuẩn bị
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Served" class="update-status">
-                                                    Đánh dấu đã phục vụ
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Completed" class="update-status">
-                                                    Đánh dấu hoàn thành
-                                                </a>
-                                            </li>
-                                            @{
-                                                var orderPayments = order.Payments ?? new List<Payment>();
-                                                var orderTotalPaid = orderPayments.Sum(p => p.Amount);
-                                                var hasDepositOnly = orderPayments.Any(p => p.PaymentType == "Deposit") && orderTotalPaid < order.TotalPrice;
-                                                var isFullyPaid = orderTotalPaid >= order.TotalPrice || orderPayments.Any(p => p.PaymentType == "Full");
-                                            }
+                                    @{
+                                        var orderPayments = order.Payments ?? new List<Payment>();
+                                        var orderTotalPaid = orderPayments.Sum(p => p.Amount);
+                                        var hasDepositOnly = orderPayments.Any(p => p.PaymentType == "Deposit") && orderTotalPaid < order.TotalPrice;
+                                        var isFullyPaid = orderTotalPaid >= order.TotalPrice || orderPayments.Any(p => p.PaymentType == "Full");
+                                    }
 
-                                            @if (hasDepositOnly && (order.Status == "Paid Deposit" || order.Status == "Served"))
-                                            {
-                                                <li>
-                                                    <a href="#" data-id="@order.Id" class="confirm-remaining-payment text-primary">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                        </svg>
-                                                        Xác nhận thanh toán còn lại
-                                                    </a>
-                                                </li>
-                                            }
+                                    <div class="flex gap-1 flex-wrap">
+                                        <!-- Quick Status Actions -->
+                                        @if (order.Status == "Pending")
+                                        {
+                                            <button class="btn btn-xs btn-info update-status" data-id="@order.Id" data-status="Preparing" title="Bắt đầu chuẩn bị">
+                                                🍳
+                                            </button>
+                                        }
+                                        else if (order.Status == "Preparing")
+                                        {
+                                            <button class="btn btn-xs btn-warning update-status" data-id="@order.Id" data-status="Served" title="Đã phục vụ">
+                                                🍽️
+                                            </button>
+                                        }
 
-                                            @if (isFullyPaid && (order.Status == "Paid" || order.Status == "Served"))
-                                            {
-                                                <li>
-                                                    <a href="#" data-id="@order.Id" class="complete-order text-success">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                        Hoàn thành đơn hàng
-                                                    </a>
-                                                </li>
-                                            }
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Cancelled" class="update-status">
-                                                    Đánh dấu đã hủy
-                                                </a>
-                                            </li>
-                                            <li class="divider"></li>
-                                            <li>
-                                                <a href="#" class="text-primary view-order-details" data-id="@order.Id">
-                                                    Xem chi tiết
-                                                </a>
-                                            </li>
-                                        </ul>
+                                        <!-- Payment Actions -->
+                                        @if (hasDepositOnly && (order.Status == "Paid Deposit" || order.Status == "Served"))
+                                        {
+                                            <button class="btn btn-xs btn-primary confirm-remaining-payment" data-id="@order.Id" title="Xác nhận thanh toán còn lại">
+                                                💰
+                                            </button>
+                                        }
+
+                                        @if (isFullyPaid && (order.Status == "Paid" || order.Status == "Served"))
+                                        {
+                                            <button class="btn btn-xs btn-success complete-order" data-id="@order.Id" title="Hoàn thành đơn hàng">
+                                                ✅
+                                            </button>
+                                        }
+
+                                        <!-- More Actions Dropdown -->
+                                        <div class="dropdown dropdown-left">
+                                            <div tabindex="0" role="button" class="btn btn-xs btn-ghost" title="Thêm thao tác">⋯</div>
+                                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
+                                                @if (order.Status != "Cancelled")
+                                                {
+                                                    <li><a href="#" data-id="@order.Id" data-status="Cancelled" class="update-status text-error">❌ Hủy</a></li>
+                                                }
+                                                @if (order.Status == "Cancelled")
+                                                {
+                                                    <li><a href="#" data-id="@order.Id" data-status="Pending" class="update-status">🔄 Khôi phục</a></li>
+                                                }
+                                                <li><hr class="my-1"></li>
+                                                <li><a href="#" class="view-order-details" data-id="@order.Id">👁️ Chi tiết</a></li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -393,6 +381,7 @@
 
 <!-- Form ẩn để cập nhật trạng thái -->
 <form id="update-status-form" method="post" asp-page-handler="UpdateStatus">
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="OrderId" id="status-order-id" />
     <input type="hidden" asp-for="OrderStatus" id="status-value" />
     <input type="hidden" asp-for="CurrentPage" id="current-page" value="@Model.CurrentPage" />
@@ -403,11 +392,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Xử lý cập nhật trạng thái
-            document.querySelectorAll('.update-status').forEach(function(link) {
-                link.addEventListener('click', function(e) {
+            document.querySelectorAll('.update-status').forEach(function(button) {
+                button.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation(); // Ngăn event bubbling
+
                     const orderId = this.getAttribute('data-id');
                     const status = this.getAttribute('data-status');
+
+                    console.log('Updating order:', orderId, 'to status:', status); // Debug log
+
                     document.getElementById('status-order-id').value = orderId;
                     document.getElementById('status-value').value = status;
                     document.getElementById('update-status-form').submit();
@@ -452,9 +446,10 @@
             });
 
             // Xử lý nút xác nhận thanh toán còn lại
-            document.querySelectorAll('.confirm-remaining-payment').forEach(function(link) {
-                link.addEventListener('click', function(e) {
+            document.querySelectorAll('.confirm-remaining-payment').forEach(function(button) {
+                button.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation(); // Ngăn event bubbling
                     const orderId = this.getAttribute('data-id');
 
                     if (confirm('Xác nhận khách hàng đã thanh toán phần còn lại tại quầy?')) {
@@ -484,9 +479,10 @@
             });
 
             // Xử lý nút hoàn thành order
-            document.querySelectorAll('.complete-order').forEach(function(link) {
-                link.addEventListener('click', function(e) {
+            document.querySelectorAll('.complete-order').forEach(function(button) {
+                button.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation(); // Ngăn event bubbling
                     const orderId = this.getAttribute('data-id');
 
                     if (confirm('Xác nhận hoàn thành đơn hàng này?')) {
@@ -518,8 +514,8 @@
             // Click vào dòng order để chuyển sang trang chi tiết
             document.querySelectorAll('.order-row').forEach(function(row) {
                 row.addEventListener('click', function(e) {
-                    // Nếu click vào nút thao tác thì không chuyển trang
-                    if (e.target.closest('.dropdown')) return;
+                    // Nếu click vào button hoặc dropdown thì không chuyển trang
+                    if (e.target.closest('button') || e.target.closest('.dropdown')) return;
                     const orderId = this.getAttribute('data-id');
                     window.location.href = `/admin/order-detail/${orderId}`;
                 });

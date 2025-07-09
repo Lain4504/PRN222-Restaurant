@@ -44,8 +44,8 @@ namespace PRN222_Restaurant.Pages
 
                 var config = _pointsService.GetPointsConfig();
                 DebugInfo = $"User ID: {userId}, Current Points: {CurrentPoints}, " +
-                           $"Test Order: ${TestOrderAmount}, Max Usable: {MaxUsablePoints}, " +
-                           $"Point Value: ${config.PointValue}, Max Usage %: {config.MaxPointsUsagePercentage * 100}%";
+                           $"Test Order: {TestOrderAmount:N0} VNĐ, Max Usable: {MaxUsablePoints}, " +
+                           $"Point Value: {config.PointValue:N0} VNĐ, Max Usage %: {config.MaxPointsUsagePercentage * 100}%";
             }
             else
             {

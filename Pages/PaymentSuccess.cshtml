@@ -25,12 +25,17 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <p class="text-yellow-700">Đã thanh toán (Cọc 20%):</p>
-                                    <p class="font-bold text-yellow-800">@Model.TotalAmount.ToString("N0") VNĐ</p>
+                                    <p class="font-bold text-yellow-800">@((Model.TotalAmount * 0.2m).ToString("N0")) VNĐ</p>
                                 </div>
                                 <div>
                                     <p class="text-yellow-700">Còn lại thanh toán tại quầy:</p>
-                                    <p class="font-bold text-red-600">@((Model.TotalAmount * 4).ToString("N0")) VNĐ</p>
+                                    <p class="font-bold text-red-600">@((Model.TotalAmount * 0.8m).ToString("N0")) VNĐ</p>
                                 </div>
+                            </div>
+                            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                                <p class="text-xs text-blue-700">
+                                    <strong>Tổng đơn hàng:</strong> @Model.TotalAmount.ToString("N0") VNĐ
+                                </p>
                             </div>
                             <p class="text-xs text-yellow-600 mt-2">
                                 ⚠️ Vui lòng thanh toán phần còn lại khi đến nhà hàng
@@ -136,12 +141,12 @@
                                 <div class="text-center">
                                     <p class="text-sm text-gray-600 mb-2">Điểm từ đơn hàng này</p>
                                     <p class="text-3xl font-bold text-purple-600">+@Model.PointsEarned</p>
-                                    <p class="text-sm text-gray-500">Trị giá @((Model.PointsEarned * 25000m).ToString("N0")) VNĐ</p>
+                                    <p class="text-sm text-gray-500">Trị giá @((Model.PointsEarned * 5000m).ToString("N0")) VNĐ</p>
                                 </div>
                                 <div class="text-center">
                                     <p class="text-sm text-gray-600 mb-2">Tổng số điểm hiện có</p>
                                     <p class="text-3xl font-bold text-green-600">@Model.TotalPoints</p>
-                                    <p class="text-sm text-gray-500">Trị giá @((Model.TotalPoints * 25000m).ToString("N0")) VNĐ</p>
+                                    <p class="text-sm text-gray-500">Trị giá @((Model.TotalPoints * 5000m).ToString("N0")) VNĐ</p>
                                 </div>
                             </div>
                             <div class="text-center mt-4">
