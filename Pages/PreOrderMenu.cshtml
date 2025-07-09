@@ -148,7 +148,7 @@
     <script>
         // Points calculation functionality
         function updatePointsDisplay(points) {
-            const pointValue = 1.0; // $1 per point
+            const pointValue = 25000; // 25,000 VND per point
             const orderTotal = @Model.TotalPrice;
 
             // Update selected points display
@@ -156,11 +156,11 @@
 
             // Calculate discount
             const discount = points * pointValue;
-            document.getElementById('pointsDiscount').textContent = '$' + discount.toFixed(2);
+            document.getElementById('pointsDiscount').textContent = discount.toLocaleString('vi-VN') + ' VNĐ';
 
             // Calculate and update final amount
             const finalAmount = Math.max(0, orderTotal - discount);
-            document.getElementById('finalAmount').textContent = '$' + finalAmount.toFixed(2);
+            document.getElementById('finalAmount').textContent = finalAmount.toLocaleString('vi-VN') + ' VNĐ';
         }
 
         // Initialize points display on page load

@@ -1,7 +1,7 @@
 @page "/checkout"
 @model PRN222_Restaurant.Pages.CheckoutModel
 @{
-    ViewData["Title"] = "Complete Your Payment";
+    ViewData["Title"] = "Hoàn tất thanh toán";
 }
 
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
@@ -9,8 +9,8 @@
         <div class="max-w-6xl mx-auto">
             <!-- Header -->
             <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-800 mb-2">Complete Your Payment</h1>
-                <p class="text-gray-600">Review your order and proceed with secure payment</p>
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">Hoàn tất thanh toán</h1>
+                <p class="text-gray-600">Xem lại đơn hàng và tiến hành thanh toán an toàn</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -22,7 +22,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
-                                Order Summary
+                                Tóm tắt đơn hàng
                             </h2>
                         </div>
                         <div class="p-6">
@@ -139,18 +139,18 @@
                             <!-- Payment Amount Display -->
                             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
                                 <div class="text-center">
-                                    <p class="text-gray-600 text-sm mb-2">Order Total</p>
-                                    <p class="text-2xl font-bold text-gray-800">${@Model.Total.ToString("F2")}</p>
+                                    <p class="text-gray-600 text-sm mb-2">Tổng đơn hàng</p>
+                                    <p class="text-2xl font-bold text-gray-800">@Model.Total.ToString("N0") VNĐ</p>
                                     @if (Model.PointsDiscount > 0)
                                     {
-                                        <p class="text-sm text-green-600 mt-1">- <span id="displayDiscount">@Model.PointsDiscount.ToString("C")</span> (Points)</p>
+                                        <p class="text-sm text-green-600 mt-1">- <span id="displayDiscount">@Model.PointsDiscount.ToString("N0") VNĐ</span> (Điểm)</p>
                                         <hr class="my-2">
-                                        <p class="text-gray-600 text-sm">Final Amount</p>
-                                        <p class="text-3xl font-bold text-blue-600" id="finalAmount">${@Model.FinalTotal.ToString("F2")}</p>
+                                        <p class="text-gray-600 text-sm">Số tiền cuối cùng</p>
+                                        <p class="text-3xl font-bold text-blue-600" id="finalAmount">@Model.FinalTotal.ToString("N0") VNĐ</p>
                                     }
                                     else
                                     {
-                                        <p class="text-3xl font-bold text-blue-600" id="finalAmount">${@Model.Total.ToString("F2")}</p>
+                                        <p class="text-3xl font-bold text-blue-600" id="finalAmount">@Model.Total.ToString("N0") VNĐ</p>
                                     }
                                 </div>
                             </div>
@@ -229,7 +229,7 @@
 
 <script>
 function updatePointsDisplay(points) {
-    const pointValue = 1.0; // $1 per point
+    const pointValue = 25000; // 25,000 VND per point
     const orderTotal = @Model.Total;
 
     // Update selected points display
@@ -237,17 +237,17 @@ function updatePointsDisplay(points) {
 
     // Calculate discount
     const discount = points * pointValue;
-    document.getElementById('pointsDiscount').textContent = '$' + discount.toFixed(2);
+    document.getElementById('pointsDiscount').textContent = discount.toLocaleString('vi-VN') + ' VNĐ';
 
     // Update display discount if visible
     const displayDiscountElement = document.getElementById('displayDiscount');
     if (displayDiscountElement) {
-        displayDiscountElement.textContent = '$' + discount.toFixed(2);
+        displayDiscountElement.textContent = discount.toLocaleString('vi-VN') + ' VNĐ';
     }
 
     // Calculate and update final amount
     const finalAmount = Math.max(0, orderTotal - discount);
-    document.getElementById('finalAmount').textContent = '$' + finalAmount.toFixed(2);
+    document.getElementById('finalAmount').textContent = finalAmount.toLocaleString('vi-VN') + ' VNĐ';
 
     // Update the hidden form field for points to use
     const pointsInput = document.querySelector('input[name="PointsToUse"]');

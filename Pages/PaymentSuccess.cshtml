@@ -1,7 +1,7 @@
 @page "/payment-success"
 @model PRN222_Restaurant.Pages.PaymentSuccessModel
 @{
-    ViewData["Title"] = "Payment Successful";
+    ViewData["Title"] = "Thanh toán thành công";
 }
 
 <section class="py-16 bg-white">
@@ -16,9 +16,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h1 class="text-3xl font-bold mb-2 text-center">Payment Successful!</h1>
+                        <h1 class="text-3xl font-bold mb-2 text-center">Thanh toán thành công!</h1>
                         <p class="text-center text-gray-600 mb-2">
-                            Thank you for your payment. Your reservation has been confirmed.
+                            Cảm ơn bạn đã thanh toán. Đặt bàn của bạn đã được xác nhận.
                         </p>
                         @if (TempData["TransactionId"] != null)
                         {
@@ -118,14 +118,14 @@
                             </h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="text-center">
-                                    <p class="text-sm text-gray-600 mb-2">Points from this order</p>
+                                    <p class="text-sm text-gray-600 mb-2">Điểm từ đơn hàng này</p>
                                     <p class="text-3xl font-bold text-purple-600">+@Model.PointsEarned</p>
-                                    <p class="text-sm text-gray-500">Worth @((Model.PointsEarned * 1.0m).ToString("C"))</p>
+                                    <p class="text-sm text-gray-500">Trị giá @((Model.PointsEarned * 25000m).ToString("N0")) VNĐ</p>
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-sm text-gray-600 mb-2">Total points balance</p>
+                                    <p class="text-sm text-gray-600 mb-2">Tổng số điểm hiện có</p>
                                     <p class="text-3xl font-bold text-green-600">@Model.TotalPoints</p>
-                                    <p class="text-sm text-gray-500">Worth @((Model.TotalPoints * 1.0m).ToString("C"))</p>
+                                    <p class="text-sm text-gray-500">Trị giá @((Model.TotalPoints * 25000m).ToString("N0")) VNĐ</p>
                                 </div>
                             </div>
                             <div class="text-center mt-4">
@@ -152,8 +152,8 @@
                     
                     <!-- Actions -->
                     <div class="flex flex-col md:flex-row gap-4 justify-center mt-8">
-                        <a href="/" class="btn btn-outline flex-1">Return to Homepage</a>
-                        <a href="/menu" class="btn btn-primary flex-1">Browse Our Menu</a>
+                        <a href="/" class="btn btn-outline flex-1">Về trang chủ</a>
+                        <a href="/menu" class="btn btn-primary flex-1">Xem thực đơn</a>
                     </div>
                 </div>
             </div>
