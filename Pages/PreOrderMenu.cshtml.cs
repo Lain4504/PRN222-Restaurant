@@ -7,6 +7,7 @@ using PRN222_Restaurant.Helpers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PRN222_Restaurant.Data;
+using System.Security.Claims;
 
 namespace PRN222_Restaurant.Pages
 {
@@ -17,17 +18,20 @@ namespace PRN222_Restaurant.Pages
         private readonly NotificationHelper _notificationHelper;
         private readonly JsonSerializerOptions _jsonOptions;
         private readonly IReservationSessionService _reservationSessionService;
+        private readonly IPointsService _pointsService;
 
         public PreOrderMenuModel(
             IOrderService orderService,
             ApplicationDbContext context,
             NotificationHelper notificationHelper,
-            IReservationSessionService reservationSessionService)
+            IReservationSessionService reservationSessionService,
+            IPointsService pointsService)
         {
             _orderService = orderService;
             _context = context;
             _notificationHelper = notificationHelper;
             _reservationSessionService = reservationSessionService;
+            _pointsService = pointsService;
             _jsonOptions = new JsonSerializerOptions
             {
                 ReferenceHandler = ReferenceHandler.Preserve,
@@ -39,6 +43,8 @@ namespace PRN222_Restaurant.Pages
         public decimal TotalPrice { get; set; }
         public int TotalItems { get; set; }
         public string StatusMessage { get; set; } = "";
+
+        public decimal FinalTotal { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -69,6 +75,9 @@ namespace PRN222_Restaurant.Pages
 
                 // Calculate totals
                 CalculateTotals();
+
+                // Load points information
+                await LoadPointsInformationAsync();
 
                 return Page();
             }
@@ -108,14 +117,16 @@ namespace PRN222_Restaurant.Pages
                     return Page();
                 }
 
+                // Points will be handled in checkout page
+
                 // Create notification for order creation
                 if (User.Identity.IsAuthenticated && CurrentOrder.UserId.HasValue)
                 {
                     await _notificationHelper.NotifyOrderCreatedAsync(CurrentOrder.UserId.Value, CurrentOrder.Id);
                 }
 
-                // Redirect to confirmation page with the order id
-                return RedirectToPage("/PreOrderConfirmation", new { id = CurrentOrder.Id });
+                // Redirect directly to checkout page
+                return RedirectToPage("/Checkout", new { orderId = CurrentOrder.Id });
             }
             catch (Exception ex)
             {
@@ -255,6 +266,25 @@ namespace PRN222_Restaurant.Pages
             // Calculate totals for display
             TotalPrice = order.TotalPrice;
             TotalItems = order.OrderItems.Sum(oi => oi.Quantity);
+        }
+
+        private async Task LoadPointsInformationAsync()
+        {
+            // Points will be handled in checkout page
+            FinalTotal = TotalPrice;
+        }
+
+        private int? GetCurrentUserId()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = User.FindFirst("UserId")?.Value;
+                if (int.TryParse(userIdClaim, out int userId))
+                {
+                    return userId;
+                }
+            }
+            return null;
         }
 
     }

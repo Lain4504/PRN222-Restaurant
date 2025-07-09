@@ -18,14 +18,16 @@ namespace PRN222_Restaurant.Pages.Admin
         private readonly ITableService _tableService;
         private readonly ApplicationDbContext _context;
         private readonly NotificationHelper _notificationHelper;
+        private readonly IPointsService _pointsService;
         private const int DefaultPageSize = 10;
 
-        public OrdersModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context, NotificationHelper notificationHelper)
+        public OrdersModel(IOrderService orderService, ITableService tableService, ApplicationDbContext context, NotificationHelper notificationHelper, IPointsService pointsService)
         {
             _orderService = orderService;
             _tableService = tableService;
             _context = context;
             _notificationHelper = notificationHelper;
+            _pointsService = pointsService;
         }
 
         public PagedResult<Models.Order> OrdersResult { get; set; } = new PagedResult<Models.Order>();
@@ -71,9 +73,11 @@ namespace PRN222_Restaurant.Pages.Admin
 
         public async Task<IActionResult> OnPostUpdateStatusAsync()
         {
+            Console.WriteLine($"UpdateStatus called: OrderId={OrderId}, OrderStatus={OrderStatus}"); // Debug log
+
             if (string.IsNullOrEmpty(OrderStatus) || OrderId <= 0)
             {
-                StatusMessage = "Error: Invalid order information";
+                StatusMessage = $"Error: Invalid order information - OrderId: {OrderId}, Status: {OrderStatus}";
                 return RedirectToPage("/admin/orders", new { CurrentPage, PageSize });
             }
 
@@ -110,6 +114,110 @@ namespace PRN222_Restaurant.Pages.Admin
             {
                 StatusMessage = $"Error: Failed to update order #{OrderId}";
             }
+            return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+        }
+
+        public async Task<IActionResult> OnPostConfirmRemainingPaymentAsync(int id)
+        {
+            var order = await _orderService.GetOrderByIdAsync(id);
+            if (order == null)
+            {
+                StatusMessage = "Không tìm thấy đơn hàng.";
+                return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+            }
+
+            // Check existing payments
+            var existingPayments = await _context.Payments
+                .Where(p => p.OrderId == id)
+                .ToListAsync();
+
+            var totalPaid = existingPayments.Sum(p => p.Amount);
+            var remainingAmount = order.TotalPrice - totalPaid;
+
+            if (remainingAmount <= 0)
+            {
+                StatusMessage = "Đơn hàng đã được thanh toán đầy đủ.";
+                return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+            }
+
+            try
+            {
+                // Create payment record for remaining amount
+                var finalPayment = new Payment
+                {
+                    OrderId = order.Id,
+                    Amount = remainingAmount,
+                    PaymentDate = DateTime.Now,
+                    Status = "Paid",
+                    PaymentType = "Final",
+                    Method = "Cash" // Payment at restaurant counter
+                };
+                _context.Payments.Add(finalPayment);
+
+                // Update order status to Paid
+                var success = await _orderService.UpdateOrderStatusAsync(id, "Paid");
+
+                if (success)
+                {
+                    await _context.SaveChangesAsync();
+
+                    // Award points for completed order
+                    if (order.UserId.HasValue)
+                    {
+                        await _pointsService.AwardPointsAsync(order.UserId.Value, order.Id, order.TotalPrice, "Order completion");
+
+                        // Create notification for payment completion
+                        await _notificationHelper.NotifyPaymentCompletedAsync(order.UserId.Value, order.Id, remainingAmount);
+                    }
+
+                    StatusMessage = $"Đã xác nhận thanh toán phần còn lại {remainingAmount:N0} VNĐ cho đơn hàng #{id}.";
+                }
+                else
+                {
+                    StatusMessage = $"Lỗi: Không thể cập nhật trạng thái đơn hàng #{id}";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Lỗi: {ex.Message}";
+            }
+
+            return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+        }
+
+        public async Task<IActionResult> OnPostCompleteOrderAsync(int id)
+        {
+            var order = await _orderService.GetOrderByIdAsync(id);
+            if (order == null)
+            {
+                StatusMessage = "Không tìm thấy đơn hàng.";
+                return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+            }
+
+            // Update order status to completed
+            var success = await _orderService.UpdateOrderStatusAsync(id, "Completed");
+
+            if (success)
+            {
+                // Update table status to available
+                if (order.TableId.HasValue)
+                {
+                    await _tableService.ChangeStatusAsync(order.TableId.Value, "Available");
+                }
+
+                // Create notification for order completion
+                if (order.UserId.HasValue)
+                {
+                    await _notificationHelper.NotifyOrderCompletedAsync(order.UserId.Value, order.Id);
+                }
+
+                StatusMessage = $"Đơn hàng #{id} đã được hoàn thành thành công.";
+            }
+            else
+            {
+                StatusMessage = $"Lỗi: Không thể hoàn thành đơn hàng #{id}";
+            }
+
             return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
         }
 

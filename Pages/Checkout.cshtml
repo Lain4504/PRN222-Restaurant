@@ -1,7 +1,7 @@
 @page "/checkout"
 @model PRN222_Restaurant.Pages.CheckoutModel
 @{
-    ViewData["Title"] = "Complete Your Payment";
+    ViewData["Title"] = "Hoàn tất thanh toán";
 }
 
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
@@ -9,8 +9,8 @@
         <div class="max-w-6xl mx-auto">
             <!-- Header -->
             <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-800 mb-2">Complete Your Payment</h1>
-                <p class="text-gray-600">Review your order and proceed with secure payment</p>
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">Hoàn tất thanh toán</h1>
+                <p class="text-gray-600">Xem lại đơn hàng và tiến hành thanh toán an toàn</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -22,7 +22,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
-                                Order Summary
+                                Tóm tắt đơn hàng
                             </h2>
                         </div>
                         <div class="p-6">
@@ -35,7 +35,7 @@
                                         <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                                             <div class="flex-1">
                                                 <h3 class="font-semibold text-gray-800">@item.Name</h3>
-                                                <p class="text-sm text-gray-600">$@item.Price.ToString("F2") each</p>
+                                                <p class="text-sm text-gray-600">@item.Price.ToString("N0") VNĐ mỗi món</p>
                                             </div>
                                             <div class="text-center mx-4">
                                                 <span class="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
@@ -43,7 +43,7 @@
                                                 </span>
                                             </div>
                                             <div class="text-right">
-                                                <p class="font-semibold text-gray-800">$@item.Subtotal.ToString("F2")</p>
+                                                <p class="font-semibold text-gray-800">@item.Subtotal.ToString("N0") VNĐ</p>
                                             </div>
                                         </div>
                                     }
@@ -53,16 +53,16 @@
                                 <div class="mt-6 pt-6 border-t border-gray-200">
                                     <div class="space-y-3">
                                         <div class="flex justify-between text-gray-600">
-                                            <span>Subtotal:</span>
-                                            <span>$@Model.Subtotal.ToString("F2")</span>
+                                            <span>Tạm tính:</span>
+                                            <span>@Model.Subtotal.ToString("N0") VNĐ</span>
                                         </div>
                                         <div class="flex justify-between text-gray-600">
-                                            <span>Tax (10%):</span>
-                                            <span>$@Model.Tax.ToString("F2")</span>
+                                            <span>Thuế (10%):</span>
+                                            <span>@Model.Tax.ToString("N0") VNĐ</span>
                                         </div>
                                         <div class="flex justify-between text-xl font-bold text-gray-800 pt-3 border-t border-gray-200">
-                                            <span>Total:</span>
-                                            <span class="text-blue-600">$@Model.Total.ToString("F2")</span>
+                                            <span>Tổng cộng:</span>
+                                            <span class="text-blue-600">@Model.Total.ToString("N0") VNĐ</span>
                                         </div>
                                     </div>
                                 </div>
@@ -99,7 +99,7 @@
                                     <div class="text-center mb-4">
                                         <h3 class="text-lg font-semibold text-gray-800 mb-2">Your Points</h3>
                                         <div class="text-3xl font-bold text-purple-600">@Model.UserPoints</div>
-                                        <p class="text-sm text-gray-600">Worth @((Model.UserPoints * 1.0m).ToString("C"))</p>
+                                        <p class="text-sm text-gray-600">Trị giá @((Model.UserPoints * 5000m).ToString("N0")) VNĐ</p>
                                     </div>
 
                                     @if (Model.MaxUsablePoints > 0)
@@ -139,19 +139,43 @@
                             <!-- Payment Amount Display -->
                             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
                                 <div class="text-center">
-                                    <p class="text-gray-600 text-sm mb-2">Order Total</p>
-                                    <p class="text-2xl font-bold text-gray-800">${@Model.Total.ToString("F2")}</p>
+                                    <p class="text-gray-600 text-sm mb-2">Tổng đơn hàng</p>
+                                    <p class="text-2xl font-bold text-gray-800">@Model.Total.ToString("N0") VNĐ</p>
                                     @if (Model.PointsDiscount > 0)
                                     {
-                                        <p class="text-sm text-green-600 mt-1">- <span id="displayDiscount">@Model.PointsDiscount.ToString("C")</span> (Points)</p>
+                                        <p class="text-sm text-green-600 mt-1">- <span id="displayDiscount">@Model.PointsDiscount.ToString("N0") VNĐ</span> (Điểm)</p>
                                         <hr class="my-2">
-                                        <p class="text-gray-600 text-sm">Final Amount</p>
-                                        <p class="text-3xl font-bold text-blue-600" id="finalAmount">${@Model.FinalTotal.ToString("F2")}</p>
+                                        <p class="text-gray-600 text-sm">Tổng sau giảm giá</p>
+                                        <p class="text-xl font-bold text-gray-800" id="finalAmount">@Model.FinalTotal.ToString("N0") VNĐ</p>
                                     }
                                     else
                                     {
-                                        <p class="text-3xl font-bold text-blue-600" id="finalAmount">${@Model.Total.ToString("F2")}</p>
+                                        <p class="text-xl font-bold text-gray-800" id="finalAmount">@Model.Total.ToString("N0") VNĐ</p>
                                     }
+
+                                    <!-- Deposit Payment Info -->
+                                    <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <h4 class="font-bold text-yellow-800 mb-2">💳 Thanh toán trước (Cọc)</h4>
+                                        <p class="text-sm text-yellow-700 mb-2">Bạn chỉ cần thanh toán 20% để xác nhận đặt bàn</p>
+                                        <p class="text-2xl font-bold text-yellow-800" id="depositAmount">
+                                            @{
+                                                var depositAmount = Model.FinalTotal * 0.2m;
+                                            }
+                                            @depositAmount.ToString("N0") VNĐ
+                                        </p>
+                                        <p class="text-xs text-yellow-600 mt-1">Số tiền còn lại sẽ thanh toán tại nhà hàng</p>
+                                    </div>
+
+                                    <!-- Remaining Amount Info -->
+                                    <div class="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                        <p class="text-sm text-gray-600">Số tiền còn lại thanh toán tại quầy:</p>
+                                        <p class="text-lg font-bold text-gray-800" id="remainingAmount">
+                                            @{
+                                                var remainingAmount = Model.FinalTotal - (Model.FinalTotal * 0.2m);
+                                            }
+                                            @remainingAmount.ToString("N0") VNĐ
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -229,7 +253,7 @@
 
 <script>
 function updatePointsDisplay(points) {
-    const pointValue = 1.0; // $1 per point
+    const pointValue = 5000; // 5,000 VND per point
     const orderTotal = @Model.Total;
 
     // Update selected points display
@@ -237,17 +261,25 @@ function updatePointsDisplay(points) {
 
     // Calculate discount
     const discount = points * pointValue;
-    document.getElementById('pointsDiscount').textContent = '$' + discount.toFixed(2);
+    document.getElementById('pointsDiscount').textContent = discount.toLocaleString('vi-VN') + ' VNĐ';
 
     // Update display discount if visible
     const displayDiscountElement = document.getElementById('displayDiscount');
     if (displayDiscountElement) {
-        displayDiscountElement.textContent = '$' + discount.toFixed(2);
+        displayDiscountElement.textContent = discount.toLocaleString('vi-VN') + ' VNĐ';
     }
 
     // Calculate and update final amount
     const finalAmount = Math.max(0, orderTotal - discount);
-    document.getElementById('finalAmount').textContent = '$' + finalAmount.toFixed(2);
+    document.getElementById('finalAmount').textContent = finalAmount.toLocaleString('vi-VN') + ' VNĐ';
+
+    // Calculate and update deposit amount (20%)
+    const depositAmount = finalAmount * 0.2;
+    document.getElementById('depositAmount').textContent = depositAmount.toLocaleString('vi-VN') + ' VNĐ';
+
+    // Calculate and update remaining amount (80%)
+    const remainingAmount = finalAmount - depositAmount;
+    document.getElementById('remainingAmount').textContent = remainingAmount.toLocaleString('vi-VN') + ' VNĐ';
 
     // Update the hidden form field for points to use
     const pointsInput = document.querySelector('input[name="PointsToUse"]');
@@ -255,10 +287,10 @@ function updatePointsDisplay(points) {
         pointsInput.value = points;
     }
 
-    // Update the payment amount field
+    // Update the payment amount field (deposit amount for pre-orders)
     const amountInput = document.querySelector('input[name="PaymentInfo.Amount"]');
     if (amountInput) {
-        amountInput.value = finalAmount;
+        amountInput.value = depositAmount; // Only pay deposit amount
     }
 }
 

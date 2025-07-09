@@ -1,5 +1,6 @@
 @page "/admin/orders"
 @model PRN222_Restaurant.Pages.Admin.OrdersModel
+@using PRN222_Restaurant.Models
 @{
     ViewData["Title"] = "Quản lý đơn hàng";
 }
@@ -40,6 +41,7 @@
                             <th>Ngày đặt</th>
                             <th>Thời gian đặt bàn</th>
                             <th>Tổng tiền</th>
+                            <th>Thanh toán</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
                         </tr>
@@ -58,53 +60,99 @@
                                 <td>@(order.Table != null ? $"Bàn {order.Table.TableNumber}" : "N/A")</td>
                                 <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>@(order.ReservationTime.HasValue ? order.ReservationTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
-                                <td>@order.TotalPrice.ToString("N0") đ</td>
+                                <td>@order.TotalPrice.ToString("N0") VNĐ</td>
                                 <td>
-                                    <span class="badge 
-                                           @(order.Status == "Pending" ? "badge-warning" : 
-                                              order.Status == "Preparing" ? "badge-info" : 
-                                              order.Status == "Served" ? "badge-success" : 
-                                              order.Status == "Completed" ? "badge-success" : 
+                                    @{
+                                        var payments = order.Payments ?? new List<Payment>();
+                                        var totalPaid = payments.Sum(p => p.Amount);
+                                        var depositPaid = payments.Where(p => p.PaymentType == "Deposit").Sum(p => p.Amount);
+                                        var fullPayment = payments.Any(p => p.PaymentType == "Full");
+                                        var remainingAmount = order.TotalPrice - totalPaid;
+                                    }
+
+                                    @if (fullPayment || totalPaid >= order.TotalPrice)
+                                    {
+                                        <span class="badge badge-success">Đã thanh toán đủ</span>
+                                        <div class="text-xs text-gray-500">@totalPaid.ToString("N0") VNĐ</div>
+                                    }
+                                    else if (depositPaid > 0)
+                                    {
+                                        <span class="badge badge-warning">Đã cọc 20%</span>
+                                        <div class="text-xs text-gray-500">Đã trả: @totalPaid.ToString("N0") VNĐ</div>
+                                        <div class="text-xs text-red-500">Còn lại: @remainingAmount.ToString("N0") VNĐ</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-error">Chưa thanh toán</span>
+                                        <div class="text-xs text-gray-500">@order.TotalPrice.ToString("N0") VNĐ</div>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge
+                                           @(order.Status == "Pending" ? "badge-warning" :
+                                              order.Status == "Preparing" ? "badge-info" :
+                                              order.Status == "Served" ? "badge-success" :
+                                              order.Status == "Completed" ? "badge-success" :
+                                              order.Status == "Paid" ? "badge-primary" :
+                                              order.Status == "Paid Deposit" ? "badge-accent" :
                                               order.Status == "Cancelled" ? "badge-error" : "")">
-                                        @order.Status
+                                        @(order.Status == "Paid Deposit" ? "Đã cọc" : order.Status)
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="dropdown dropdown-left">
-                                        <div tabindex="0" role="button" class="btn btn-sm m-1">Thao tác</div>
-                                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Pending" class="update-status">
-                                                    Đánh dấu chờ xử lý
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Preparing" class="update-status">
-                                                    Đánh dấu đang chuẩn bị
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Served" class="update-status">
-                                                    Đánh dấu đã phục vụ
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Completed" class="update-status">
-                                                    Đánh dấu hoàn thành
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#" data-id="@order.Id" data-status="Cancelled" class="update-status">
-                                                    Đánh dấu đã hủy
-                                                </a>
-                                            </li>
-                                            <li class="divider"></li>
-                                            <li>
-                                                <a href="#" class="text-primary view-order-details" data-id="@order.Id">
-                                                    Xem chi tiết
-                                                </a>
-                                            </li>
-                                        </ul>
+                                    @{
+                                        var orderPayments = order.Payments ?? new List<Payment>();
+                                        var orderTotalPaid = orderPayments.Sum(p => p.Amount);
+                                        var hasDepositOnly = orderPayments.Any(p => p.PaymentType == "Deposit") && orderTotalPaid < order.TotalPrice;
+                                        var isFullyPaid = orderTotalPaid >= order.TotalPrice || orderPayments.Any(p => p.PaymentType == "Full");
+                                    }
+
+                                    <div class="flex gap-1 flex-wrap">
+                                        <!-- Quick Status Actions -->
+                                        @if (order.Status == "Pending")
+                                        {
+                                            <button class="btn btn-xs btn-info update-status" data-id="@order.Id" data-status="Preparing" title="Bắt đầu chuẩn bị">
+                                                🍳
+                                            </button>
+                                        }
+                                        else if (order.Status == "Preparing")
+                                        {
+                                            <button class="btn btn-xs btn-warning update-status" data-id="@order.Id" data-status="Served" title="Đã phục vụ">
+                                                🍽️
+                                            </button>
+                                        }
+
+                                        <!-- Payment Actions -->
+                                        @if (hasDepositOnly && (order.Status == "Paid Deposit" || order.Status == "Served"))
+                                        {
+                                            <button class="btn btn-xs btn-primary confirm-remaining-payment" data-id="@order.Id" title="Xác nhận thanh toán còn lại">
+                                                💰
+                                            </button>
+                                        }
+
+                                        @if (isFullyPaid && (order.Status == "Paid" || order.Status == "Served"))
+                                        {
+                                            <button class="btn btn-xs btn-success complete-order" data-id="@order.Id" title="Hoàn thành đơn hàng">
+                                                ✅
+                                            </button>
+                                        }
+
+                                        <!-- More Actions Dropdown -->
+                                        <div class="dropdown dropdown-left">
+                                            <div tabindex="0" role="button" class="btn btn-xs btn-ghost" title="Thêm thao tác">⋯</div>
+                                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
+                                                @if (order.Status != "Cancelled")
+                                                {
+                                                    <li><a href="#" data-id="@order.Id" data-status="Cancelled" class="update-status text-error">❌ Hủy</a></li>
+                                                }
+                                                @if (order.Status == "Cancelled")
+                                                {
+                                                    <li><a href="#" data-id="@order.Id" data-status="Pending" class="update-status">🔄 Khôi phục</a></li>
+                                                }
+                                                <li><hr class="my-1"></li>
+                                                <li><a href="#" class="view-order-details" data-id="@order.Id">👁️ Chi tiết</a></li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -333,6 +381,7 @@
 
 <!-- Form ẩn để cập nhật trạng thái -->
 <form id="update-status-form" method="post" asp-page-handler="UpdateStatus">
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="OrderId" id="status-order-id" />
     <input type="hidden" asp-for="OrderStatus" id="status-value" />
     <input type="hidden" asp-for="CurrentPage" id="current-page" value="@Model.CurrentPage" />
@@ -343,11 +392,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Xử lý cập nhật trạng thái
-            document.querySelectorAll('.update-status').forEach(function(link) {
-                link.addEventListener('click', function(e) {
+            document.querySelectorAll('.update-status').forEach(function(button) {
+                button.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation(); // Ngăn event bubbling
+
                     const orderId = this.getAttribute('data-id');
                     const status = this.getAttribute('data-status');
+
+                    console.log('Updating order:', orderId, 'to status:', status); // Debug log
+
                     document.getElementById('status-order-id').value = orderId;
                     document.getElementById('status-value').value = status;
                     document.getElementById('update-status-form').submit();
@@ -380,21 +434,88 @@
                                 row.innerHTML = `
                                     <td>${item.name}</td>
                                     <td>${item.quantity}</td>
-                                    <td>${item.unitPrice.toLocaleString('vi-VN')} đ</td>
-                                    <td>${item.total.toLocaleString('vi-VN')} đ</td>
+                                    <td>${item.unitPrice.toLocaleString('vi-VN')} VNĐ</td>
+                                    <td>${item.total.toLocaleString('vi-VN')} VNĐ</td>
                                 `;
                                 itemsContainer.appendChild(row);
                             });
-                            document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} đ`;
+                            document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} VNĐ`;
                             modal.showModal();
                         });
                 });
             });
+
+            // Xử lý nút xác nhận thanh toán còn lại
+            document.querySelectorAll('.confirm-remaining-payment').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation(); // Ngăn event bubbling
+                    const orderId = this.getAttribute('data-id');
+
+                    if (confirm('Xác nhận khách hàng đã thanh toán phần còn lại tại quầy?')) {
+                        // Create form and submit
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/admin/orders?handler=ConfirmRemainingPayment';
+
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'id';
+                        input.value = orderId;
+                        form.appendChild(input);
+
+                        // Add anti-forgery token
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        tokenInput.value = token;
+                        form.appendChild(tokenInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+
+            // Xử lý nút hoàn thành order
+            document.querySelectorAll('.complete-order').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation(); // Ngăn event bubbling
+                    const orderId = this.getAttribute('data-id');
+
+                    if (confirm('Xác nhận hoàn thành đơn hàng này?')) {
+                        // Create form and submit
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/admin/orders?handler=CompleteOrder';
+
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'id';
+                        input.value = orderId;
+                        form.appendChild(input);
+
+                        // Add anti-forgery token
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        tokenInput.value = token;
+                        form.appendChild(tokenInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+
             // Click vào dòng order để chuyển sang trang chi tiết
             document.querySelectorAll('.order-row').forEach(function(row) {
                 row.addEventListener('click', function(e) {
-                    // Nếu click vào nút thao tác thì không chuyển trang
-                    if (e.target.closest('.dropdown')) return;
+                    // Nếu click vào button hoặc dropdown thì không chuyển trang
+                    if (e.target.closest('button') || e.target.closest('.dropdown')) return;
                     const orderId = this.getAttribute('data-id');
                     window.location.href = `/admin/order-detail/${orderId}`;
                 });

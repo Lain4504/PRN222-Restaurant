@@ -22,8 +22,10 @@ namespace PRN222_Restaurant.Repositories
         {
             return await _context.Orders
                 .Include(o => o.Table)
+                .Include(o => o.User)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
+                .Include(o => o.Payments)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
@@ -42,8 +44,10 @@ namespace PRN222_Restaurant.Repositories
         {
             return await _context.Orders
                 .Include(o => o.Table)
+                .Include(o => o.User)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
+                .Include(o => o.Payments)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
@@ -52,8 +56,10 @@ namespace PRN222_Restaurant.Repositories
         {
             var query = _context.Orders
                 .Include(o => o.Table)
+                .Include(o => o.User)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
+                .Include(o => o.Payments)
                 .OrderByDescending(o => o.OrderDate);
 
             var totalCount = await query.CountAsync();

@@ -254,13 +254,25 @@ namespace PRN222_Restaurant.Pages
                 }
             }
 
+            // Calculate deposit amount for pre-order (20% of total)
+            decimal paymentAmount = finalAmount;
+            string paymentDescription = $"Payment for reservation #{order.Id}";
+            string paymentType = "Full";
+
+            if (order.OrderType == "PreOrder")
+            {
+                paymentAmount = finalAmount * 0.2m; // 20% deposit
+                paymentDescription = $"Deposit payment (20%) for reservation #{order.Id}";
+                paymentType = "Deposit";
+            }
+
             // Create payment information
             PaymentInfo = new PaymentInformation
             {
                 OrderId = order.Id.ToString(),
-                Amount = finalAmount,
-                OrderDescription = $"Payment for reservation #{order.Id}",
-                OrderType = "PreOrder",
+                Amount = paymentAmount,
+                OrderDescription = paymentDescription,
+                OrderType = order.OrderType,
                 Name = User.Identity?.Name ?? "Guest"
             };
 
@@ -291,23 +303,44 @@ namespace PRN222_Restaurant.Pages
                 {
                     if (response.Success)
                     {
+                        // Determine payment type and amount based on order type
+                        decimal paidAmount;
+                        string paymentType;
+                        string orderStatus;
+
+                        if (order.OrderType == "PreOrder")
+                        {
+                            paidAmount = order.TotalPrice * 0.2m; // 20% deposit
+                            paymentType = "Deposit";
+                            orderStatus = "Paid Deposit";
+                        }
+                        else
+                        {
+                            paidAmount = order.TotalPrice; // Full payment
+                            paymentType = "Full";
+                            orderStatus = "Paid";
+                        }
+
                         // Create payment record
                         var payment = new Payment
                         {
                             OrderId = order.Id,
-                            Amount = order.TotalPrice,
+                            Amount = paidAmount,
                             PaymentDate = DateTime.Now,
-                            Status = "Paid"
+                            Status = "Paid",
+                            PaymentType = paymentType,
+                            DepositPercentage = order.OrderType == "PreOrder" ? 0.2m : null
                         };
                         _context.Payments.Add(payment);
+
                         // Update order status
-                        order.Status = "Paid";
+                        order.Status = orderStatus;
                         await _context.SaveChangesAsync();
 
-                        // Award points for successful payment
-                        if (order.UserId.HasValue)
+                        // Award points only for full payment, not deposit
+                        if (order.UserId.HasValue && paymentType == "Full")
                         {
-                            await _pointsService.AwardPointsAsync(order.UserId.Value, order.Id, payment.Amount);
+                            await _pointsService.AwardPointsAsync(order.UserId.Value, order.Id, order.TotalPrice, "Order payment");
 
                             // Check and award welcome bonus for new users
                             if (await _pointsService.IsEligibleForWelcomeBonusAsync(order.UserId.Value))

@@ -5,19 +5,19 @@ public class PointsConfig
     public static string ConfigName => "Points";
     
     /// <summary>
-    /// Points earned per dollar spent (e.g., 0.05 = 5% of order value)
+    /// Points earned per VND spent (e.g., 0.00002 = 1 point per 50,000 VND)
     /// </summary>
-    public decimal PointsPerDollar { get; set; } = 0.05m; // 5% of order value
+    public decimal PointsPerVND { get; set; } = 0.00002m; // 1 point per 50,000 VND spent
 
     /// <summary>
-    /// Minimum order amount to earn points
+    /// Minimum order amount to earn points (in VND)
     /// </summary>
-    public decimal MinimumOrderAmount { get; set; } = 10;
+    public decimal MinimumOrderAmount { get; set; } = 100000; // 100,000 VND
 
     /// <summary>
-    /// Value of each point in dollars (e.g., 1 point = $1)
+    /// Value of each point in VND (e.g., 1 point = 5,000 VND)
     /// </summary>
-    public decimal PointValue { get; set; } = 1.0m; // 1 point = $1
+    public decimal PointValue { get; set; } = 5000m; // 1 point = 5,000 VND
 
     /// <summary>
     /// Minimum points required for redemption
@@ -27,7 +27,7 @@ public class PointsConfig
     /// <summary>
     /// Maximum percentage of order that can be paid with points
     /// </summary>
-    public decimal MaxPointsUsagePercentage { get; set; } = 1.0m; // 100% - can pay entire order
+    public decimal MaxPointsUsagePercentage { get; set; } = 0.3m; // 30% - maximum 30% discount
 
     /// <summary>
     /// Points expiration in days (0 = never expire)
@@ -35,7 +35,7 @@ public class PointsConfig
     public int PointsExpirationDays { get; set; } = 0; // Never expire
 
     /// <summary>
-    /// Bonus points for first order (worth $5)
+    /// Bonus points for first order (worth 50,000 VND)
     /// </summary>
-    public int WelcomeBonusPoints { get; set; } = 5; // $5 welcome bonus
+    public int WelcomeBonusPoints { get; set; } = 5; // 5 points = 50,000 VND welcome bonus
 }

@@ -1,7 +1,7 @@
 @page "/menu"
 @model PRN222_Restaurant.Pages.MenuModel
 @{
-    ViewData["Title"] = "Our Menu";
+    ViewData["Title"] = "Thực đơn";
 }
 
 <!-- Hero Section -->
@@ -11,13 +11,13 @@
         <div class="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900/80"></div>
     </div>
     <div class="container mx-auto px-4 relative z-10 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Our Menu</h1>
-        <p class="text-xl text-slate-200 max-w-3xl mx-auto">Explore our selection of fresh seafood dishes</p>
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Thực đơn của chúng tôi</h1>
+        <p class="text-xl text-slate-200 max-w-3xl mx-auto">Khám phá những món hải sản tươi ngon của chúng tôi</p>
     </div>
 </section>
 
 <!-- Filter Form -->
-<section class="bg-white py-8 sticky top-0 z-30 shadow-md">
+<section class="bg-base-100 py-8 sticky top-0 z-30 shadow-md border-b border-base-300">
     <div class="container mx-auto px-4">
         <form method="get" class="flex flex-col md:flex-row gap-4 items-center">
             <select name="CategoryId" class="select select-bordered">
@@ -46,25 +46,25 @@
 </section>
 
 <!-- Menu Items -->
-<section class="py-12 bg-slate-50">
+<section class="py-12 bg-base-200">
     <div class="container mx-auto px-4">
         @if (Model.MenuItems.Count == 0)
         {
-            <div class="text-center text-gray-500 py-8 text-lg font-semibold">Không tìm thấy kết quả phù hợp</div>
+            <div class="text-center text-base-content/60 py-8 text-lg font-semibold">Không tìm thấy kết quả phù hợp</div>
         }
         else
         {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach (var item in Model.MenuItems)
                 {
-                    <div class="card bg-base-100 shadow-xl">
+                    <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300">
                         <figure class="h-48"><img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" /></figure>
                         <div class="card-body">
-                            <h3 class="card-title text-xl">@item.Name</h3>
-                            <p class="text-slate-600">@item.Description</p>
+                            <h3 class="card-title text-xl text-base-content">@item.Name</h3>
+                            <p class="text-base-content/70">@item.Description</p>
                             <div class="flex justify-between items-center mt-4">
-                                <span class="text-xl font-bold">@item.Price.ToString("N0") VNĐ</span>
-                                <span class="badge text-base font-semibold px-4 py-1 @(item.Status == Models.MenuItemStatus.Available ? "badge-success" : "badge-error text-white")">
+                                <span class="text-xl font-bold text-primary">@item.Price.ToString("N0") VNĐ</span>
+                                <span class="badge text-base font-semibold px-4 py-1 @(item.Status == Models.MenuItemStatus.Available ? "badge-success" : "badge-error")">
                                     @(item.Status == Models.MenuItemStatus.Available ? "Còn món" : "Hết món")
                                 </span>
                             </div>

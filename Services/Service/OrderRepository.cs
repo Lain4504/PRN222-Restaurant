@@ -22,6 +22,7 @@ namespace PRN222_Restaurant.Services.Service
                     .ThenInclude(i => i.MenuItem)
                 .Include(o => o.Table)
                 .Include(o => o.User)
+                .Include(o => o.Payments)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
@@ -43,6 +44,7 @@ namespace PRN222_Restaurant.Services.Service
                     .ThenInclude(i => i.MenuItem)
                 .Include(o => o.Table)
                 .Include(o => o.User)
+                .Include(o => o.Payments)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
         }
@@ -54,6 +56,7 @@ namespace PRN222_Restaurant.Services.Service
                     .ThenInclude(i => i.MenuItem)
                 .Include(o => o.Table)
                 .Include(o => o.User)
+                .Include(o => o.Payments)
                 .OrderByDescending(o => o.OrderDate);
 
             // Count total items before applying pagination

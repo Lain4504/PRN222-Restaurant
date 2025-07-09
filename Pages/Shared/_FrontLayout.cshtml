@@ -24,11 +24,11 @@
     }
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Ocean Delights</title>
+    <title>@ViewData["Title"] - Nhà Hàng Hải Sản</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <style>
@@ -78,6 +78,153 @@
             right: 0;
             left: auto;
         }
+
+        /* Theme toggle styles */
+        .theme-light-icon, .theme-dark-icon {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        /* Theme-aware color overrides for customer pages */
+        .text-slate-600 {
+            color: oklch(var(--bc) / 0.7) !important;
+        }
+
+        .text-slate-800 {
+            color: oklch(var(--bc)) !important;
+        }
+
+        .text-gray-500 {
+            color: oklch(var(--bc) / 0.6) !important;
+        }
+
+        .text-gray-600 {
+            color: oklch(var(--bc) / 0.7) !important;
+        }
+
+        .text-gray-700 {
+            color: oklch(var(--bc) / 0.8) !important;
+        }
+
+        .text-gray-800 {
+            color: oklch(var(--bc)) !important;
+        }
+
+        .bg-white {
+            background-color: oklch(var(--b1)) !important;
+        }
+
+        .bg-slate-50 {
+            background-color: oklch(var(--b2)) !important;
+        }
+
+        .bg-slate-100 {
+            background-color: oklch(var(--b2)) !important;
+        }
+
+        .bg-gray-50 {
+            background-color: oklch(var(--b2)) !important;
+        }
+
+        .bg-gray-100 {
+            background-color: oklch(var(--b2)) !important;
+        }
+
+        .border-gray-200 {
+            border-color: oklch(var(--b3)) !important;
+        }
+
+        .border-gray-300 {
+            border-color: oklch(var(--b3)) !important;
+        }
+
+        /* Additional color overrides for checkout and other pages */
+        .text-gray-800 {
+            color: oklch(var(--bc)) !important;
+        }
+
+        .bg-gray-50 {
+            background-color: oklch(var(--b2)) !important;
+        }
+
+        .bg-blue-50 {
+            background-color: oklch(var(--p) / 0.1) !important;
+        }
+
+        .bg-blue-100 {
+            background-color: oklch(var(--p) / 0.15) !important;
+        }
+
+        .text-blue-800 {
+            color: oklch(var(--p)) !important;
+        }
+
+        .from-blue-50 {
+            --tw-gradient-from: oklch(var(--b2)) !important;
+        }
+
+        .to-indigo-100 {
+            --tw-gradient-to: oklch(var(--b3)) !important;
+        }
+
+        /* Hover states */
+        .hover\\:bg-gray-50:hover {
+            background-color: oklch(var(--b2)) !important;
+        }
+
+        .hover\\:text-blue-600:hover {
+            color: oklch(var(--p)) !important;
+        }
+
+        .hover\\:bg-blue-50:hover {
+            background-color: oklch(var(--p) / 0.1) !important;
+        }
+
+        /* Additional overrides for specific elements */
+        .text-purple-600 {
+            color: oklch(var(--s)) !important;
+        }
+
+        .text-green-600 {
+            color: oklch(var(--su)) !important;
+        }
+
+        .bg-purple-600 {
+            background-color: oklch(var(--s)) !important;
+        }
+
+        .hover\\:bg-purple-700:hover {
+            background-color: oklch(var(--s) / 0.8) !important;
+        }
+
+        .text-red-600 {
+            color: oklch(var(--er)) !important;
+        }
+
+        .hover\\:text-red-700:hover {
+            color: oklch(var(--er) / 0.8) !important;
+        }
+
+        .hover\\:bg-red-50:hover {
+            background-color: oklch(var(--er) / 0.1) !important;
+        }
+
+        /* Gradient overrides */
+        .from-blue-600 {
+            --tw-gradient-from: oklch(var(--p)) !important;
+        }
+
+        .to-indigo-600 {
+            --tw-gradient-to: oklch(var(--p)) !important;
+        }
+
+        /* Section backgrounds */
+        section.bg-white {
+            background-color: oklch(var(--b1)) !important;
+        }
+
+        section.bg-slate-50 {
+            background-color: oklch(var(--b2)) !important;
+        }
     </style>
     <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true"/>
     <base href="~/" />
@@ -94,30 +241,30 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
                     </svg>
-                    Ocean Delights
+                    Nhà Hàng Hải Sản
                 </a>
             </div>
-            
+
             <!-- Desktop Menu -->
             <div class="hidden md:flex items-center w-full">
                 <ul class="menu menu-horizontal px-1 flex-grow">
-                    <li><a href="/" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Home</a></li>
-                    <li><a href="/menu" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Menu" ? "active" : "")">Menu</a></li>
-                    <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Reservations</a></li>
-                    <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">About Us</a></li>
-                    <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Contact</a></li>
+                    <li><a href="/" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Trang chủ</a></li>
+                    <li><a href="/menu" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Menu" ? "active" : "")">Thực đơn</a></li>
+                    <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Đặt bàn</a></li>
+                    <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">Về chúng tôi</a></li>
+                    <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Liên hệ</a></li>
                 </ul>
                 @if (User.Identity.IsAuthenticated)
                 {
                     <div class="flex items-center space-x-4">
                         <!-- Points Display -->
-                        <a href="/points-history" class="flex items-center bg-white border-2 border-gray-300 px-3 py-1 rounded-full text-sm font-bold shadow-md hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer" title="View Points History">
-                            <span class="text-black">@userPoints Point</span>
+                        <a href="/points-history" class="flex items-center bg-white border-2 border-gray-300 px-3 py-1 rounded-full text-sm font-bold shadow-md hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer" title="Xem lịch sử điểm">
+                            <span class="text-black">@userPoints Điểm</span>
                         </a>
                         <!-- Notification Component -->
                         @(await Html.RenderComponentAsync<PRN222_Restaurant.Components.NotificationDropdown>(RenderMode.Server))
                         <!-- Customer Chat Button -->
-                        <a href="/Chat" class="btn btn-ghost btn-circle relative" title="Chat Support">
+                        <a href="/Chat" class="btn btn-ghost btn-circle relative" title="Hỗ trợ chat">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
@@ -127,6 +274,16 @@
                             </span>
                         </a>
 
+                        <!-- Dark Mode Toggle -->
+                        <button id="theme-toggle" class="btn btn-ghost btn-circle" title="Chuyển đổi chế độ">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 theme-light-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 theme-dark-icon hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                        </button>
+
                         <!-- Avatar -->
                         <div class="dropdown dropdown-end">
                             <label tabindex="0" class="btn btn-ghost btn-circle avatar">
@@ -134,11 +291,11 @@
                                     <img src="@(User.FindFirst("avatar_url")?.Value ?? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/2048px-User_icon_2.svg.png")" alt="User Avatar" />
                                 </div>
                             </label>
-                            <div tabindex="0" class="mt-3 p-0 shadow-lg dropdown-content bg-white rounded-lg w-64 border border-gray-200 z-50">
+                            <div tabindex="0" class="mt-3 p-0 shadow-lg dropdown-content bg-base-100 rounded-lg w-64 border border-base-300 z-50">
                                 <!-- Menu Items -->
                                 <ul class="menu p-3 space-y-1">
                                     <li>
-                                        <a href="/profile" class="flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50">
+                                        <a href="/profile" class="flex items-center space-x-3 text-base-content hover:text-primary hover:bg-primary/10">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
@@ -146,7 +303,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="/order-list" class="flex items-center space-x-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50">
+                                        <a href="/order-list" class="flex items-center space-x-3 text-base-content hover:text-primary hover:bg-primary/10">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                             </svg>
@@ -154,8 +311,8 @@
                                         </a>
                                     </li>
 
-                                    <li class="border-t border-gray-200 pt-2 mt-2">
-                                        <a href="/admin/logout" class="flex items-center space-x-3 text-red-600 hover:text-red-700 hover:bg-red-50">
+                                    <li class="border-t border-base-300 pt-2 mt-2">
+                                        <a href="/admin/logout" class="flex items-center space-x-3 text-error hover:text-error hover:bg-error/10">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                             </svg>
@@ -170,16 +327,25 @@
                 else
                 {
                     <div class="flex items-center space-x-4">
+                        <!-- Dark Mode Toggle for non-authenticated users -->
+                        <button id="theme-toggle-guest" class="btn btn-ghost btn-circle" title="Chuyển đổi chế độ">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 theme-light-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 theme-dark-icon hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                        </button>
                         <!-- Points Display for non-authenticated users -->
-                        <a href="/login" class="flex items-center bg-white border-2 border-gray-300 px-3 py-1 rounded-full text-sm font-bold shadow-md hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer" title="Login to earn points">
-                            <span class="text-black">0 Point</span>
+                        <a href="/login" class="flex items-center bg-white border-2 border-gray-300 px-3 py-1 rounded-full text-sm font-bold shadow-md hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer" title="Đăng nhập để tích điểm">
+                            <span class="text-black">0 Điểm</span>
                         </a>
-                        <a href="/login" class="btn btn-primary btn-sm">Login</a>
+                        <a href="/login" class="btn btn-primary btn-sm">Đăng nhập</a>
                     </div>
                 }
             </div>
 
-            
+
             <!-- Mobile Menu Button -->
             <div class="flex-none md:hidden">
                 <button class="btn btn-square btn-ghost" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
@@ -188,19 +354,19 @@
                     </svg>
                 </button>
             </div>
-            
-           
+
+
         </div>
     </nav>
-    
+
     <!-- Mobile Menu (Hidden by default) -->
     <div id="mobile-menu" class="fixed top-16 left-0 right-0 z-40 bg-base-100 shadow-lg rounded-b-lg p-4 hidden">
         <ul class="menu w-full">
-            <li><a href="/" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Home</a></li>
-            <li><a href="/menu" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Menu" ? "active" : "")">Menu</a></li>
-            <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Reservations</a></li>
-            <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">About Us</a></li>
-            <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Contact</a></li>
+            <li><a href="/" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Trang chủ</a></li>
+            <li><a href="/menu" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Menu" ? "active" : "")">Thực đơn</a></li>
+            <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Đặt bàn</a></li>
+            <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">Về chúng tôi</a></li>
+            <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Liên hệ</a></li>
         </ul>
     </div>
 
@@ -219,10 +385,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
                         </svg>
-                        Ocean Delights
+                        Nhà Hàng Hải Sản
                     </h2>
                     <p class="text-slate-400 mb-4">
-                        Bringing the freshest seafood from the ocean to your table since 2010.
+                        Mang đến những món hải sản tươi ngon nhất từ đại dương đến bàn ăn của bạn từ năm 2010.
                     </p>
                     <div class="flex space-x-4">
                         <a href="#" class="text-slate-400 hover:text-white">
@@ -242,28 +408,28 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <!-- Quick Links -->
                 <div class="md:col-span-1">
-                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <h3 class="text-lg font-bold mb-4">Liên kết nhanh</h3>
                     <ul class="space-y-2">
-                        <li><a href="/" class="text-slate-400 hover:text-white">Home</a></li>
-                        <li><a href="/menu" class="text-slate-400 hover:text-white">Menu</a></li>
-                        <li><a href="/reservation" class="text-slate-400 hover:text-white">Reservations</a></li>
-                        <li><a href="/about" class="text-slate-400 hover:text-white">About Us</a></li>
-                        <li><a href="/contact" class="text-slate-400 hover:text-white">Contact</a></li>
+                        <li><a href="/" class="text-slate-400 hover:text-white">Trang chủ</a></li>
+                        <li><a href="/menu" class="text-slate-400 hover:text-white">Thực đơn</a></li>
+                        <li><a href="/reservation" class="text-slate-400 hover:text-white">Đặt bàn</a></li>
+                        <li><a href="/about" class="text-slate-400 hover:text-white">Về chúng tôi</a></li>
+                        <li><a href="/contact" class="text-slate-400 hover:text-white">Liên hệ</a></li>
                     </ul>
                 </div>
-                
+
                 <!-- Contact Info -->
                 <div class="md:col-span-1">
-                    <h3 class="text-lg font-bold mb-4">Contact Us</h3>
+                    <h3 class="text-lg font-bold mb-4">Liên hệ</h3>
                     <ul class="space-y-2">
                         <li class="flex items-start">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
                             </svg>
-                            <span class="text-slate-400">123 Seaside Avenue, Coastal City</span>
+                            <span class="text-slate-400">123 Đường Bờ Biển, Thành phố Ven Biển</span>
                         </li>
                         <li class="flex items-start">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
@@ -276,34 +442,34 @@
                                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                             </svg>
-                            <span class="text-slate-400">info@oceandelights.com</span>
+                            <span class="text-slate-400">info@nhahanghaissan.com</span>
                         </li>
                     </ul>
                 </div>
-                
+
                 <!-- Hours -->
                 <div class="md:col-span-1">
-                    <h3 class="text-lg font-bold mb-4">Hours</h3>
+                    <h3 class="text-lg font-bold mb-4">Giờ mở cửa</h3>
                     <ul class="space-y-2">
                         <li class="flex justify-between">
-                            <span class="text-slate-400">Monday - Thursday</span>
-                            <span class="text-slate-400">11:00 AM - 10:00 PM</span>
+                            <span class="text-slate-400">Thứ 2 - Thứ 5</span>
+                            <span class="text-slate-400">11:00 - 22:00</span>
                         </li>
                         <li class="flex justify-between">
-                            <span class="text-slate-400">Friday - Saturday</span>
-                            <span class="text-slate-400">11:00 AM - 11:00 PM</span>
+                            <span class="text-slate-400">Thứ 6 - Thứ 7</span>
+                            <span class="text-slate-400">11:00 - 23:00</span>
                         </li>
                         <li class="flex justify-between">
-                            <span class="text-slate-400">Sunday</span>
-                            <span class="text-slate-400">12:00 PM - 9:00 PM</span>
+                            <span class="text-slate-400">Chủ nhật</span>
+                            <span class="text-slate-400">12:00 - 21:00</span>
                         </li>
                     </ul>
                 </div>
             </div>
-            
+
             <div class="border-t border-slate-800 mt-12 pt-8">
                 <p class="text-center text-slate-400">
-                    © 2023 Ocean Delights. All rights reserved.
+                    © 2023 Nhà Hàng Hải Sản. Tất cả quyền được bảo lưu.
                 </p>
             </div>
         </div>
@@ -318,7 +484,72 @@
     <!-- SignalR Script -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
 
-    <!-- Simple Chat Navigation - No complex JavaScript needed -->
+    <!-- Theme Toggle Script -->
+    <script>
+        // Theme toggle function for customer layout
+        function initCustomerThemeToggle() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeToggleGuestBtn = document.getElementById('theme-toggle-guest');
+            const htmlElement = document.documentElement;
+
+            // Get all theme icons
+            const lightIcons = document.querySelectorAll('.theme-light-icon');
+            const darkIcons = document.querySelectorAll('.theme-dark-icon');
+
+            // Check for saved theme preference or use system preference
+            const savedTheme = localStorage.getItem('theme');
+
+            // Set initial theme
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+                updateThemeIcons(savedTheme);
+            } else {
+                // Default to light theme
+                htmlElement.setAttribute('data-theme', 'light');
+                updateThemeIcons('light');
+            }
+
+            // Theme toggle click handlers
+            function handleThemeToggle() {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+
+                updateThemeIcons(newTheme);
+
+                // Show toast notification if available
+                if (typeof showToast === 'function') {
+                    showToast(`Đã chuyển sang chế độ ${newTheme === 'dark' ? 'tối' : 'sáng'}`, 'info', 1500);
+                }
+            }
+
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', handleThemeToggle);
+            }
+
+            if (themeToggleGuestBtn) {
+                themeToggleGuestBtn.addEventListener('click', handleThemeToggle);
+            }
+
+            // Helper function to update icons
+            function updateThemeIcons(theme) {
+                if (theme === 'dark') {
+                    lightIcons.forEach(icon => icon.classList.add('hidden'));
+                    darkIcons.forEach(icon => icon.classList.remove('hidden'));
+                } else {
+                    lightIcons.forEach(icon => icon.classList.remove('hidden'));
+                    darkIcons.forEach(icon => icon.classList.add('hidden'));
+                }
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initCustomerThemeToggle();
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

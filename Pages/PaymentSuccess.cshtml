@@ -1,7 +1,7 @@
 @page "/payment-success"
 @model PRN222_Restaurant.Pages.PaymentSuccessModel
 @{
-    ViewData["Title"] = "Payment Successful";
+    ViewData["Title"] = "Thanh toán thành công";
 }
 
 <section class="py-16 bg-white">
@@ -16,10 +16,31 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h1 class="text-3xl font-bold mb-2 text-center">Payment Successful!</h1>
+                        <h1 class="text-3xl font-bold mb-2 text-center">Thanh toán thành công!</h1>
                         <p class="text-center text-gray-600 mb-2">
-                            Thank you for your payment. Your reservation has been confirmed.
+                            Cảm ơn bạn đã thanh toán cọc 20%. Đặt bàn của bạn đã được xác nhận.
                         </p>
+                        <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <h4 class="font-bold text-yellow-800 mb-2">💰 Thông tin thanh toán</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="text-yellow-700">Đã thanh toán (Cọc 20%):</p>
+                                    <p class="font-bold text-yellow-800">@((Model.TotalAmount * 0.2m).ToString("N0")) VNĐ</p>
+                                </div>
+                                <div>
+                                    <p class="text-yellow-700">Còn lại thanh toán tại quầy:</p>
+                                    <p class="font-bold text-red-600">@((Model.TotalAmount * 0.8m).ToString("N0")) VNĐ</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                                <p class="text-xs text-blue-700">
+                                    <strong>Tổng đơn hàng:</strong> @Model.TotalAmount.ToString("N0") VNĐ
+                                </p>
+                            </div>
+                            <p class="text-xs text-yellow-600 mt-2">
+                                ⚠️ Vui lòng thanh toán phần còn lại khi đến nhà hàng
+                            </p>
+                        </div>
                         @if (TempData["TransactionId"] != null)
                         {
                             <p class="text-center text-gray-500">
@@ -90,15 +111,15 @@
                                             <tr>
                                                 <td>@item.Name</td>
                                                 <td class="text-right">@item.Quantity</td>
-                                                <td class="text-right">$@item.Price.ToString("F2")</td>
-                                                <td class="text-right">$@item.Subtotal.ToString("F2")</td>
+                                                <td class="text-right">@item.Price.ToString("N0") VNĐ</td>
+                                                <td class="text-right">@item.Subtotal.ToString("N0") VNĐ</td>
                                             </tr>
                                         }
                                     </tbody>
                                     <tfoot>
                                         <tr>
                                             <td colspan="3" class="text-right font-bold">Total:</td>
-                                            <td class="text-right font-bold">$@Model.TotalAmount.ToString("F2")</td>
+                                            <td class="text-right font-bold">@Model.TotalAmount.ToString("N0") VNĐ</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -118,14 +139,14 @@
                             </h2>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="text-center">
-                                    <p class="text-sm text-gray-600 mb-2">Points from this order</p>
+                                    <p class="text-sm text-gray-600 mb-2">Điểm từ đơn hàng này</p>
                                     <p class="text-3xl font-bold text-purple-600">+@Model.PointsEarned</p>
-                                    <p class="text-sm text-gray-500">Worth @((Model.PointsEarned * 1.0m).ToString("C"))</p>
+                                    <p class="text-sm text-gray-500">Trị giá @((Model.PointsEarned * 5000m).ToString("N0")) VNĐ</p>
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-sm text-gray-600 mb-2">Total points balance</p>
+                                    <p class="text-sm text-gray-600 mb-2">Tổng số điểm hiện có</p>
                                     <p class="text-3xl font-bold text-green-600">@Model.TotalPoints</p>
-                                    <p class="text-sm text-gray-500">Worth @((Model.TotalPoints * 1.0m).ToString("C"))</p>
+                                    <p class="text-sm text-gray-500">Trị giá @((Model.TotalPoints * 5000m).ToString("N0")) VNĐ</p>
                                 </div>
                             </div>
                             <div class="text-center mt-4">
@@ -152,8 +173,8 @@
                     
                     <!-- Actions -->
                     <div class="flex flex-col md:flex-row gap-4 justify-center mt-8">
-                        <a href="/" class="btn btn-outline flex-1">Return to Homepage</a>
-                        <a href="/menu" class="btn btn-primary flex-1">Browse Our Menu</a>
+                        <a href="/" class="btn btn-outline flex-1">Về trang chủ</a>
+                        <a href="/menu" class="btn btn-primary flex-1">Xem thực đơn</a>
                     </div>
                 </div>
             </div>
