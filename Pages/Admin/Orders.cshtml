@@ -60,13 +60,15 @@
                                 <td>@(order.ReservationTime.HasValue ? order.ReservationTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
                                 <td>@order.TotalPrice.ToString("N0") đ</td>
                                 <td>
-                                    <span class="badge 
-                                           @(order.Status == "Pending" ? "badge-warning" : 
-                                              order.Status == "Preparing" ? "badge-info" : 
-                                              order.Status == "Served" ? "badge-success" : 
-                                              order.Status == "Completed" ? "badge-success" : 
+                                    <span class="badge
+                                           @(order.Status == "Pending" ? "badge-warning" :
+                                              order.Status == "Preparing" ? "badge-info" :
+                                              order.Status == "Served" ? "badge-success" :
+                                              order.Status == "Completed" ? "badge-success" :
+                                              order.Status == "Paid" ? "badge-primary" :
+                                              order.Status == "Paid Deposit" ? "badge-accent" :
                                               order.Status == "Cancelled" ? "badge-error" : "")">
-                                        @order.Status
+                                        @(order.Status == "Paid Deposit" ? "Đã cọc" : order.Status)
                                     </span>
                                 </td>
                                 <td>
@@ -93,6 +95,17 @@
                                                     Đánh dấu hoàn thành
                                                 </a>
                                             </li>
+                                            @if (order.Status == "Paid Deposit" || order.Status == "Served")
+                                            {
+                                                <li>
+                                                    <a href="#" data-id="@order.Id" class="complete-order text-success">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        Hoàn thành & Thanh toán
+                                                    </a>
+                                                </li>
+                                            }
                                             <li>
                                                 <a href="#" data-id="@order.Id" data-status="Cancelled" class="update-status">
                                                     Đánh dấu đã hủy
@@ -390,6 +403,39 @@
                         });
                 });
             });
+
+            // Xử lý nút hoàn thành order
+            document.querySelectorAll('.complete-order').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const orderId = this.getAttribute('data-id');
+
+                    if (confirm('Xác nhận hoàn thành order này? Điều này sẽ tự động tính toán và ghi nhận thanh toán phần còn lại.')) {
+                        // Create form and submit
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/admin/orders?handler=CompleteOrder';
+
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'id';
+                        input.value = orderId;
+                        form.appendChild(input);
+
+                        // Add anti-forgery token
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        tokenInput.value = token;
+                        form.appendChild(tokenInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+
             // Click vào dòng order để chuyển sang trang chi tiết
             document.querySelectorAll('.order-row').forEach(function(row) {
                 row.addEventListener('click', function(e) {

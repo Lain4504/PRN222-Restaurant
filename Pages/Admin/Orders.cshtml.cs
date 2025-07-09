@@ -113,6 +113,62 @@ namespace PRN222_Restaurant.Pages.Admin
             return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
         }
 
+        public async Task<IActionResult> OnPostCompleteOrderAsync(int id)
+        {
+            var order = await _orderService.GetOrderByIdAsync(id);
+            if (order == null)
+            {
+                StatusMessage = "Order not found.";
+                return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+            }
+
+            // Check if this is a pre-order with deposit payment
+            var existingPayment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.OrderId == id && p.PaymentType == "Deposit");
+
+            if (existingPayment != null && order.OrderType == "PreOrder")
+            {
+                // Create final payment record for remaining amount
+                var remainingAmount = order.TotalPrice - existingPayment.Amount;
+                var finalPayment = new Payment
+                {
+                    OrderId = order.Id,
+                    Amount = remainingAmount,
+                    PaymentDate = DateTime.Now,
+                    Status = "Paid",
+                    PaymentType = "Final",
+                    Method = "Cash" // Assuming cash payment at restaurant
+                };
+                _context.Payments.Add(finalPayment);
+            }
+
+            // Update order status to completed
+            var success = await _orderService.UpdateOrderStatusAsync(id, "Completed");
+
+            if (success)
+            {
+                // Update table status to available
+                if (order.TableId.HasValue)
+                {
+                    await _tableService.ChangeStatusAsync(order.TableId.Value, "Available");
+                }
+
+                // Create notification for order completion
+                if (order.UserId.HasValue)
+                {
+                    await _notificationHelper.NotifyOrderCompletedAsync(order.UserId.Value, order.Id);
+                }
+
+                StatusMessage = $"Order #{id} has been completed successfully.";
+            }
+            else
+            {
+                StatusMessage = $"Error: Failed to complete order #{id}";
+            }
+
+            return Redirect($"/admin/orders?currentPage={CurrentPage}&pageSize={PageSize}");
+        }
+
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
             var success = await _orderService.CancelOrderAsync(id);

@@ -73,12 +73,53 @@
                 }
             </div>
 
+            <!-- Points Section (if user is authenticated) -->
+            @if (User.Identity.IsAuthenticated && Model.UserPoints > 0)
+            {
+                <div class="bg-base-100 p-6 rounded-lg shadow-md mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Use Your Points</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Available Points: <span class="font-bold text-primary">@Model.UserPoints</span></p>
+                            <p class="text-sm text-gray-600">Max Usable: <span class="font-bold">@Model.MaxUsablePoints</span> points</p>
+                        </div>
+                        <div>
+                            <form method="post" class="flex items-center gap-2">
+                                <input type="number"
+                                       name="PointsToUse"
+                                       value="@Model.PointsToUse"
+                                       min="0"
+                                       max="@Model.MaxUsablePoints"
+                                       class="input input-bordered input-sm w-24"
+                                       placeholder="0"
+                                       onchange="updatePointsDisplay(this.value)" />
+                                <span class="text-sm">points</span>
+                            </form>
+                        </div>
+                    </div>
+                    @if (Model.PointsToUse > 0)
+                    {
+                        <div class="mt-4 p-3 bg-success/10 rounded-lg">
+                            <p class="text-sm">Using <span id="selectedPoints">@Model.PointsToUse</span> points for <span id="pointsDiscount">$@Model.PointsDiscount.ToString("F2")</span> discount</p>
+                        </div>
+                    }
+                </div>
+            }
+
             <!-- Order Summary -->
             <div class="bg-primary text-primary-content p-6 rounded-lg shadow-md mb-8">
                 <div class="flex justify-between items-center">
                     <div>
                         <h3 class="text-lg font-semibold">Total Items: @Model.TotalItems</h3>
-                        <h3 class="text-2xl font-bold">Total: $@Model.TotalPrice.ToString("F2")</h3>
+                        <h3 class="text-xl font-bold">Subtotal: $@Model.TotalPrice.ToString("F2")</h3>
+                        @if (Model.PointsDiscount > 0)
+                        {
+                            <p class="text-sm opacity-90">Points Discount: -$@Model.PointsDiscount.ToString("F2")</p>
+                        }
+                        <h3 class="text-2xl font-bold border-t border-primary-content/20 pt-2 mt-2">
+                            Final Total: $<span id="finalAmount">@Model.FinalTotal.ToString("F2")</span>
+                        </h3>
+                        <p class="text-sm opacity-75 mt-1">Deposit Required (20%): $@((Model.FinalTotal * 0.2m).ToString("F2"))</p>
                     </div>
                     <div class="flex gap-4">
                         <a href="/reservation" class="btn btn-outline btn-lg">
@@ -86,7 +127,7 @@
                         </a>
                         <form method="post" class="contents">
                             <button type="submit" class="btn btn-secondary btn-lg" @(Model.TotalItems == 0 ? "disabled" : "")>
-                                Proceed to Confirmation
+                                Pay Deposit Now
                             </button>
                         </form>
                     </div>
@@ -103,3 +144,31 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        // Points calculation functionality
+        function updatePointsDisplay(points) {
+            const pointValue = 1.0; // $1 per point
+            const orderTotal = @Model.TotalPrice;
+
+            // Update selected points display
+            document.getElementById('selectedPoints').textContent = points;
+
+            // Calculate discount
+            const discount = points * pointValue;
+            document.getElementById('pointsDiscount').textContent = '$' + discount.toFixed(2);
+
+            // Calculate and update final amount
+            const finalAmount = Math.max(0, orderTotal - discount);
+            document.getElementById('finalAmount').textContent = '$' + finalAmount.toFixed(2);
+        }
+
+        // Initialize points display on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const pointsInput = document.querySelector('input[name="PointsToUse"]');
+            if (pointsInput && pointsInput.value > 0) {
+                updatePointsDisplay(pointsInput.value);
+            }
+        });
+    </script>
+}
