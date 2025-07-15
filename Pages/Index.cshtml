@@ -73,68 +73,26 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Dish 1 -->
-            <div class="card bg-base-100 shadow-xl">
-                <figure class="h-64">
-                    <img src="https://images.unsplash.com/photo-1559737558-2f5a35f4523b?q=80&w=1974"
-                         alt="Tôm hùm nướng"
-                         class="w-full h-full object-cover" />
-                </figure>
-                <div class="card-body">
-                    <h3 class="card-title text-xl">Tôm hùm Maine nướng</h3>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="badge badge-primary">Đặc sản đầu bếp</div>
-                        <div class="badge badge-outline">Không gluten</div>
-                    </div>
-                    <p class="text-slate-600">Tôm hùm mềm nướng hoàn hảo, phục vụ với bơ tan và thảo mộc tươi</p>
-                    <div class="flex justify-between items-center mt-4">
-                        <span class="text-xl font-bold text-primary">1.050.000 VNĐ</span>
-                        <a href="/menu" class="btn btn-sm btn-primary">Đặt ngay</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dish 2 -->
-            <div class="card bg-base-100 shadow-xl">
-                <figure class="h-64">
-                    <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=2070"
-                         alt="Cơm hải sản Paella"
-                         class="w-full h-full object-cover" />
-                </figure>
-                <div class="card-body">
-                    <h3 class="card-title text-xl">Cơm hải sản Paella</h3>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="badge badge-secondary">Phổ biến</div>
-                        <div class="badge badge-outline">Cho 2 người</div>
-                    </div>
-                    <p class="text-slate-600">Cơm thấm nghệ tây với trai, sò, tôm và mực, rắc thảo mộc tươi</p>
-                    <div class="flex justify-between items-center mt-4">
-                        <span class="text-xl font-bold text-primary">950.000 VNĐ</span>
-                        <a href="/menu" class="btn btn-sm btn-primary">Đặt ngay</a>
+            @foreach (var dish in Model.FeaturedDishes)
+            {
+                <div class="card bg-base-100 shadow-xl">
+                    <figure class="h-64">
+                        <img src="@dish.ImageUrl"
+                             alt="@dish.Name"
+                             class="w-full h-full object-cover" />
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title text-xl">@dish.Name</h3>
+                        <p class="text-slate-600">@dish.Description</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-xl font-bold text-primary">
+                                @string.Format("{0:N0} VNĐ", dish.Price)
+                            </span>
+                            <a href="/menu" class="btn btn-sm btn-primary">Đặt ngay</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Dish 3 -->
-            <div class="card bg-base-100 shadow-xl">
-                <figure class="h-64">
-                    <img src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=2070"
-                         alt="Sò điệp áp chảo"
-                         class="w-full h-full object-cover" />
-                </figure>
-                <div class="card-body">
-                    <h3 class="card-title text-xl">Sò điệp biển áp chảo</h3>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="badge badge-accent">Mới</div>
-                        <div class="badge badge-outline">Keto thân thiện</div>
-                    </div>
-                    <p class="text-slate-600">Sò điệp jumbo áp chảo đến độ vàng hoàn hảo, phục vụ với purée súp lơ và rau mầm</p>
-                    <div class="flex justify-between items-center mt-4">
-                        <span class="text-xl font-bold text-primary">900.000 VNĐ</span>
-                        <a href="/menu" class="btn btn-sm btn-primary">Đặt ngay</a>
-                    </div>
-                </div>
-            </div>
+            }
         </div>
 
         <div class="text-center mt-12">
