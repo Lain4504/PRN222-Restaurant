@@ -6,6 +6,16 @@
 }
 
 <style>
+    /* Chat container styling */
+    .chat-container {
+        max-height: calc(100vh - 4rem);
+        min-height: 600px;
+        background: oklch(var(--b1));
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border: 1px solid oklch(var(--b3));
+    }
+
     /* Force input text to be visible */
     #messageInput {
         color: #1f2937 !important;
@@ -22,78 +32,98 @@
         color: #9ca3af !important;
         opacity: 1 !important;
     }
+
+    /* Message bubbles max width */
+    .message-bubble {
+        max-width: 70%;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .chat-container {
+            min-height: calc(100vh - 4rem);
+            border-radius: 0;
+            margin: 0 -1rem;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+        }
+    }
 </style>
 
 @* Anti-forgery token for AJAX requests *@
 @Html.AntiForgeryToken()
 
-<div class="container-fluid h-screen flex flex-col">
-    <div class="bg-white shadow-sm border-b p-4">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-900">Customer Support</h1>
-                    <p class="text-sm text-gray-500" id="connectionStatus">Connecting...</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <span class="text-sm text-gray-500" id="onlineStatus"></span>
-                <div class="w-3 h-3 bg-green-500 rounded-full" id="onlineIndicator" style="display: none;"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Chat Messages Area -->
-        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messagesContainer">
-            <div class="text-center text-gray-500 py-8">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <p>Welcome to customer support! How can we help you today?</p>
-            </div>
-        </div>
-
-        <!-- Typing Indicator -->
-        <div class="px-4 py-2" id="typingIndicator" style="display: none;">
-            <div class="flex items-center space-x-2 text-gray-500">
-                <div class="flex space-x-1">
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
-                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
-                </div>
-                <span class="text-sm">Support is typing...</span>
-            </div>
-        </div>
-
-        <!-- Message Input Area -->
-        <div class="border-t bg-gray-50 p-4">
-            <div class="flex items-end space-x-3">
-                <div class="flex-1">
-                    <div class="relative">
-                        <input type="text"
-                               id="messageInput"
-                               placeholder="Type your message..."
-                               class="w-full px-4 py-3 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 shadow-sm transition-all duration-200 hover:border-gray-300"
-                               style="color: #1f2937 !important; font-weight: 500 !important;"
-                               maxlength="1000">
+<div class="max-w-4xl mx-auto h-screen flex flex-col px-4 py-4">
+    <div class="chat-container flex flex-col overflow-hidden">
+        <div class="bg-base-100 border-b border-base-300 p-4 rounded-t-lg">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-content" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-semibold text-base-content">Hỗ trợ khách hàng</h1>
+                        <p class="text-sm text-base-content/70" id="connectionStatus">Đang kết nối...</p>
                     </div>
                 </div>
-                <button id="sendButton"
-                        class="flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg disabled:hover:shadow-md"
-                        disabled>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                </button>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-base-content/70" id="onlineStatus"></span>
+                    <div class="w-3 h-3 bg-success rounded-full" id="onlineIndicator" style="display: none;"></div>
+                </div>
             </div>
-            <div class="mt-2 text-xs text-gray-500 px-1">
-                Press Enter to send • Shift+Enter for new line
+        </div>
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Chat Messages Area -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-base-50" id="messagesContainer">
+                <div class="text-center text-base-content/60 py-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <p>Chào mừng bạn đến với hỗ trợ khách hàng! Chúng tôi có thể giúp gì cho bạn hôm nay?</p>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="px-4 py-2 bg-base-50" id="typingIndicator" style="display: none;">
+                <div class="flex items-center space-x-2 text-base-content/60">
+                    <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-base-content/40 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-base-content/40 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                        <div class="w-2 h-2 bg-base-content/40 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                    </div>
+                    <span class="text-sm">Nhân viên hỗ trợ đang nhập...</span>
+                </div>
+            </div>
+
+            <!-- Message Input Area -->
+            <div class="border-t border-base-300 bg-base-100 p-4 rounded-b-lg">
+                <div class="flex items-end space-x-3">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <input type="text"
+                                   id="messageInput"
+                                   placeholder="Nhập tin nhắn của bạn..."
+                                   class="input input-bordered w-full bg-base-100 focus:border-primary focus:outline-none"
+                                   style="color: #1f2937 !important; font-weight: 500 !important;"
+                                   maxlength="1000">
+                        </div>
+                    </div>
+                    <button id="sendButton"
+                            class="btn btn-primary btn-circle disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="mt-2 text-xs text-base-content/60 px-1">
+                    Nhấn Enter để gửi • Shift+Enter để xuống dòng
+                </div>
             </div>
         </div>
     </div>
@@ -101,17 +131,17 @@
 
 <!-- Connection Status Modal -->
 <div id="connectionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-    <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+    <div class="bg-base-100 rounded-lg p-6 max-w-sm mx-4 shadow-xl">
         <div class="text-center">
-            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="w-16 h-16 bg-error/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Connection Lost</h3>
-            <p class="text-gray-600 mb-4">We're trying to reconnect you to the chat...</p>
+            <h3 class="text-lg font-semibold text-base-content mb-2">Mất kết nối</h3>
+            <p class="text-base-content/70 mb-4">Chúng tôi đang cố gắng kết nối lại chat...</p>
             <div class="flex justify-center">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <div class="loading loading-spinner loading-md text-primary"></div>
             </div>
         </div>
     </div>
@@ -316,7 +346,7 @@
 
                 if (isSystemMessage) {
                     messageDiv.innerHTML = `
-                        <div class="text-center text-gray-500 text-sm py-2">
+                        <div class="text-center text-base-content/60 text-sm py-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -338,10 +368,10 @@
                                     <span class="text-xs font-bold text-white">${this.getInitials(senderName)}</span>
                                 </div>
                             </div>
-                            <div class="flex flex-col ${marginClass} max-w-xs lg:max-w-md">
+                            <div class="flex flex-col ${marginClass} message-bubble">
                                 <div class="mb-1 ${textAlign}">
-                                    <span class="text-sm font-medium text-gray-700">${senderName}</span>
-                                    <time class="text-xs text-gray-500 ml-2">${this.formatTime(message.sentAt)}</time>
+                                    <span class="text-sm font-medium text-base-content">${senderName}</span>
+                                    <time class="text-xs text-base-content/60 ml-2">${this.formatTime(message.sentAt)}</time>
                                 </div>
                                 <div class="px-4 py-2 rounded-lg shadow-sm" style="background-color: ${bubbleBg}; color: white;">
                                     ${this.escapeHtml(message.content)}
@@ -383,15 +413,15 @@
                 document.getElementById('connectionStatus').textContent = status;
                 const indicator = document.getElementById('onlineIndicator');
                 const statusText = document.getElementById('onlineStatus');
-                
+
                 if (isConnected) {
                     indicator.style.display = 'block';
-                    indicator.className = 'w-3 h-3 bg-green-500 rounded-full';
-                    statusText.textContent = 'Online';
+                    indicator.className = 'w-3 h-3 bg-success rounded-full';
+                    statusText.textContent = 'Trực tuyến';
                 } else {
                     indicator.style.display = 'block';
-                    indicator.className = 'w-3 h-3 bg-red-500 rounded-full';
-                    statusText.textContent = 'Offline';
+                    indicator.className = 'w-3 h-3 bg-error rounded-full';
+                    statusText.textContent = 'Ngoại tuyến';
                 }
             }
 

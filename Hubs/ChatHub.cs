@@ -7,11 +7,13 @@ namespace PRN222_Restaurant.Hubs
     public class ChatHub : Hub
     {
         private readonly IChatService _chatService;
+        private readonly IUserService _userService;
         private readonly ILogger<ChatHub> _logger;
 
-        public ChatHub(IChatService chatService, ILogger<ChatHub> logger)
+        public ChatHub(IChatService chatService, IUserService userService, ILogger<ChatHub> logger)
         {
             _chatService = chatService;
+            _userService = userService;
             _logger = logger;
         }
 
@@ -154,29 +156,36 @@ namespace PRN222_Restaurant.Hubs
                 }
 
                 var chatMessage = await _chatService.SendMessageAsync(chatRoomId, userId.Value, message.Trim());
-                
+
+                // Get sender information
+                var sender = await _userService.GetUserByIdAsync(userId.Value);
+                var senderName = sender?.FullName ?? sender?.Email ?? "Unknown";
+
                 // Send message to all users in the chat room
                 await Clients.Group($"ChatRoom_{chatRoomId}").SendAsync("ReceiveMessage", new
                 {
                     Id = chatMessage.Id,
                     ChatRoomId = chatMessage.ChatRoomId,
                     SenderId = chatMessage.SenderId,
-                    SenderName = chatMessage.Sender?.FullName ?? "Unknown",
+                    SenderName = senderName,
                     Content = chatMessage.Content,
-                    SentAt = chatMessage.SentAt,
+                    SentAt = chatMessage.SentAt.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                     MessageType = chatMessage.MessageType
                 });
 
-                // Notify staff if customer sends message and no staff assigned
+                // Notify staff about new messages
                 var chatRoom = await _chatService.GetChatRoomByIdAsync(chatRoomId);
-                if (chatRoom != null && chatRoom.StaffId == null && chatRoom.CustomerId == userId.Value)
+                if (chatRoom != null)
                 {
+                    // Notify all staff members about new messages (both from customers and other staff)
                     await Clients.Group("Staff").SendAsync("NewCustomerMessage", new
                     {
                         ChatRoomId = chatRoomId,
                         CustomerName = chatRoom.Customer?.FullName ?? "Unknown Customer",
                         Message = message.Trim(),
-                        SentAt = chatMessage.SentAt
+                        SentAt = chatMessage.SentAt,
+                        SenderId = userId.Value,
+                        SenderName = senderName
                     });
                 }
 

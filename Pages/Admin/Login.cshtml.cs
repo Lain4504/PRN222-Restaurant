@@ -132,7 +132,7 @@ namespace PRN222_Restaurant.Pages.Admin
                 case "Customer":
                     return RedirectToPage("/Index");
                 default:
-                    return RedirectToPage("/Index");
+                    return RedirectToPage("/admin/users");
             }
         }
 

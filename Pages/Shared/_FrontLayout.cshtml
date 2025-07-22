@@ -79,6 +79,19 @@
             left: auto;
         }
 
+        /* Mobile dropdown positioning */
+        @@media (max-width: 768px) {
+            .dropdown-content {
+                max-width: calc(100vw - 2rem);
+                width: min(320px, calc(100vw - 2rem));
+            }
+
+            .dropdown-end .dropdown-content {
+                right: 0;
+                left: auto;
+            }
+        }
+
         /* Theme toggle styles */
         .theme-light-icon, .theme-dark-icon {
             transition: opacity 0.2s ease-in-out;
@@ -235,8 +248,9 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar bg-base-100 fixed top-0 z-50 shadow-md">
-        <div class="container mx-auto">
-            <div class="flex-1">
+        <div class="container mx-auto flex justify-between items-center">
+            <!-- Logo -->
+            <div class="flex-shrink-0">
                 <a href="/" class="text-xl font-bold flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
@@ -246,14 +260,15 @@
             </div>
 
             <!-- Desktop Menu -->
-            <div class="hidden md:flex items-center w-full">
-                <ul class="menu menu-horizontal px-1 flex-grow">
+            <div class="hidden md:flex items-center justify-between flex-1">
+                <ul class="menu menu-horizontal px-1">
                     <li><a href="/" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")">Trang chủ</a></li>
                     <li><a href="/menu" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Menu" ? "active" : "")">Thực đơn</a></li>
                     <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Đặt bàn</a></li>
                     <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">Về chúng tôi</a></li>
                     <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Liên hệ</a></li>
                 </ul>
+
                 @if (User.Identity.IsAuthenticated)
                 {
                     <div class="flex items-center space-x-4">
@@ -310,7 +325,6 @@
                                             <span>Đơn hàng của tôi</span>
                                         </a>
                                     </li>
-
                                     <li class="border-t border-base-300 pt-2 mt-2">
                                         <a href="/admin/logout" class="flex items-center space-x-3 text-error hover:text-error hover:bg-error/10">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -342,10 +356,77 @@
                 }
             </div>
 
+            <!-- Mobile Controls (Right Side) -->
+            <div class="flex items-center space-x-1 md:hidden ml-auto">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <!-- Points Display (Mobile) -->
+                    <a href="/points-history" class="flex items-center bg-white border-2 border-gray-300 px-2 py-1 rounded-full text-xs font-bold shadow-md hover:bg-gray-50 hover:border-gray-400 transition-colors cursor-pointer" title="Xem lịch sử điểm">
+                        <span class="text-black">@userPoints</span>
+                    </a>
 
-            <!-- Mobile Menu Button -->
-            <div class="flex-none md:hidden">
-                <button class="btn btn-square btn-ghost" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                    <!-- Notification Component (Mobile) -->
+                    <div class="scale-90">
+                        @(await Html.RenderComponentAsync<PRN222_Restaurant.Components.NotificationDropdown>(RenderMode.Server))
+                    </div>
+
+                    <!-- Customer Chat Button (Mobile) -->
+                    <a href="/Chat" class="btn btn-ghost btn-circle btn-sm relative" title="Hỗ trợ chat">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <!-- Unread message badge -->
+                        <span id="customerChatBadgeMobile" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center hidden">
+                            <span id="customerChatCountMobile">0</span>
+                        </span>
+                    </a>
+
+                    <!-- Avatar (Mobile) -->
+                    <div class="dropdown dropdown-end">
+                        <label tabindex="0" class="btn btn-ghost btn-circle btn-sm avatar">
+                            <div class="w-8 rounded-full">
+                                <img src="@(User.FindFirst("avatar_url")?.Value ?? "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/2048px-User_icon_2.svg.png")" alt="User Avatar" />
+                            </div>
+                        </label>
+                        <div tabindex="0" class="mt-3 p-0 shadow-lg dropdown-content bg-base-100 rounded-lg w-64 border border-base-300 z-50">
+                            <!-- Menu Items -->
+                            <ul class="menu p-3 space-y-1">
+                                <li>
+                                    <a href="/profile" class="flex items-center space-x-3 text-base-content hover:text-primary hover:bg-primary/10">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <span>Tài khoản</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="/order-list" class="flex items-center space-x-3 text-base-content hover:text-primary hover:bg-primary/10">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                        </svg>
+                                        <span>Đơn hàng của tôi</span>
+                                    </a>
+                                </li>
+                                <li class="border-t border-base-300 pt-2 mt-2">
+                                    <a href="/admin/logout" class="flex items-center space-x-3 text-error hover:text-error hover:bg-error/10">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                        <span>Đăng xuất</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- Mobile Login Button -->
+                    <a href="/login" class="btn btn-primary btn-sm">Đăng nhập</a>
+                }
+
+                <!-- Mobile Menu Button -->
+                <button class="btn btn-square btn-ghost btn-sm" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
@@ -364,6 +445,37 @@
             <li><a href="/reservation" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Reservation" ? "active" : "")">Đặt bàn</a></li>
             <li><a href="/about" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/About" ? "active" : "")">Về chúng tôi</a></li>
             <li><a href="/contact" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Contact" ? "active" : "")">Liên hệ</a></li>
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="divider"></div>
+                <li><a href="/Chat" class="flex items-center space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <span>Hỗ trợ chat</span>
+                </a></li>
+                <li><a href="/points-history" class="flex items-center space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                    <span>Lịch sử điểm (@userPoints điểm)</span>
+                </a></li>
+            }
+
+            <div class="divider"></div>
+            <!-- Dark Mode Toggle for Mobile -->
+            <li>
+                <button id="theme-toggle-mobile" class="flex items-center space-x-3" title="Chuyển đổi chế độ">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 theme-light-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 theme-dark-icon hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <span>Chuyển đổi chế độ</span>
+                </button>
+            </li>
         </ul>
     </div>
 
@@ -487,6 +599,7 @@
         function initCustomerThemeToggle() {
             const themeToggleBtn = document.getElementById('theme-toggle');
             const themeToggleGuestBtn = document.getElementById('theme-toggle-guest');
+            const themeToggleMobileBtn = document.getElementById('theme-toggle-mobile');
             const htmlElement = document.documentElement;
 
             // Get all theme icons
@@ -528,6 +641,10 @@
 
             if (themeToggleGuestBtn) {
                 themeToggleGuestBtn.addEventListener('click', handleThemeToggle);
+            }
+
+            if (themeToggleMobileBtn) {
+                themeToggleMobileBtn.addEventListener('click', handleThemeToggle);
             }
 
             // Helper function to update icons

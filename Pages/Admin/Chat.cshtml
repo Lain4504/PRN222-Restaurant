@@ -96,6 +96,7 @@
             this.currentCustomer = null;
             this.adminId = @Model.UserId;
             this.customers = [];
+            this.messagePollingInterval = null;
 
             console.log('=== ADMIN CHAT INIT ===');
             console.log('Admin ID set to:', this.adminId, typeof this.adminId);
@@ -108,6 +109,7 @@
             await this.setupSignalR();
             await this.loadCustomerConversations();
             this.setupEventListeners();
+            this.startPeriodicRefresh();
         }
 
         async setupSignalR() {
@@ -116,8 +118,20 @@
                 .build();
 
             this.connection.on("ReceiveMessage", (message) => {
+                console.log("=== RECEIVED MESSAGE EVENT ===");
+                console.log("Raw message received:", message);
+                console.log("Current chat room ID:", this.currentChatRoomId);
+
+                // Always try to display the message first
                 this.displayMessage(message);
+
+                // Update customer last message
                 this.updateCustomerLastMessage(message);
+
+                // Refresh customer list to show updated last message
+                this.loadCustomerConversations();
+
+                console.log("=== END RECEIVED MESSAGE EVENT ===");
             });
 
             this.connection.on("UserOnline", (userId) => {
@@ -130,6 +144,22 @@
 
             this.connection.on("JoinedChatRoom", (chatRoomId) => {
                 console.log("Joined chat room:", chatRoomId);
+            });
+
+            this.connection.on("NewCustomerMessage", (data) => {
+                console.log("=== NEW CUSTOMER MESSAGE NOTIFICATION ===");
+                console.log("Notification data:", data);
+                console.log("Current chat room:", this.currentChatRoomId);
+
+                // If we're currently viewing this chat room, reload messages
+                if (this.currentChatRoomId && parseInt(data.ChatRoomId) === parseInt(this.currentChatRoomId)) {
+                    console.log("Reloading messages for current chat room");
+                    this.loadMessages(this.currentChatRoomId);
+                }
+
+                // Refresh customer list to show new message
+                this.loadCustomerConversations();
+                console.log("=== END NEW CUSTOMER MESSAGE NOTIFICATION ===");
             });
 
             this.connection.on("Error", (error) => {
@@ -209,30 +239,49 @@
 
         async selectCustomer(chatRoomId) {
             try {
+                console.log("=== SELECT CUSTOMER ===");
+                console.log("Selecting customer with chatRoomId:", chatRoomId, typeof chatRoomId);
+
                 // Find customer data
                 const customer = this.customers.find(c => c.chatRoomId === chatRoomId);
-                if (!customer) return;
+                if (!customer) {
+                    console.error("Customer not found for chatRoomId:", chatRoomId);
+                    return;
+                }
 
                 // Leave current chat room if any
                 if (this.currentChatRoomId) {
+                    console.log("Leaving current chat room:", this.currentChatRoomId);
                     await this.connection.invoke("LeaveChatRoom", this.currentChatRoomId);
+                    // Stop polling for the previous chat room
+                    this.stopMessagePolling();
                 }
 
                 // Join new chat room
+                console.log("Joining new chat room:", chatRoomId);
                 await this.connection.invoke("JoinChatRoom", chatRoomId);
-                
-                this.currentChatRoomId = chatRoomId;
+
+                // Set current chat room ID (ensure it's a number)
+                this.currentChatRoomId = parseInt(chatRoomId);
                 this.currentCustomer = customer;
+
+                console.log("Current chat room ID set to:", this.currentChatRoomId, typeof this.currentChatRoomId);
 
                 // Update UI
                 this.showChatInterface(customer);
                 this.highlightSelectedCustomer(chatRoomId);
-                
+
                 // Load messages
+                console.log("Loading messages for chat room:", chatRoomId);
                 await this.loadMessages(chatRoomId);
-                
+
                 // Mark messages as read
                 await this.markMessagesAsRead(chatRoomId);
+
+                // Start checking for new messages in this chat room
+                this.startMessagePolling();
+
+                console.log("=== END SELECT CUSTOMER ===");
 
             } catch (error) {
                 console.error("Error selecting customer:", error);
@@ -270,25 +319,41 @@
 
         async loadMessages(chatRoomId) {
             try {
+                console.log("=== LOAD MESSAGES ===");
+                console.log("Loading messages for chat room:", chatRoomId);
+
                 const response = await fetch(`/Admin/Chat?handler=GetMessages&chatRoomId=${chatRoomId}`, {
                     method: 'GET'
                 });
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log("Loaded messages:", data.messages);
                     this.displayMessages(data.messages || []);
                 } else {
-                    console.error("Failed to load messages");
+                    console.error("Failed to load messages, status:", response.status);
                 }
+                console.log("=== END LOAD MESSAGES ===");
             } catch (error) {
                 console.error("Error loading messages:", error);
             }
         }
 
         displayMessages(messages) {
+            console.log("=== DISPLAY MESSAGES ===");
+            console.log("Displaying", messages.length, "messages");
+
             const container = document.getElementById('messagesContainer');
-            container.innerHTML = messages.map(message => this.createMessageHTML(message)).join('');
-            this.scrollToBottom();
+            if (container) {
+                const messagesHTML = messages.map(message => this.createMessageHTML(message)).join('');
+                console.log("Generated HTML for", messages.length, "messages");
+                container.innerHTML = messagesHTML;
+                this.scrollToBottom();
+                console.log("Messages displayed successfully");
+            } else {
+                console.error("Messages container not found!");
+            }
+            console.log("=== END DISPLAY MESSAGES ===");
         }
 
         createMessageHTML(message) {
@@ -324,22 +389,55 @@
         }
 
         displayMessage(message) {
-            if (message.chatRoomId !== this.currentChatRoomId) return;
-            
+            console.log("=== DISPLAY MESSAGE ===");
+            console.log("Message:", message);
+            console.log("Message ChatRoomId:", message.chatRoomId, typeof message.chatRoomId);
+            console.log("Current ChatRoomId:", this.currentChatRoomId, typeof this.currentChatRoomId);
+
+            // Convert to numbers for proper comparison
+            const messageChatRoomId = parseInt(message.chatRoomId);
+            const currentChatRoomId = parseInt(this.currentChatRoomId);
+
+            console.log("Parsed Message ChatRoomId:", messageChatRoomId);
+            console.log("Parsed Current ChatRoomId:", currentChatRoomId);
+            console.log("Are they equal?", messageChatRoomId === currentChatRoomId);
+
+            if (messageChatRoomId !== currentChatRoomId) {
+                console.log("Message not for current chat room, skipping display");
+                return;
+            }
+
+            console.log("Displaying message in chat container");
             const container = document.getElementById('messagesContainer');
-            container.insertAdjacentHTML('beforeend', this.createMessageHTML(message));
-            this.scrollToBottom();
+            if (container) {
+                const messageHTML = this.createMessageHTML(message);
+                console.log("Generated message HTML:", messageHTML);
+                container.insertAdjacentHTML('beforeend', messageHTML);
+                this.scrollToBottom();
+                console.log("Message displayed successfully");
+            } else {
+                console.error("Messages container not found!");
+            }
+            console.log("=== END DISPLAY MESSAGE ===");
         }
 
         async sendMessage() {
             const messageText = document.getElementById('messageText');
             const content = messageText.value.trim();
-            
+
             if (!content || !this.currentChatRoomId) return;
 
             try {
+                console.log("Sending message:", content, "to chat room:", this.currentChatRoomId);
                 await this.connection.invoke("SendMessage", this.currentChatRoomId, content);
                 messageText.value = '';
+
+                // Force refresh messages after sending to ensure it appears
+                setTimeout(async () => {
+                    await this.loadMessages(this.currentChatRoomId);
+                    await this.loadCustomerConversations(); // Also refresh customer list
+                }, 200);
+
             } catch (error) {
                 console.error("Error sending message:", error);
                 this.showError("Failed to send message");
@@ -383,14 +481,24 @@
         }
 
         updateCustomerLastMessage(message) {
-            const customer = this.customers.find(c => c.chatRoomId === message.chatRoomId);
+            console.log("Updating customer last message:", message);
+            const customer = this.customers.find(c => parseInt(c.chatRoomId) === parseInt(message.chatRoomId));
             if (customer) {
                 customer.lastMessage = message.content;
                 customer.lastMessageAt = message.sentAt;
-                if (message.chatRoomId !== this.currentChatRoomId) {
+
+                // Only increment unread count if message is not for current chat room
+                const messageChatRoomId = parseInt(message.chatRoomId);
+                const currentChatRoomId = parseInt(this.currentChatRoomId);
+
+                if (messageChatRoomId !== currentChatRoomId) {
                     customer.unreadCount = (customer.unreadCount || 0) + 1;
                 }
+
+                // Re-render customer list to show updated info
                 this.renderCustomerList();
+            } else {
+                console.log("Customer not found for chat room:", message.chatRoomId);
             }
         }
 
@@ -458,6 +566,42 @@
         showError(message) {
             // You can implement a toast notification here
             console.error(message);
+        }
+
+        startPeriodicRefresh() {
+            // Refresh customer list every 30 seconds to catch any missed updates
+            setInterval(async () => {
+                try {
+                    await this.loadCustomerConversations();
+                } catch (error) {
+                    console.error("Error during periodic refresh:", error);
+                }
+            }, 30000);
+        }
+
+        startMessagePolling() {
+            // Stop any existing polling
+            this.stopMessagePolling();
+
+            // Poll for new messages every 3 seconds when viewing a chat
+            this.messagePollingInterval = setInterval(async () => {
+                if (this.currentChatRoomId) {
+                    try {
+                        console.log("Polling for new messages in chat room:", this.currentChatRoomId);
+                        await this.loadMessages(this.currentChatRoomId);
+                    } catch (error) {
+                        console.error("Error during message polling:", error);
+                    }
+                }
+            }, 3000);
+        }
+
+        stopMessagePolling() {
+            if (this.messagePollingInterval) {
+                clearInterval(this.messagePollingInterval);
+                this.messagePollingInterval = null;
+                console.log("Message polling stopped");
+            }
         }
     }
 

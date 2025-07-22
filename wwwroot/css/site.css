@@ -77,11 +77,17 @@
 }
 
 /* Responsive dropdown */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .dropdown-content {
     min-width: 260px;
-    max-width: 280px;
-    right: -10px;
+    max-width: calc(100vw - 2rem);
+    width: min(320px, calc(100vw - 2rem));
+  }
+
+  /* Ensure dropdown-end stays properly positioned */
+  .dropdown-end .dropdown-content {
+    right: 0;
+    left: auto;
   }
 }
 

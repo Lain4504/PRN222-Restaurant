@@ -5,9 +5,9 @@ public class PointsConfig
     public static string ConfigName => "Points";
     
     /// <summary>
-    /// Points earned per VND spent (e.g., 0.00002 = 1 point per 50,000 VND)
+    /// Points earned per VND spent (e.g., 0.00001 = 1 point per 100,000 VND)
     /// </summary>
-    public decimal PointsPerVND { get; set; } = 0.00002m; // 1 point per 50,000 VND spent
+    public decimal PointsPerVND { get; set; } = 0.00001m; // 1 point per 100,000 VND spent
 
     /// <summary>
     /// Minimum order amount to earn points (in VND)
