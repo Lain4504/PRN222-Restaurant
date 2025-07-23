@@ -22,7 +22,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddHttpContextAccessor();
@@ -169,7 +168,6 @@ app.UseStatusCodePagesWithRedirects("/");
 // Map endpoints
 app.MapRazorPages();
 app.MapBlazorHub();
-app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 app.MapFallbackToPage("/blazor/{*clientPath}", "/Blazor/_Host");
 app.UseHangfireDashboard();

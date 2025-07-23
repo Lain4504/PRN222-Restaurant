@@ -41,6 +41,7 @@
                             <th>Ngày đặt</th>
                             <th>Thời gian đặt bàn</th>
                             <th>Tổng tiền</th>
+                            <th>Points</th>
                             <th>Thanh toán</th>
                             <th>Trạng thái</th>
                             <th>Thao tác</th>
@@ -60,7 +61,31 @@
                                 <td>@(order.Table != null ? $"Bàn {order.Table.TableNumber}" : "N/A")</td>
                                 <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>@(order.ReservationTime.HasValue ? order.ReservationTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
-                                <td>@order.TotalPrice.ToString("N0") VNĐ</td>
+                                <td>
+                                    @if (order.PointsUsed.HasValue && order.PointsUsed.Value > 0)
+                                    {
+                                        var pointsDiscount = order.PointsUsed.Value * 5000; // 1 point = 5,000 VND
+                                        var originalPrice = order.TotalPrice + pointsDiscount;
+                                        <div class="text-xs text-gray-500 line-through">@originalPrice.ToString("N0") VNĐ</div>
+                                        <div class="font-medium text-green-600">@order.TotalPrice.ToString("N0") VNĐ</div>
+                                        <div class="text-xs text-blue-500">-@pointsDiscount.ToString("N0") VNĐ (Points)</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="font-medium">@order.TotalPrice.ToString("N0") VNĐ</div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (order.PointsUsed.HasValue && order.PointsUsed.Value > 0)
+                                    {
+                                        <span class="badge badge-info">@order.PointsUsed.Value points</span>
+                                        <div class="text-xs text-gray-500">-@((order.PointsUsed.Value * 5000).ToString("N0")) VNĐ</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400">Không sử dụng</span>
+                                    }
+                                </td>
                                 <td>
                                     @{
                                         var payments = order.Payments ?? new List<Payment>();
@@ -346,6 +371,10 @@
                 <h4 class="font-medium text-sm text-gray-500">Ghi chú</h4>
                 <p id="order-note" class="text-lg"></p>
             </div>
+            <div>
+                <h4 class="font-medium text-sm text-gray-500">Points sử dụng</h4>
+                <p id="order-points" class="text-lg"></p>
+            </div>
         </div>
         
         <h4 class="font-medium text-lg mb-2">Danh sách món</h4>
@@ -362,11 +391,8 @@
                 <tbody id="order-items">
                     <!-- Items will be loaded here -->
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" class="text-right font-bold">Tổng cộng:</td>
-                        <td class="font-bold" id="order-total"></td>
-                    </tr>
+                <tfoot id="order-total-section">
+                    <!-- Total will be populated by JavaScript -->
                 </tfoot>
             </table>
         </div>
@@ -426,6 +452,15 @@
                             document.getElementById('order-reservation-time').textContent = data.reservationTime ? new Date(data.reservationTime).toLocaleString('vi-VN') : 'N/A';
                             document.getElementById('order-guests').textContent = data.numberOfGuests || 'N/A';
                             document.getElementById('order-note').textContent = data.note || 'N/A';
+
+                            // Display points information
+                            const pointsElement = document.getElementById('order-points');
+                            if (data.pointsUsed && data.pointsUsed > 0) {
+                                const pointsDiscount = data.pointsUsed * 5000;
+                                pointsElement.innerHTML = `<span class="badge badge-info">${data.pointsUsed} points</span> <span class="text-green-600">(-${pointsDiscount.toLocaleString('vi-VN')} VNĐ)</span>`;
+                            } else {
+                                pointsElement.textContent = 'Không sử dụng';
+                            }
                             // Update order items
                             const itemsContainer = document.getElementById('order-items');
                             itemsContainer.innerHTML = '';
@@ -439,7 +474,35 @@
                                 `;
                                 itemsContainer.appendChild(row);
                             });
-                            document.getElementById('order-total').textContent = `${data.totalPrice.toLocaleString('vi-VN')} VNĐ`;
+
+                            // Update total section with points information
+                            const totalSection = document.getElementById('order-total-section');
+                            if (data.pointsUsed && data.pointsUsed > 0) {
+                                const pointsDiscount = data.pointsUsed * 5000;
+                                const originalPrice = data.totalPrice + pointsDiscount;
+                                totalSection.innerHTML = `
+                                    <tr>
+                                        <td colspan="3" class="text-right">Tổng tiền gốc:</td>
+                                        <td class="line-through text-gray-500">${originalPrice.toLocaleString('vi-VN')} VNĐ</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-right text-blue-600">Giảm giá (${data.pointsUsed} points):</td>
+                                        <td class="text-blue-600">-${pointsDiscount.toLocaleString('vi-VN')} VNĐ</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-right font-bold text-green-600">Thành tiền:</td>
+                                        <td class="font-bold text-green-600">${data.totalPrice.toLocaleString('vi-VN')} VNĐ</td>
+                                    </tr>
+                                `;
+                            } else {
+                                totalSection.innerHTML = `
+                                    <tr>
+                                        <td colspan="3" class="text-right font-bold">Tổng cộng:</td>
+                                        <td class="font-bold">${data.totalPrice.toLocaleString('vi-VN')} VNĐ</td>
+                                    </tr>
+                                `;
+                            }
+
                             modal.showModal();
                         });
                 });

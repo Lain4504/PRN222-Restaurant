@@ -97,5 +97,54 @@ namespace PRN222_Restaurant.Pages
                 .Take(3)
                 .ToListAsync();
         }
+
+        // AJAX Handler for Menu Items (alternative endpoint)
+        public async Task<IActionResult> OnGetMenuItemsAsync()
+        {
+            try
+            {
+                var menuItems = await _context.MenuItems
+                    .Where(m => m.Status == MenuItemStatus.Available)
+                    .Include(m => m.Category)
+                    .Select(m => new
+                    {
+                        m.Id,
+                        m.Name,
+                        m.Price,
+                        m.ImageUrl,
+                        m.Description,
+                        Category = m.Category.Name,
+                        CategoryId = m.CategoryId
+                    })
+                    .ToListAsync();
+
+                return new JsonResult(menuItems);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
+            }
+        }
+
+        // AJAX Handler for Categories
+        public async Task<IActionResult> OnGetCategoriesAsync()
+        {
+            try
+            {
+                var categories = await _context.Categories
+                    .Select(c => new
+                    {
+                        c.Id,
+                        c.Name,
+                    })
+                    .ToListAsync();
+
+                return new JsonResult(categories);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
+            }
+        }
     }
 }

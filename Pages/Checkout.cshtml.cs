@@ -34,7 +34,6 @@ namespace PRN222_Restaurant.Pages
 
         public List<OrderItemViewModel> OrderItems { get; set; } = new List<OrderItemViewModel>();
         public decimal Subtotal { get; set; }
-        public decimal Tax { get; set; }
         public decimal Total { get; set; }
         public int OrderId { get; set; }
 
@@ -45,6 +44,7 @@ namespace PRN222_Restaurant.Pages
         public int PointsToUse { get; set; }
         public decimal PointsDiscount { get; set; }
         public decimal FinalTotal { get; set; }
+        public decimal PointValue { get; set; }
         public async Task<IActionResult> OnGetAsync(int? orderId)
         {
             // If orderId is provided, load that specific order
@@ -179,9 +179,8 @@ namespace PRN222_Restaurant.Pages
                 }
             }
 
-            // Calculate tax and total
-            Tax = Math.Round(Subtotal * 0.1m, 2);
-            Total = Subtotal + Tax;
+            // Total is same as subtotal (no tax)
+            Total = Subtotal;
 
             // Load points information for authenticated users
             if (User.Identity.IsAuthenticated)
@@ -208,7 +207,13 @@ namespace PRN222_Restaurant.Pages
                     FinalTotal = Total - PointsDiscount;
                 }
             }
-            else
+
+            // Get point value from config for JavaScript calculations
+            var pointsConfig = _pointsService.GetPointsConfig();
+            PointValue = pointsConfig.PointValue;
+
+            // Set final total if not authenticated
+            if (!User.Identity.IsAuthenticated)
             {
                 FinalTotal = Total;
             }
@@ -216,6 +221,8 @@ namespace PRN222_Restaurant.Pages
 
         public async Task<IActionResult> OnPostAsync()
         {
+            Console.WriteLine($"OnPostAsync - PointsToUse received: {PointsToUse}");
+
             var orderId = HttpContext.Session.GetInt32("CurrentOrderId");
             if (orderId == null)
             {
@@ -232,38 +239,47 @@ namespace PRN222_Restaurant.Pages
                 return RedirectToPage("/Error");
             }
 
-            // Handle points redemption if applicable
-            decimal finalAmount = order.TotalPrice;
-            if (PointsToUse > 0 && User.Identity.IsAuthenticated)
-            {
-                var userId = GetCurrentUserId();
-                if (userId.HasValue)
-                {
-                    var pointsDiscount = await _pointsService.RedeemPointsAsync(userId.Value, PointsToUse, order.Id, "Points redemption for order");
-                    if (pointsDiscount > 0)
-                    {
-                        finalAmount = Math.Max(0, order.TotalPrice - pointsDiscount);
-                        // Update order total price to reflect discount
-                        order.TotalPrice = finalAmount;
-                        _context.Orders.Update(order);
-                        await _context.SaveChangesAsync();
+            // If PaymentInfo.Amount is provided from form (JavaScript calculated), use it directly
+            decimal paymentAmount;
+            string paymentDescription = $"Deposit payment (20%) for reservation #{order.Id}";
+            string paymentType = "Deposit";
 
-                        // Clear points selection from session after successful redemption
-                        HttpContext.Session.Remove("PointsToUse");
-                    }
+            if (PaymentInfo?.Amount > 0)
+            {
+                // Use the amount calculated by JavaScript (already includes points discount and 20% calculation)
+                paymentAmount = PaymentInfo.Amount;
+                Console.WriteLine($"Using payment amount from form (JavaScript): {paymentAmount}");
+
+                // Store points to use in order for payment callback
+                if (PointsToUse > 0 && User.Identity.IsAuthenticated)
+                {
+                    order.PointsUsed = PointsToUse;
+                    _context.Orders.Update(order);
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine($"Stored points to use in order: {PointsToUse}");
                 }
             }
-
-            // Calculate deposit amount for pre-order (20% of total)
-            decimal paymentAmount = finalAmount;
-            string paymentDescription = $"Payment for reservation #{order.Id}";
-            string paymentType = "Full";
-
-            if (order.OrderType == "PreOrder")
+            else
             {
+                // Fallback: calculate manually
+                await LoadOrderItems(order);
+                decimal finalAmount = Total;
+
+                if (PointsToUse > 0 && User.Identity.IsAuthenticated)
+                {
+                    // Store points to use in order for payment callback
+                    order.PointsUsed = PointsToUse;
+                    _context.Orders.Update(order);
+                    await _context.SaveChangesAsync();
+
+                    // Calculate discount for payment amount calculation only
+                    var pointsDiscount = await _pointsService.CalculatePointsDiscountAsync(PointsToUse);
+                    finalAmount = Math.Max(0, Total - pointsDiscount);
+                    Console.WriteLine($"Calculated final amount with points discount: {finalAmount}");
+                }
+
                 paymentAmount = finalAmount * 0.2m; // 20% deposit
-                paymentDescription = $"Deposit payment (20%) for reservation #{order.Id}";
-                paymentType = "Deposit";
+                Console.WriteLine($"Using calculated payment amount: {paymentAmount}");
             }
 
             // Create payment information
@@ -333,6 +349,28 @@ namespace PRN222_Restaurant.Pages
                         };
                         _context.Payments.Add(payment);
 
+                        // Redeem points if any were selected and stored in order
+                        if (order.PointsUsed.HasValue && order.PointsUsed.Value > 0 && order.UserId.HasValue)
+                        {
+                            var pointsDiscount = await _pointsService.RedeemPointsAsync(order.UserId.Value, order.PointsUsed.Value, order.Id, "Points redemption for order");
+                            Console.WriteLine($"Points redeemed after successful payment: {order.PointsUsed.Value}, Discount: {pointsDiscount}");
+
+                            if (pointsDiscount > 0)
+                            {
+                                // Update order total price to reflect discount
+                                var newTotal = Math.Max(0, order.TotalPrice - pointsDiscount);
+                                order.TotalPrice = newTotal;
+                                _context.Orders.Update(order);
+
+                                // Update payment amount if it was a deposit
+                                if (paymentType == "Deposit")
+                                {
+                                    payment.Amount = newTotal * 0.2m; // Recalculate 20% deposit
+                                    _context.Payments.Update(payment);
+                                }
+                            }
+                        }
+
                         // Update order status
                         order.Status = orderStatus;
                         await _context.SaveChangesAsync();
@@ -357,7 +395,12 @@ namespace PRN222_Restaurant.Pages
                     else
                     {
                         order.Status = "PaymentFailed";
+
+                        // Reset points used on payment failure
+                        order.PointsUsed = null;
+                        _context.Orders.Update(order);
                         await _context.SaveChangesAsync();
+
                         TempData["PaymentSuccess"] = false;
                         TempData["PaymentMessage"] = "Payment failed!";
                         TempData["PaymentError"] = response.VnPayResponseCode;

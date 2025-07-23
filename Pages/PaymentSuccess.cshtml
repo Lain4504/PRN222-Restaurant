@@ -2,9 +2,10 @@
 @model PRN222_Restaurant.Pages.PaymentSuccessModel
 @{
     ViewData["Title"] = "Thanh toán thành công";
+    Layout = "~/Pages/Shared/_FrontLayout.cshtml";
 }
 
-<section class="py-16 bg-white">
+<section class="py-16 bg-base-200 pt-24">
     <div class="container mx-auto px-4">
         <div class="max-w-3xl mx-auto">
             <div class="card bg-base-100 shadow-xl">
@@ -16,8 +17,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h1 class="text-3xl font-bold mb-2 text-center">Thanh toán thành công!</h1>
-                        <p class="text-center text-gray-600 mb-2">
+                        <h1 class="text-3xl font-bold mb-2 text-center text-base-content">Thanh toán thành công!</h1>
+                        <p class="text-center text-base-content/70 mb-2">
                             Cảm ơn bạn đã thanh toán cọc 20%. Đặt bàn của bạn đã được xác nhận.
                         </p>
                         <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -89,7 +90,49 @@
                             <p>Your payment has been processed successfully.</p>
                         }
                     </div>
-                    
+
+                    <!-- Payment Information -->
+                    <div class="bg-success/10 border border-success/20 p-6 rounded-lg mb-8">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center text-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            💰 Thông tin thanh toán
+                        </h2>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-3">
+                                @if (Model.PointsDiscount > 0)
+                                {
+                                    <div class="flex justify-between">
+                                        <span>Tổng đơn hàng gốc:</span>
+                                        <span class="font-medium">@Model.OriginalAmount.ToString("N0") VNĐ</span>
+                                    </div>
+                                    <div class="flex justify-between text-orange-600">
+                                        <span>Giảm giá (@Model.PointsUsed điểm):</span>
+                                        <span class="font-medium">-@Model.PointsDiscount.ToString("N0") VNĐ</span>
+                                    </div>
+                                    <hr class="border-success/20">
+                                }
+                                <div class="flex justify-between text-lg font-bold">
+                                    <span>Tổng đơn hàng:</span>
+                                    <span class="text-success">@Model.TotalAmount.ToString("N0") VNĐ</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span>Đã thanh toán (Cọc 20%):</span>
+                                    <span class="font-bold text-success">@((Model.TotalAmount * 0.2m).ToString("N0")) VNĐ</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Còn lại thanh toán tại quầy:</span>
+                                    <span class="font-medium">@((Model.TotalAmount * 0.8m).ToString("N0")) VNĐ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Pre-Order Items -->
                     @if (Model.OrderItems != null && Model.OrderItems.Any())
                     {
@@ -127,7 +170,7 @@
                         </div>
                     }
 
-                    <!-- Points Earned Section -->
+                    <!-- Points Information Section -->
                     @if (User.Identity.IsAuthenticated && Model.PointsEarned > 0)
                     {
                         <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg mb-8">
@@ -135,18 +178,18 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                                 </svg>
-                                Points Earned!
+                                Thông tin điểm thưởng
                             </h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="text-center">
-                                    <p class="text-sm text-gray-600 mb-2">Điểm từ đơn hàng này</p>
-                                    <p class="text-3xl font-bold text-purple-600">+@Model.PointsEarned</p>
-                                    <p class="text-sm text-gray-500">Trị giá @((Model.PointsEarned * 5000m).ToString("N0")) VNĐ</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-sm text-gray-600 mb-2">Tổng số điểm hiện có</p>
-                                    <p class="text-3xl font-bold text-green-600">@Model.TotalPoints</p>
-                                    <p class="text-sm text-gray-500">Trị giá @((Model.TotalPoints * 5000m).ToString("N0")) VNĐ</p>
+                            <div class="bg-white p-4 rounded-lg border border-purple-200">
+                                <div class="flex items-center justify-center text-center">
+                                    <div class="text-center">
+                                        <p class="text-sm text-gray-600 mb-2">Bạn sẽ được cộng điểm sau khi hoàn tất đơn hàng</p>
+                                        <p class="text-2xl font-bold text-purple-600">+@Model.PointsEarned điểm</p>
+                                        <p class="text-sm text-gray-500">Trị giá @((Model.PointsEarned * 5000m).ToString("N0")) VNĐ</p>
+                                        <p class="text-xs text-orange-600 mt-2 font-medium">
+                                            💡 Điểm sẽ được cộng sau khi nhân viên xác nhận thanh toán đầy đủ tại quầy
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="text-center mt-4">
@@ -154,7 +197,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
-                                    View Points History
+                                    Xem lịch sử điểm
                                 </a>
                             </div>
                         </div>

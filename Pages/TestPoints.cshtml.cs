@@ -23,6 +23,7 @@ namespace PRN222_Restaurant.Pages
         public decimal TestOrderAmount { get; set; } = 1250000m; // Test with 1,250,000 VND order
         public int MaxUsablePoints { get; set; }
         public string DebugInfo { get; set; } = "";
+        public decimal PointValue { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -43,9 +44,11 @@ namespace PRN222_Restaurant.Pages
                 MaxUsablePoints = await _pointsService.GetMaxUsablePointsAsync(userId, TestOrderAmount);
 
                 var config = _pointsService.GetPointsConfig();
+                PointValue = config.PointValue;
                 DebugInfo = $"User ID: {userId}, Current Points: {CurrentPoints}, " +
                            $"Test Order: {TestOrderAmount:N0} VNĐ, Max Usable: {MaxUsablePoints}, " +
-                           $"Point Value: {config.PointValue:N0} VNĐ, Max Usage %: {config.MaxPointsUsagePercentage * 100}%";
+                           $"Point Value: {config.PointValue:N0} VNĐ, Max Usage %: {config.MaxPointsUsagePercentage * 100}%, " +
+                           $"Points Per VND: {config.PointsPerVND}, Min Order: {config.MinimumOrderAmount:N0} VNĐ";
             }
             else
             {

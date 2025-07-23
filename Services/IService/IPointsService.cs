@@ -48,14 +48,15 @@ public interface IPointsService
     /// Award welcome bonus points to new user
     /// </summary>
     Task<bool> AwardWelcomeBonusAsync(int userId);
+
+    /// <summary>
+    /// Get points configuration
+    /// </summary>
+    PointsConfig GetPointsConfig();
     
     /// <summary>
     /// Validate if user has enough points for redemption
     /// </summary>
     Task<bool> ValidatePointsRedemptionAsync(int userId, int pointsToRedeem);
     
-    /// <summary>
-    /// Get points configuration
-    /// </summary>
-    PointsConfig GetPointsConfig();
 }

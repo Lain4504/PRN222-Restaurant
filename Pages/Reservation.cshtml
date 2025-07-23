@@ -201,35 +201,55 @@
                             </div>
 
                             <!-- Menu Items Grid -->
-                            <div id="menuItemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div id="menuItemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 @foreach (var item in Model.MenuItems)
                                 {
-                                    <div class="card bg-base-100 shadow-md menu-item" data-category="@item.CategoryId"
-                                        data-name="@item.Name.ToLower()" data-item-id="@item.Id">
-                                        <figure class="h-36">
-                                            <img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" />
+                                    <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 menu-item"
+                                         data-category="@item.CategoryId" data-name="@item.Name.ToLower()" data-item-id="@item.Id">
+                                        <figure class="h-48 overflow-hidden">
+                                            <img src="@item.ImageUrl" alt="@item.Name"
+                                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                                         </figure>
                                         <div class="card-body p-4">
-                                            <h4 class="card-title text-base item-name">@item.Name</h4>
-                                            <p class="text-primary font-bold item-price">@item.Price.ToString("N0") VNĐ</p>
-                                            <div class="card-actions justify-end">
-                                                <button type="button" class="btn btn-circle btn-sm"
-                                                    onclick="viewMenuItem(@item.Id)">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                        viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            <h4 class="card-title text-lg text-base-content mb-2 item-name">@item.Name</h4>
+
+                                            <!-- Description with expand/collapse -->
+                                            <div class="description-container mb-3">
+                                                <p class="text-base-content/70 text-sm description-text" data-full-text="@item.Description">
+                                                    @(item.Description.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description)
+                                                </p>
+                                                @if (item.Description.Length > 60)
+                                                {
+                                                    <button type="button" class="btn btn-ghost btn-xs text-primary expand-btn mt-1" onclick="toggleReservationDescription(this, '@item.Name')">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                        </svg>
+                                                        Xem thêm
+                                                    </button>
+                                                }
+                                            </div>
+
+                                            <p class="text-primary font-bold text-lg mb-3 item-price">@item.Price.ToString("N0") VNĐ</p>
+
+                                            <div class="card-actions justify-between items-center">
+                                                <button type="button" class="btn btn-ghost btn-sm" onclick="viewMenuItem(@item.Id)" title="Xem chi tiết">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                     </svg>
                                                 </button>
                                                 <div class="flex items-center gap-2">
-                                                    <button type="button" class="btn btn-circle btn-sm"
-                                                        onclick="decrementQuantity(@item.Id)">-</button>
-                                                    <span id="quantity-@item.Id" class="w-6 text-center">0</span>
-                                                    <button type="button" class="btn btn-circle btn-sm"
-                                                        onclick="incrementQuantity(@item.Id)">+</button>
+                                                    <button type="button" class="btn btn-circle btn-sm btn-outline" onclick="decrementQuantity(@item.Id)">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                                        </svg>
+                                                    </button>
+                                                    <span id="quantity-@item.Id" class="w-8 text-center font-bold">0</span>
+                                                    <button type="button" class="btn btn-circle btn-sm btn-primary" onclick="incrementQuantity(@item.Id)">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                        </svg>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -238,13 +258,25 @@
                             </div>
 
                             <!-- Selected Items Summary -->
-                            <div id="selectedItemsSummary" class="mt-6 p-4 bg-base-200 rounded-lg hidden">
-                                <h4 class="font-bold mb-2">Selected Items</h4>
-                                <ul id="selectedItemsList" class="list-disc pl-5 mb-4"></ul>
-                                <div class="text-right">
-                                    <p class="font-bold">Tổng cộng: <span id="totalPrice">0</span> VNĐ</p>
+                            <div id="selectedItemsSummary" class="mt-6 hidden">
+                                <div class="card bg-primary text-primary-content shadow-xl">
+                                    <div class="card-body">
+                                        <h4 class="card-title mb-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                            </svg>
+                                            Món đã chọn
+                                        </h4>
+                                        <div id="selectedItemsList" class="space-y-2 mb-4"></div>
+                                        <div class="border-t border-primary-content/20 pt-4">
+                                            <div class="flex justify-between items-center text-xl font-bold">
+                                                <span>Tổng cộng:</span>
+                                                <span id="totalPrice">0 VNĐ</span>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="selectedItemsJson" name="SelectedItems" />
+                                    </div>
                                 </div>
-                                <input type="hidden" id="selectedItemsJson" name="SelectedItems" />
                             </div>
                         </div>
 
@@ -281,7 +313,7 @@
             <p class="font-bold text-lg">Giá: <span id="modalItemPrice"></span> VNĐ</p>
         </div>
         <div class="modal-action">
-            <button class="btn" onclick="document.getElementById('menuItemModal').close()">Close</button>
+            <button type="button" class="btn" onclick="document.getElementById('menuItemModal').close()">Close</button>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop">
@@ -414,6 +446,10 @@
         }
 
         function viewMenuItem(itemId) {
+            // Prevent event propagation to avoid form submission
+            event.preventDefault();
+            event.stopPropagation();
+
             // Fetch item details from the server (simulated here)
             const menuItems = @Html.Raw(Model.SerializeMenuItems());
             const item = menuItems.find(i => i.id === itemId);
@@ -429,6 +465,10 @@
         }
 
         function incrementQuantity(itemId) {
+            // Prevent event propagation to avoid form submission
+            event.preventDefault();
+            event.stopPropagation();
+
             const quantityElement = document.getElementById(`quantity-${itemId}`);
             const currentQuantity = parseInt(quantityElement.textContent || '0');
             quantityElement.textContent = currentQuantity + 1;
@@ -436,6 +476,10 @@
         }
 
         function decrementQuantity(itemId) {
+            // Prevent event propagation to avoid form submission
+            event.preventDefault();
+            event.stopPropagation();
+
             const quantityElement = document.getElementById(`quantity-${itemId}`);
             const currentQuantity = parseInt(quantityElement.textContent || '0');
             if (currentQuantity > 0) {
@@ -541,15 +585,22 @@
             // Add items to the list
             for (const id in selectedItems) {
                 const item = selectedItems[id];
-                const li = document.createElement('li');
-                li.textContent = `${item.name} x ${item.quantity} - ${(item.price * item.quantity).toLocaleString('vi-VN')} VNĐ`;
-                selectedItemsList.appendChild(li);
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex justify-between items-center p-2 bg-primary-content/10 rounded';
+                itemDiv.innerHTML = `
+                    <div>
+                        <span class="font-semibold">${item.name}</span>
+                        <span class="text-sm opacity-75">x ${item.quantity}</span>
+                    </div>
+                    <span class="font-bold">${(item.price * item.quantity).toLocaleString('vi-VN')} VNĐ</span>
+                `;
+                selectedItemsList.appendChild(itemDiv);
 
                 totalPrice += item.price * item.quantity;
             }
 
             // Update total price
-            totalPriceElement.textContent = totalPrice.toLocaleString('vi-VN');
+            totalPriceElement.textContent = totalPrice.toLocaleString('vi-VN') + ' VNĐ';
 
             // Update hidden input with JSON data
             const selectedItemsData = {};
@@ -559,5 +610,46 @@
             selectedItemsJson.value = JSON.stringify(selectedItemsData);
             console.log('Updated selectedItemsJson.value:', selectedItemsJson.value);
         }
+
+        // Description modal functions
+        function toggleReservationDescription(button, itemName) {
+            // Prevent event propagation to avoid form submission
+            event.preventDefault();
+            event.stopPropagation();
+
+            const container = button.closest('.description-container');
+            const textElement = container.querySelector('.description-text');
+            const fullText = textElement.getAttribute('data-full-text');
+
+            // Show in modal for better UX
+            document.getElementById('reservationModalTitle').textContent = itemName;
+            document.getElementById('reservationModalDescription').textContent = fullText;
+            document.getElementById('reservationDescriptionModal').classList.add('modal-open');
+        }
+
+        function closeReservationDescriptionModal() {
+            document.getElementById('reservationDescriptionModal').classList.remove('modal-open');
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeReservationDescriptionModal();
+            }
+        });
     </script>
+
+    <!-- Description Expand Modal -->
+    <div id="reservationDescriptionModal" class="modal">
+        <div class="modal-box max-w-md">
+            <h3 class="font-bold text-lg mb-4" id="reservationModalTitle">Mô tả món ăn</h3>
+            <div class="max-h-60 overflow-y-auto">
+                <p id="reservationModalDescription" class="text-base-content/80 leading-relaxed"></p>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn btn-primary" onclick="closeReservationDescriptionModal()">Đóng</button>
+            </div>
+        </div>
+        <div class="modal-backdrop" onclick="closeReservationDescriptionModal()"></div>
+    </div>
 }

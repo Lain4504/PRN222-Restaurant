@@ -14,7 +14,7 @@
                 <h2 class="text-xl font-semibold mb-4">Current Status</h2>
                 <p><strong>User ID:</strong> @Model.UserId</p>
                 <p><strong>Current Points:</strong> @Model.CurrentPoints</p>
-                <p><strong>Points Value:</strong> @((Model.CurrentPoints * 5000m).ToString("N0")) VNĐ</p>
+                <p><strong>Points Value:</strong> @((Model.CurrentPoints * Model.PointValue).ToString("N0")) VNĐ</p>
             </div>
 
             <!-- Debug Information -->

@@ -4,6 +4,9 @@
     ViewData["Title"] = "Order Details";
 }
 
+@* Add anti-forgery token for AJAX requests *@
+@Html.AntiForgeryToken()
+
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-6xl mx-auto">
         <h1 class="text-3xl font-bold text-center mb-8">Your Order Details</h1>
@@ -47,18 +50,38 @@
                     <div class="space-y-4">
                         @foreach (var orderItem in Model.CurrentOrder.OrderItems)
                         {
-                            <div class="flex items-center justify-between p-4 border rounded-lg">
-                                <div class="flex items-center space-x-4">
-                                    <img src="@orderItem.MenuItem.ImageUrl" alt="@orderItem.MenuItem.Name" class="w-16 h-16 object-cover rounded" />
-                                    <div>
-                                        <h3 class="font-semibold">@orderItem.MenuItem.Name</h3>
-                                        <p class="text-gray-600">@orderItem.MenuItem.Description</p>
-                                        <p class="text-primary font-bold">@orderItem.UnitPrice.ToString("N0") VNĐ mỗi món</p>
+                            <div class="card bg-base-100 shadow-md border">
+                                <div class="card-body p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4 flex-1">
+                                            <img src="@orderItem.MenuItem.ImageUrl" alt="@orderItem.MenuItem.Name" class="w-16 h-16 object-cover rounded-lg" />
+                                            <div class="flex-1">
+                                                <h3 class="font-semibold text-base-content">@orderItem.MenuItem.Name</h3>
+
+                                                <!-- Description with expand/collapse -->
+                                                <div class="description-container mb-2">
+                                                    <p class="text-base-content/70 text-sm description-text" data-full-text="@orderItem.MenuItem.Description">
+                                                        @(orderItem.MenuItem.Description.Length > 60 ? orderItem.MenuItem.Description.Substring(0, 60) + "..." : orderItem.MenuItem.Description)
+                                                    </p>
+                                                    @if (orderItem.MenuItem.Description.Length > 60)
+                                                    {
+                                                        <button class="btn btn-ghost btn-xs text-primary expand-btn mt-1" onclick="toggleOrderDescription(this, '@orderItem.MenuItem.Name')">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                            </svg>
+                                                            Xem thêm
+                                                        </button>
+                                                    }
+                                                </div>
+
+                                                <p class="text-primary font-bold">@orderItem.UnitPrice.ToString("N0") VNĐ mỗi món</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-lg font-semibold text-base-content">SL: @orderItem.Quantity</p>
+                                            <p class="text-xl font-bold text-primary">@((orderItem.UnitPrice * orderItem.Quantity).ToString("N0")) VNĐ</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-lg font-semibold">Quantity: @orderItem.Quantity</p>
-                                    <p class="text-xl font-bold text-primary">@((orderItem.UnitPrice * orderItem.Quantity).ToString("N0")) VNĐ</p>
                                 </div>
                             </div>
                         }
@@ -76,29 +99,68 @@
 
 
             <!-- Order Summary -->
-            <div class="bg-primary text-primary-content p-6 rounded-lg shadow-md mb-8">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-lg font-semibold">Tổng số món: @Model.TotalItems</h3>
-                        <h3 class="text-xl font-bold">Tạm tính: @Model.TotalPrice.ToString("N0") VNĐ</h3>
-                        <h3 class="text-2xl font-bold border-t border-primary-content/20 pt-2 mt-2">
-                            Tổng cộng: @Model.FinalTotal.ToString("N0") VNĐ
-                        </h3>
-                        <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p class="text-sm text-yellow-700 font-medium">💳 Thanh toán trước (Cọc 20%)</p>
-                            <p class="text-lg font-bold text-yellow-800">@((Model.FinalTotal * 0.2m).ToString("N0")) VNĐ</p>
-                            <p class="text-xs text-yellow-600">Số tiền còn lại sẽ thanh toán tại nhà hàng: @((Model.FinalTotal * 0.8m).ToString("N0")) VNĐ</p>
+            <div class="card bg-primary text-primary-content shadow-xl mb-8">
+                <div class="card-body">
+                    <!-- Mobile Layout -->
+                    <div class="block lg:hidden">
+                        <div class="text-center mb-4">
+                            <h3 class="text-lg font-semibold">Tổng số món: @Model.TotalItems</h3>
+                            <h3 class="text-xl font-bold">Tổng cộng: @Model.FinalTotal.ToString("N0") VNĐ</h3>
+                        </div>
+
+                        <div class="bg-warning text-warning-content p-4 rounded-lg mb-4">
+                            <p class="text-sm font-medium">💳 Thanh toán trước (Cọc 20%)</p>
+                            <p class="text-lg font-bold">@((Model.FinalTotal * 0.2m).ToString("N0")) VNĐ</p>
+                            <p class="text-xs">Còn lại: @((Model.FinalTotal * 0.8m).ToString("N0")) VNĐ (thanh toán tại quầy)</p>
+                        </div>
+
+                        <div class="flex flex-col gap-3">
+                            <button onclick="openEditOrderModal()" class="btn btn-outline btn-block">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Chỉnh sửa đơn hàng
+                            </button>
+                            <form method="post" class="w-full">
+                                <button type="submit" class="btn btn-secondary btn-block" @(Model.TotalItems == 0 ? "disabled" : "")>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    Thanh toán cọc ngay
+                                </button>
+                            </form>
                         </div>
                     </div>
-                    <div class="flex gap-4">
-                        <a href="/reservation" class="btn btn-outline btn-lg">
-                            Chỉnh sửa đơn hàng
-                        </a>
-                        <form method="post" class="contents">
-                            <button type="submit" class="btn btn-secondary btn-lg" @(Model.TotalItems == 0 ? "disabled" : "")>
-                                Thanh toán cọc ngay
+
+                    <!-- Desktop Layout -->
+                    <div class="hidden lg:flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-semibold">Tổng số món: @Model.TotalItems</h3>
+                            <h3 class="text-2xl font-bold border-t border-primary-content/20 pt-2 mt-2">
+                                Tổng cộng: @Model.FinalTotal.ToString("N0") VNĐ
+                            </h3>
+                            <div class="mt-3 p-3 bg-warning text-warning-content rounded-lg">
+                                <p class="text-sm font-medium">💳 Thanh toán trước (Cọc 20%)</p>
+                                <p class="text-lg font-bold">@((Model.FinalTotal * 0.2m).ToString("N0")) VNĐ</p>
+                                <p class="text-xs">Số tiền còn lại sẽ thanh toán tại nhà hàng: @((Model.FinalTotal * 0.8m).ToString("N0")) VNĐ</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <button onclick="openEditOrderModal()" class="btn btn-outline btn-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Chỉnh sửa đơn hàng
                             </button>
-                        </form>
+                            <form method="post" class="contents">
+                                <button type="submit" class="btn btn-secondary btn-lg" @(Model.TotalItems == 0 ? "disabled" : "")>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    Thanh toán cọc ngay
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -113,4 +175,225 @@
     </div>
 </div>
 
+<!-- Edit Order Modal -->
+<div id="editOrderModal" class="modal">
+    <div class="modal-box max-w-4xl">
+        <h3 class="font-bold text-lg mb-4">Chỉnh sửa đơn hàng</h3>
 
+        <!-- Table Selection -->
+        <div class="mb-6">
+            <label class="label">
+                <span class="label-text font-semibold">Chọn bàn:</span>
+            </label>
+            <select id="tableSelect" class="select select-bordered w-full">
+                <option value="">Đang tải...</option>
+            </select>
+        </div>
+
+        <!-- Menu Items -->
+        <div class="mb-6">
+            <label class="label">
+                <span class="label-text font-semibold">Chọn món ăn:</span>
+            </label>
+            <div id="menuItemsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                <!-- Menu items will be loaded here -->
+            </div>
+        </div>
+
+        <div class="modal-action">
+            <button class="btn btn-primary" onclick="saveOrderChanges()">Lưu thay đổi</button>
+            <button class="btn" onclick="closeEditOrderModal()">Hủy</button>
+        </div>
+    </div>
+    <div class="modal-backdrop" onclick="closeEditOrderModal()"></div>
+</div>
+
+<!-- Description Expand Modal -->
+<div id="orderDescriptionModal" class="modal">
+    <div class="modal-box max-w-md">
+        <h3 class="font-bold text-lg mb-4" id="orderModalTitle">Mô tả món ăn</h3>
+        <div class="max-h-60 overflow-y-auto">
+            <p id="orderModalDescription" class="text-base-content/80 leading-relaxed"></p>
+        </div>
+        <div class="modal-action">
+            <button class="btn btn-primary" onclick="closeOrderDescriptionModal()">Đóng</button>
+        </div>
+    </div>
+    <div class="modal-backdrop" onclick="closeOrderDescriptionModal()"></div>
+</div>
+
+<script>
+function toggleOrderDescription(button, itemName) {
+    const container = button.closest('.description-container');
+    const textElement = container.querySelector('.description-text');
+    const fullText = textElement.getAttribute('data-full-text');
+
+    // Show in modal for better UX
+    document.getElementById('orderModalTitle').textContent = itemName;
+    document.getElementById('orderModalDescription').textContent = fullText;
+    document.getElementById('orderDescriptionModal').classList.add('modal-open');
+}
+
+function closeOrderDescriptionModal() {
+    document.getElementById('orderDescriptionModal').classList.remove('modal-open');
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeOrderDescriptionModal();
+        closeEditOrderModal();
+    }
+});
+
+// Edit Order Modal Functions
+let currentOrderData = {};
+
+async function openEditOrderModal() {
+    document.getElementById('editOrderModal').classList.add('modal-open');
+    await loadTablesAndMenuItems();
+    await loadCurrentOrderData();
+}
+
+function closeEditOrderModal() {
+    document.getElementById('editOrderModal').classList.remove('modal-open');
+}
+
+async function loadTablesAndMenuItems() {
+    try {
+        // Load tables from Reservation page handler
+        const tablesResponse = await fetch('/Reservation?handler=Tables');
+        const tables = await tablesResponse.json();
+
+        const tableSelect = document.getElementById('tableSelect');
+        tableSelect.innerHTML = '<option value="">Chọn bàn</option>';
+
+        tables.forEach(table => {
+            const option = document.createElement('option');
+            option.value = table.id;
+            option.textContent = `Bàn ${table.tableNumber} (${table.capacity} chỗ)`;
+            // Allow selecting current table even if it's not available
+            if (table.status !== 'Available' && table.id !== @(Model.CurrentOrder?.TableId ?? 0)) {
+                option.disabled = true;
+                option.textContent += ' - Đã đặt';
+            }
+            tableSelect.appendChild(option);
+        });
+
+        // Load menu items from Reservation page handler
+        const menuResponse = await fetch('/Reservation?handler=MenuItems');
+        const menuItems = await menuResponse.json();
+
+        const container = document.getElementById('menuItemsContainer');
+        container.innerHTML = '';
+
+        menuItems.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'card bg-base-100 border border-base-300';
+            itemDiv.innerHTML = `
+                <div class="card-body p-4">
+                    <div class="flex items-center space-x-3">
+                        <img src="${item.imageUrl}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-sm">${item.name}</h4>
+                            <p class="text-primary font-bold">${item.price.toLocaleString('vi-VN')} VNĐ</p>
+                            <div class="flex items-center mt-2">
+                                <button class="btn btn-xs btn-circle btn-outline" onclick="changeQuantity(${item.id}, -1)">-</button>
+                                <span class="mx-2 font-semibold" id="qty-${item.id}">0</span>
+                                <button class="btn btn-xs btn-circle btn-outline" onclick="changeQuantity(${item.id}, 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(itemDiv);
+        });
+
+    } catch (error) {
+        console.error('Error loading data:', error);
+    }
+}
+
+function changeQuantity(itemId, change) {
+    const qtyElement = document.getElementById(`qty-${itemId}`);
+    let currentQty = parseInt(qtyElement.textContent);
+    currentQty = Math.max(0, currentQty + change);
+    qtyElement.textContent = currentQty;
+
+    // Store in currentOrderData
+    if (currentQty > 0) {
+        currentOrderData[itemId] = currentQty;
+    } else {
+        delete currentOrderData[itemId];
+    }
+}
+
+async function saveOrderChanges() {
+    const tableId = document.getElementById('tableSelect').value;
+
+    if (!tableId) {
+        alert('Vui lòng chọn bàn');
+        return;
+    }
+
+    if (Object.keys(currentOrderData).length === 0) {
+        alert('Vui lòng chọn ít nhất một món ăn');
+        return;
+    }
+
+    try {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const response = await fetch('/PreOrderMenu?handler=UpdateOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify({
+                tableId: parseInt(tableId),
+                menuItems: currentOrderData
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            location.reload();
+        } else {
+            alert(result.message || 'Có lỗi xảy ra khi cập nhật đơn hàng');
+        }
+    } catch (error) {
+        console.error('Error saving order:', error);
+        alert('Có lỗi xảy ra khi cập nhật đơn hàng');
+    }
+}
+
+async function loadCurrentOrderData() {
+    try {
+        // Set current table
+        const currentTableId = @(Model.CurrentOrder?.TableId ?? 0);
+        if (currentTableId > 0) {
+            document.getElementById('tableSelect').value = currentTableId;
+        }
+
+        // Reset currentOrderData and load current order items
+        currentOrderData = {};
+
+        @if (Model.CurrentOrder?.OrderItems != null)
+        {
+            @foreach (var item in Model.CurrentOrder.OrderItems)
+            {
+                <text>
+                // Set quantity for menu item @item.MenuItemId
+                const qtyElement@(item.MenuItemId) = document.getElementById('qty-@item.MenuItemId');
+                if (qtyElement@(item.MenuItemId)) {
+                    qtyElement@(item.MenuItemId).textContent = '@item.Quantity';
+                    currentOrderData[@item.MenuItemId] = @item.Quantity;
+                }
+                </text>
+            }
+        }
+    } catch (error) {
+        console.error('Error loading current order data:', error);
+    }
+}
+</script>

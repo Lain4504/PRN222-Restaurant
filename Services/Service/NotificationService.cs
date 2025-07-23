@@ -100,7 +100,7 @@ public class NotificationService : INotificationService
             Title = "Đơn hàng đã được tạo",
             Message = "Đơn hàng của bạn đã được tạo thành công và đang được xử lý.",
             Type = "Success",
-            RelatedUrl = $"/order-list",
+            RelatedUrl = $"/order-detail/{orderId}",
             RelatedId = orderId,
             CreatedAt = DateTime.Now,
             IsRead = false
@@ -114,10 +114,10 @@ public class NotificationService : INotificationService
         var notification = new Notification
         {
             UserId = userId,
-            Title = "Thanh toán thành công",
-            Message = $"Bạn đã thanh toán thành công {amount:C} cho đơn hàng #{orderId}.",
+            Title = "Thanh toán cọc thành công",
+            Message = $"Bạn đã thanh toán cọc thành công {amount:N0} VNĐ cho đơn hàng #{orderId}. Vui lòng thanh toán phần còn lại tại quầy.",
             Type = "Success",
-            RelatedUrl = $"/order-list",
+            RelatedUrl = $"/order-detail/{orderId}",
             RelatedId = orderId,
             CreatedAt = DateTime.Now,
             IsRead = false
@@ -151,7 +151,7 @@ public class NotificationService : INotificationService
             Title = "Đơn hàng hoàn thành",
             Message = "Cảm ơn bạn đã sử dụng dịch vụ! Hãy đánh giá trải nghiệm của bạn.",
             Type = "Info",
-            RelatedUrl = $"/feedback?orderId={orderId}",
+            RelatedUrl = $"/order-detail/{orderId}",
             RelatedId = orderId,
             CreatedAt = DateTime.Now,
             IsRead = false
@@ -168,7 +168,7 @@ public class NotificationService : INotificationService
             Title = "Điểm thưởng mới",
             Message = $"Bạn đã nhận được {points} điểm từ đơn hàng #{orderId}. Tổng điểm hiện tại của bạn đã được cập nhật!",
             Type = "Success",
-            RelatedUrl = "/points-history",
+            RelatedUrl = $"/order-detail/{orderId}",
             RelatedId = orderId,
             CreatedAt = DateTime.Now,
             IsRead = false

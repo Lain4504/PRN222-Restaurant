@@ -35,9 +35,7 @@ async function handleCheckout() {
     
     // Calculate total
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = subtotal * 0.07;
-    const deliveryFee = 4.99;
-    const total = subtotal + tax + deliveryFee;
+    const total = subtotal; // No tax or delivery fee
 
     // Prepare payment data
     const paymentData = {

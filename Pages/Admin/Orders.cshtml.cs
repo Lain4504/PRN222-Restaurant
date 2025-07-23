@@ -315,6 +315,7 @@ namespace PRN222_Restaurant.Pages.Admin
                 order.OrderDate,
                 order.ReservationTime,
                 order.TotalPrice,
+                order.PointsUsed,
                 order.Note,
                 order.NumberOfGuests,
                 Customer = order.User?.FullName ?? "Khách vãng lai",

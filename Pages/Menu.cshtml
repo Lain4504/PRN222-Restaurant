@@ -57,14 +57,32 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach (var item in Model.MenuItems)
                 {
-                    <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300">
-                        <figure class="h-48"><img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover" /></figure>
-                        <div class="card-body">
-                            <h3 class="card-title text-xl text-base-content">@item.Name</h3>
-                            <p class="text-base-content/70">@item.Description</p>
-                            <div class="flex justify-between items-center mt-4">
-                                <span class="text-xl font-bold text-primary">@item.Price.ToString("N0") VNĐ</span>
-                                <span class="badge text-base font-semibold px-4 py-1 @(item.Status == Models.MenuItemStatus.Available ? "badge-success" : "badge-error")">
+                    <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
+                        <figure class="h-48 overflow-hidden">
+                            <img src="@item.ImageUrl" alt="@item.Name" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                        </figure>
+                        <div class="card-body p-4">
+                            <h3 class="card-title text-lg text-base-content mb-2">@item.Name</h3>
+
+                            <!-- Description with expand/collapse -->
+                            <div class="description-container mb-3">
+                                <p class="text-base-content/70 text-sm description-text" data-full-text="@item.Description">
+                                    @(item.Description.Length > 80 ? item.Description.Substring(0, 80) + "..." : item.Description)
+                                </p>
+                                @if (item.Description.Length > 80)
+                                {
+                                    <button class="btn btn-ghost btn-xs text-primary expand-btn mt-1" onclick="toggleDescription(this)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Xem thêm
+                                    </button>
+                                }
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-bold text-primary">@item.Price.ToString("N0") VNĐ</span>
+                                <span class="badge text-xs font-semibold px-3 py-1 @(item.Status == Models.MenuItemStatus.Available ? "badge-success" : "badge-error")">
                                     @(item.Status == Models.MenuItemStatus.Available ? "Còn món" : "Hết món")
                                 </span>
                             </div>
@@ -93,3 +111,56 @@
         }
     </div>
 </section>
+
+<!-- Description Expand Modal -->
+<div id="descriptionModal" class="modal">
+    <div class="modal-box max-w-md">
+        <h3 class="font-bold text-lg mb-4" id="modalTitle">Mô tả món ăn</h3>
+        <div class="max-h-60 overflow-y-auto">
+            <p id="modalDescription" class="text-base-content/80 leading-relaxed"></p>
+        </div>
+        <div class="modal-action">
+            <button class="btn btn-primary" onclick="closeDescriptionModal()">Đóng</button>
+        </div>
+    </div>
+    <div class="modal-backdrop" onclick="closeDescriptionModal()"></div>
+</div>
+
+<script>
+function toggleDescription(button) {
+    const container = button.closest('.description-container');
+    const textElement = container.querySelector('.description-text');
+    const fullText = textElement.getAttribute('data-full-text');
+    const isExpanded = button.classList.contains('expanded');
+
+    if (isExpanded) {
+        // Collapse
+        const truncatedText = fullText.length > 80 ? fullText.substring(0, 80) + '...' : fullText;
+        textElement.textContent = truncatedText;
+        button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Xem thêm
+        `;
+        button.classList.remove('expanded');
+    } else {
+        // Show in modal for better UX
+        const cardTitle = button.closest('.card').querySelector('.card-title').textContent;
+        document.getElementById('modalTitle').textContent = cardTitle;
+        document.getElementById('modalDescription').textContent = fullText;
+        document.getElementById('descriptionModal').classList.add('modal-open');
+    }
+}
+
+function closeDescriptionModal() {
+    document.getElementById('descriptionModal').classList.remove('modal-open');
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDescriptionModal();
+    }
+});
+</script>

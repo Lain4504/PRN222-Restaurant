@@ -287,6 +287,56 @@ namespace PRN222_Restaurant.Pages
                 return "[]";
             }
         }
+
+        // AJAX Handler for Tables
+        public async Task<IActionResult> OnGetTablesAsync()
+        {
+            try
+            {
+                var tables = await _context.Tables
+                    .Select(t => new
+                    {
+                        t.Id,
+                        t.TableNumber,
+                        t.Capacity,
+                        t.Status
+                    })
+                    .ToListAsync();
+
+                return new JsonResult(tables);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
+            }
+        }
+
+        // AJAX Handler for Menu Items
+        public async Task<IActionResult> OnGetMenuItemsAsync()
+        {
+            try
+            {
+                var menuItems = await _context.MenuItems
+                    .Where(m => m.Status == MenuItemStatus.Available)
+                    .Include(m => m.Category)
+                    .Select(m => new
+                    {
+                        m.Id,
+                        m.Name,
+                        m.Price,
+                        m.ImageUrl,
+                        m.Description,
+                        Category = m.Category.Name
+                    })
+                    .ToListAsync();
+
+                return new JsonResult(menuItems);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = ex.Message }) { StatusCode = 500 };
+            }
+        }
     }
 
     public class TableViewModel

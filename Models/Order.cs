@@ -10,6 +10,7 @@ public class Order
     public string OrderType { get; set; } = "Immediate"; // "Immediate" hoặc "PreOrder"
     public string Status { get; set; } = "Pending"; // Pending, Preparing, Served, Completed, Cancelled, Paid, Paid Deposit
     public decimal TotalPrice { get; set; }
+    public int? PointsUsed { get; set; }  // Số points đã sử dụng cho đơn hàng này
     public string? Note { get; set; }
     public int? NumberOfGuests { get; set; }  // Số lượng khách cho pre-order
 

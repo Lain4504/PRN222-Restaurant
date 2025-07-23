@@ -135,6 +135,61 @@ namespace PRN222_Restaurant.Pages
                 return Page();
             }
         }
+
+        public async Task<IActionResult> OnPostUpdateOrderAsync([FromBody] UpdateOrderRequest request)
+        {
+            try
+            {
+                await LoadCurrentOrder();
+
+                if (CurrentOrder == null)
+                {
+                    return new JsonResult(new { success = false, message = "Order not found" }) { StatusCode = 400 };
+                }
+
+                // Update table
+                CurrentOrder.TableId = request.TableId;
+
+                // Clear existing order items
+                var existingItems = await _context.OrderItems
+                    .Where(oi => oi.OrderId == CurrentOrder.Id)
+                    .ToListAsync();
+
+                _context.OrderItems.RemoveRange(existingItems);
+
+                // Add new order items
+                decimal totalPrice = 0;
+                foreach (var item in request.MenuItems)
+                {
+                    var menuItem = await _context.MenuItems.FindAsync(item.Key);
+                    if (menuItem != null)
+                    {
+                        var orderItem = new OrderItem
+                        {
+                            OrderId = CurrentOrder.Id,
+                            MenuItemId = item.Key,
+                            Quantity = item.Value,
+                            UnitPrice = menuItem.Price
+                        };
+
+                        _context.OrderItems.Add(orderItem);
+                        totalPrice += menuItem.Price * item.Value;
+                    }
+                }
+
+                // Update order total
+                CurrentOrder.TotalPrice = totalPrice;
+
+                await _context.SaveChangesAsync();
+
+                return new JsonResult(new { success = true, message = "Order updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating order: {ex.Message}");
+                return new JsonResult(new { success = false, message = "Error updating order" }) { StatusCode = 500 };
+            }
+        }
         
 
         
@@ -287,5 +342,11 @@ namespace PRN222_Restaurant.Pages
             return null;
         }
 
+    }
+
+    public class UpdateOrderRequest
+    {
+        public int TableId { get; set; }
+        public Dictionary<int, int> MenuItems { get; set; } = new();
     }
 }

@@ -2,30 +2,31 @@
 @model PRN222_Restaurant.Pages.CheckoutModel
 @{
     ViewData["Title"] = "Hoàn tất thanh toán";
+    Layout = "~/Pages/Shared/_FrontLayout.cshtml";
 }
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+<div class="min-h-screen bg-base-200 py-8 pt-24">
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
             <!-- Header -->
             <div class="text-center mb-8">
-                <h1 class="text-4xl font-bold text-gray-800 mb-2">Hoàn tất thanh toán</h1>
-                <p class="text-gray-600">Xem lại đơn hàng và tiến hành thanh toán an toàn</p>
+                <h1 class="text-4xl font-bold text-base-content mb-2">Hoàn tất thanh toán</h1>
+                <p class="text-base-content/70">Xem lại đơn hàng và tiến hành thanh toán an toàn</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Order Summary -->
                 <div class="lg:col-span-2">
-                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-                            <h2 class="text-xl font-semibold text-white flex items-center">
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-header bg-primary text-primary-content p-6">
+                            <h2 class="text-xl font-semibold flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
                                 Tóm tắt đơn hàng
                             </h2>
                         </div>
-                        <div class="p-6">
+                        <div class="card-body p-6">
 
                             @if (Model.OrderItems != null && Model.OrderItems.Any())
                             {
@@ -50,19 +51,11 @@
                                 </div>
 
                                 <!-- Order Totals -->
-                                <div class="mt-6 pt-6 border-t border-gray-200">
+                                <div class="mt-6 pt-6 border-t border-base-300">
                                     <div class="space-y-3">
-                                        <div class="flex justify-between text-gray-600">
-                                            <span>Tạm tính:</span>
-                                            <span>@Model.Subtotal.ToString("N0") VNĐ</span>
-                                        </div>
-                                        <div class="flex justify-between text-gray-600">
-                                            <span>Thuế (10%):</span>
-                                            <span>@Model.Tax.ToString("N0") VNĐ</span>
-                                        </div>
-                                        <div class="flex justify-between text-xl font-bold text-gray-800 pt-3 border-t border-gray-200">
+                                        <div class="flex justify-between text-xl font-bold text-base-content pt-3">
                                             <span>Tổng cộng:</span>
-                                            <span class="text-blue-600">@Model.Total.ToString("N0") VNĐ</span>
+                                            <span class="text-primary">@Model.Total.ToString("N0") VNĐ</span>
                                         </div>
                                     </div>
                                 </div>
@@ -110,7 +103,6 @@
                                             </label>
                                             <input type="range"
                                                    id="pointsToUse"
-                                                   name="PointsToUse"
                                                    min="0"
                                                    max="@Model.MaxUsablePoints"
                                                    value="@Model.PointsToUse"
@@ -181,48 +173,48 @@
 
                             <form method="post" class="space-y-4">
                                 <input type="hidden" asp-for="PaymentInfo.OrderId" value="@Model.OrderId" />
-                                <input type="hidden" asp-for="PaymentInfo.Amount" value="@(Model.FinalTotal > 0 ? Model.FinalTotal : Model.Total)" />
-                                <input type="hidden" asp-for="PaymentInfo.OrderDescription" value="Payment for reservation #@Model.OrderId" />
+                                <input type="hidden" asp-for="PaymentInfo.Amount" id="paymentAmount" value="@((Model.FinalTotal > 0 ? Model.FinalTotal : Model.Total) * 0.2m)" />
+                                <input type="hidden" asp-for="PaymentInfo.OrderDescription" value="Deposit payment (20%) for reservation #@Model.OrderId" />
                                 <input type="hidden" asp-for="PaymentInfo.OrderType" value="PreOrder" />
                                 <input type="hidden" asp-for="PaymentInfo.Name" value="@(User.Identity.IsAuthenticated? User.Identity.Name : "Guest")" />
                                 <input type="hidden" asp-for="PointsToUse" value="@Model.PointsToUse" />
 
-                                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition duration-300 transform hover:scale-105 shadow-lg">
+                                <button type="submit" class="btn btn-primary btn-lg w-full text-white font-semibold py-4 px-6 transition duration-300 transform hover:scale-105 shadow-lg" style="background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%); border: none;">
                                     <div class="flex items-center justify-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                         </svg>
-                                        <span class="text-lg">Pay with VNPay</span>
+                                        <span class="text-lg">Thanh toán với VNPay</span>
                                     </div>
                                 </button>
                             </form>
 
                             <!-- Security Features -->
-                            <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                            <div class="mt-6 p-4 bg-success/10 border border-success/20 rounded-lg">
                                 <div class="flex items-center mb-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-success mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                     </svg>
-                                    <h3 class="font-semibold text-green-800">Secure Payment</h3>
+                                    <h3 class="font-semibold text-success">Thanh toán an toàn</h3>
                                 </div>
-                                <ul class="space-y-2 text-sm text-green-700">
+                                <ul class="space-y-2 text-sm text-success">
                                     <li class="flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                         </svg>
-                                        SSL encrypted connection
+                                        Kết nối mã hóa SSL
                                     </li>
                                     <li class="flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                         </svg>
-                                        PCI DSS compliant
+                                        Tuân thủ chuẩn PCI DSS
                                     </li>
                                     <li class="flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                         </svg>
-                                        Money-back guarantee
+                                        Bảo đảm hoàn tiền
                                     </li>
                                 </ul>
                             </div>
@@ -253,7 +245,7 @@
 
 <script>
 function updatePointsDisplay(points) {
-    const pointValue = 5000; // 5,000 VND per point
+    const pointValue = @Model.PointValue; // Get point value from server config
     const orderTotal = @Model.Total;
 
     // Update selected points display
@@ -282,15 +274,20 @@ function updatePointsDisplay(points) {
     document.getElementById('remainingAmount').textContent = remainingAmount.toLocaleString('vi-VN') + ' VNĐ';
 
     // Update the hidden form field for points to use
-    const pointsInput = document.querySelector('input[name="PointsToUse"]');
+    const pointsInput = document.querySelector('input[name="PointsToUse"][type="hidden"]');
     if (pointsInput) {
         pointsInput.value = points;
+        console.log('Updated hidden PointsToUse input to:', points);
     }
 
     // Update the payment amount field (deposit amount for pre-orders)
-    const amountInput = document.querySelector('input[name="PaymentInfo.Amount"]');
+    const amountInput = document.getElementById('paymentAmount');
     if (amountInput) {
         amountInput.value = depositAmount; // Only pay deposit amount
+        console.log('Updated payment amount to:', depositAmount);
+        console.log('Final amount after discount:', finalAmount);
+        console.log('Points used:', points);
+        console.log('Points discount:', discount);
     }
 }
 

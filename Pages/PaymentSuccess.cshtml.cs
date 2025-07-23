@@ -30,6 +30,9 @@ namespace PRN222_Restaurant.Pages
         public int TableNumber { get; set; }
         public List<OrderItemViewModel> OrderItems { get; set; } = new List<OrderItemViewModel>();
         public decimal TotalAmount { get; set; }
+        public decimal OriginalAmount { get; set; }
+        public decimal PointsDiscount { get; set; }
+        public int PointsUsed { get; set; }
         public int PointsEarned { get; set; }
         public int TotalPoints { get; set; }
 
@@ -53,8 +56,21 @@ namespace PRN222_Restaurant.Pages
                         TableNumber = table?.TableNumber ?? 0;
                     }
 
-                    // Load order items
+                    // Load order items and calculate original amount
                     await LoadOrderItems(Order);
+
+                    // Calculate original amount from order items (before discount)
+                    OriginalAmount = OrderItems.Sum(item => item.Subtotal);
+
+                    // Calculate points discount if any
+                    if (OriginalAmount > Order.TotalPrice)
+                    {
+                        PointsDiscount = OriginalAmount - Order.TotalPrice;
+
+                        // Calculate points used (approximate)
+                        var pointsConfig = _pointsService.GetPointsConfig();
+                        PointsUsed = (int)(PointsDiscount / pointsConfig.PointValue);
+                    }
 
                     // Load points information
                     if (User.Identity.IsAuthenticated && Order.UserId.HasValue)
@@ -74,14 +90,13 @@ namespace PRN222_Restaurant.Pages
         private async Task LoadOrderItems(Order order)
         {
             OrderItems.Clear();
-            TotalAmount = 0;
-            
+
             if (order.OrderItems != null)
             {
                 foreach (var item in order.OrderItems)
                 {
                     var menuItem = await _context.MenuItems.FindAsync(item.MenuItemId);
-                    
+
                     if (menuItem != null)
                     {
                         var orderItem = new OrderItemViewModel
@@ -94,10 +109,12 @@ namespace PRN222_Restaurant.Pages
                         };
 
                         OrderItems.Add(orderItem);
-                        TotalAmount += orderItem.Subtotal;
                     }
                 }
             }
+
+            // Use Order.TotalPrice which includes any discounts applied
+            TotalAmount = order.TotalPrice;
         }
     }
 } 
