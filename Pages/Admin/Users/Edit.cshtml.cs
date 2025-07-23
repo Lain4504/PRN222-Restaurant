@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Helper;
 using System.Threading.Tasks;
 using BCrypt.Net;
 
@@ -28,6 +29,12 @@ namespace PRN222_Restaurant.Pages.Admin.Users
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
+            // Check if current user is Admin
+            if (!AuthHelper.IsAdmin(HttpContext.User))
+            {
+                return Redirect("/admin/login");
+            }
+
             if (id.HasValue)
             {
                 var user = await _userService.GetUserByIdAsync(id.Value);
@@ -43,6 +50,12 @@ namespace PRN222_Restaurant.Pages.Admin.Users
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Check if current user is Admin
+            if (!AuthHelper.IsAdmin(HttpContext.User))
+            {
+                return Redirect("/admin/login");
+            }
+
             if (!ModelState.IsValid)
             {
                 return Page();

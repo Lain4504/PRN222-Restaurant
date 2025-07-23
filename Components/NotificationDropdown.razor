@@ -184,6 +184,7 @@
         {
             try
             {
+                Console.WriteLine($"NotificationDropdown: Marking notification {notificationId} as read, RelatedUrl: {relatedUrl}");
                 await NotificationService.MarkAsReadAsync(notificationId);
                 await LoadNotifications();
                 await LoadUnreadCount();
@@ -191,12 +192,18 @@
 
                 if (!string.IsNullOrEmpty(relatedUrl) && relatedUrl != "#")
                 {
-                    Navigation.NavigateTo(relatedUrl);
+                    Console.WriteLine($"NotificationDropdown: Navigating to: {relatedUrl}");
+                    // Force reload to navigate to Razor Pages
+                    Navigation.NavigateTo(relatedUrl, forceLoad: true);
+                }
+                else
+                {
+                    Console.WriteLine($"NotificationDropdown: No navigation - RelatedUrl is empty or #");
                 }
             }
             catch (Exception ex)
             {
-                // Console.WriteLine($"Error marking notification as read: {ex.Message}");
+                Console.WriteLine($"NotificationDropdown: Error marking notification as read: {ex.Message}");
             }
         }
     }

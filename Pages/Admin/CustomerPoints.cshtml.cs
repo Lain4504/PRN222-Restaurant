@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services.IService;
 using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Helper;
 
 namespace PRN222_Restaurant.Pages.Admin
 {
@@ -32,6 +33,12 @@ namespace PRN222_Restaurant.Pages.Admin
 
         public async Task<IActionResult> OnGetAsync()
         {
+            // Check if current user is Admin
+            if (!AuthHelper.IsAdmin(HttpContext.User))
+            {
+                return Redirect("/admin/login");
+            }
+
             // Get all users with customer role and their points
             var allUsers = await _userService.GetPagedUsersAsync(1, 1000); // Get all users for now
             

@@ -231,13 +231,19 @@
         {
             try
             {
-                // Logger.LogInformation($"Marking notification {notificationId} as read");
+                Logger.LogInformation($"Marking notification {notificationId} as read, RelatedUrl: {relatedUrl}");
                 await NotificationService.MarkAsReadAsync(notificationId);
                 await LoadNotifications(); // Reload current page
 
                 if (!string.IsNullOrEmpty(relatedUrl) && relatedUrl != "#")
                 {
-                    Navigation.NavigateTo(relatedUrl);
+                    Logger.LogInformation($"Navigating to: {relatedUrl}");
+                    // Force reload to navigate to Razor Pages
+                    Navigation.NavigateTo(relatedUrl, forceLoad: true);
+                }
+                else
+                {
+                    Logger.LogInformation($"No navigation - RelatedUrl is empty or #");
                 }
             }
             catch (Exception ex)

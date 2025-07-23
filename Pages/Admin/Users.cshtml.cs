@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Models.Response;
 using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Helper;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -35,6 +36,12 @@ namespace PRN222_Restaurant.Pages.Admin
 
         public async Task<IActionResult> OnGetAsync()
         {
+            // Check if current user is Admin
+            if (!AuthHelper.IsAdmin(HttpContext.User))
+            {
+                return Redirect("/admin/login");
+            }
+
             if (CurrentPage < 1) CurrentPage = 1;
             if (PageSize < 1) PageSize = DefaultPageSize;
 
@@ -45,6 +52,12 @@ namespace PRN222_Restaurant.Pages.Admin
 
         public async Task<IActionResult> OnPostDeleteAsync(int userId)
         {
+            // Check if current user is Admin
+            if (!AuthHelper.IsAdmin(HttpContext.User))
+            {
+                return Redirect("/admin/login");
+            }
+
             if (userId <= 0)
                 return BadRequest();
 

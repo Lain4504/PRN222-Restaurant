@@ -31,59 +31,74 @@
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
             <div class="overflow-x-auto">
-                <table class="table w-full">
+                <table class="table w-full table-zebra">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Loại đơn</th>
-                            <th>Khách hàng</th>
-                            <th>Bàn</th>
-                            <th>Ngày đặt</th>
-                            <th>Thời gian đặt bàn</th>
-                            <th>Tổng tiền</th>
-                            <th>Points</th>
-                            <th>Thanh toán</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
+                            <th class="w-16">ID</th>
+                            <th class="w-24">Loại đơn</th>
+                            <th class="w-32">Khách hàng</th>
+                            <th class="w-20">Bàn</th>
+                            <th class="w-32">Ngày đặt</th>
+                            <th class="w-32 hidden lg:table-cell">Thời gian đặt bàn</th>
+                            <th class="w-28">Tổng tiền</th>
+                            <th class="w-20 hidden md:table-cell">Points</th>
+                            <th class="w-32">Thanh toán</th>
+                            <th class="w-28">Trạng thái</th>
+                            <th class="w-32">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var order in Model.Orders)
                         {
-                            <tr class="order-row" data-id="@order.Id" style="cursor:pointer">
-                                <td>@order.Id</td>
+                            <tr class="order-row hover:bg-base-200 transition-colors" data-id="@order.Id" style="cursor:pointer">
+                                <td class="font-mono text-sm">@order.Id</td>
                                 <td>
-                                    <span class="badge @(order.OrderType == "Immediate" ? "badge-info" : "badge-warning")">
+                                    <span class="badge badge-sm @(order.OrderType == "Immediate" ? "badge-info" : "badge-warning") whitespace-nowrap">
                                         @(order.OrderType == "Immediate" ? "Tại chỗ" : "Đặt trước")
                                     </span>
                                 </td>
-                                <td>@(order.User != null ? order.User.FullName : "Khách vãng lai")</td>
-                                <td>@(order.Table != null ? $"Bàn {order.Table.TableNumber}" : "N/A")</td>
-                                <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>@(order.ReservationTime.HasValue ? order.ReservationTime.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</td>
-                                <td>
+                                <td class="max-w-32 truncate" title="@(order.User != null ? order.User.FullName : "Khách vãng lai")">
+                                    @(order.User != null ? order.User.FullName : "Khách vãng lai")
+                                </td>
+                                <td class="text-center">@(order.Table != null ? $"Bàn {order.Table.TableNumber}" : "N/A")</td>
+                                <td class="text-sm">
+                                    <div>@order.OrderDate.ToString("dd/MM/yyyy")</div>
+                                    <div class="text-xs text-gray-500">@order.OrderDate.ToString("HH:mm")</div>
+                                </td>
+                                <td class="text-sm hidden lg:table-cell">
+                                    @if (order.ReservationTime.HasValue)
+                                    {
+                                        <div>@order.ReservationTime.Value.ToString("dd/MM/yyyy")</div>
+                                        <div class="text-xs text-gray-500">@order.ReservationTime.Value.ToString("HH:mm")</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400">N/A</span>
+                                    }
+                                </td>
+                                <td class="text-right">
                                     @if (order.PointsUsed.HasValue && order.PointsUsed.Value > 0)
                                     {
                                         var pointsDiscount = order.PointsUsed.Value * 5000; // 1 point = 5,000 VND
                                         var originalPrice = order.TotalPrice + pointsDiscount;
                                         <div class="text-xs text-gray-500 line-through">@originalPrice.ToString("N0") VNĐ</div>
                                         <div class="font-medium text-green-600">@order.TotalPrice.ToString("N0") VNĐ</div>
-                                        <div class="text-xs text-blue-500">-@pointsDiscount.ToString("N0") VNĐ (Points)</div>
+                                        <div class="text-xs text-blue-500">-@pointsDiscount.ToString("N0") VNĐ</div>
                                     }
                                     else
                                     {
                                         <div class="font-medium">@order.TotalPrice.ToString("N0") VNĐ</div>
                                     }
                                 </td>
-                                <td>
+                                <td class="text-center hidden md:table-cell">
                                     @if (order.PointsUsed.HasValue && order.PointsUsed.Value > 0)
                                     {
-                                        <span class="badge badge-info">@order.PointsUsed.Value points</span>
+                                        <span class="badge badge-sm badge-info whitespace-nowrap">@order.PointsUsed.Value pts</span>
                                         <div class="text-xs text-gray-500">-@((order.PointsUsed.Value * 5000).ToString("N0")) VNĐ</div>
                                     }
                                     else
                                     {
-                                        <span class="text-gray-400">Không sử dụng</span>
+                                        <span class="text-gray-400">0</span>
                                     }
                                 </td>
                                 <td>
@@ -95,25 +110,27 @@
                                         var remainingAmount = order.TotalPrice - totalPaid;
                                     }
 
-                                    @if (fullPayment || totalPaid >= order.TotalPrice)
-                                    {
-                                        <span class="badge badge-success">Đã thanh toán đủ</span>
-                                        <div class="text-xs text-gray-500">@totalPaid.ToString("N0") VNĐ</div>
-                                    }
-                                    else if (depositPaid > 0)
-                                    {
-                                        <span class="badge badge-warning">Đã cọc 20%</span>
-                                        <div class="text-xs text-gray-500">Đã trả: @totalPaid.ToString("N0") VNĐ</div>
-                                        <div class="text-xs text-red-500">Còn lại: @remainingAmount.ToString("N0") VNĐ</div>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge badge-error">Chưa thanh toán</span>
-                                        <div class="text-xs text-gray-500">@order.TotalPrice.ToString("N0") VNĐ</div>
-                                    }
+                                    <div class="flex flex-col gap-1">
+                                        @if (fullPayment || totalPaid >= order.TotalPrice)
+                                        {
+                                            <span class="badge badge-sm badge-success whitespace-nowrap">Đã thanh toán đủ</span>
+                                            <div class="text-xs text-gray-500">@totalPaid.ToString("N0") VNĐ</div>
+                                        }
+                                        else if (depositPaid > 0)
+                                        {
+                                            <span class="badge badge-sm badge-warning whitespace-nowrap">Đã cọc 20%</span>
+                                            <div class="text-xs text-gray-500">Đã trả: @totalPaid.ToString("N0") VNĐ</div>
+                                            <div class="text-xs text-red-500">Còn lại: @remainingAmount.ToString("N0") VNĐ</div>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-sm badge-error whitespace-nowrap">Chưa thanh toán</span>
+                                            <div class="text-xs text-gray-500">@order.TotalPrice.ToString("N0") VNĐ</div>
+                                        }
+                                    </div>
                                 </td>
                                 <td>
-                                    <span class="badge
+                                    <span class="badge badge-sm whitespace-nowrap
                                            @(order.Status == "Pending" ? "badge-warning" :
                                               order.Status == "Preparing" ? "badge-info" :
                                               order.Status == "Served" ? "badge-success" :
@@ -121,7 +138,13 @@
                                               order.Status == "Paid" ? "badge-primary" :
                                               order.Status == "Paid Deposit" ? "badge-accent" :
                                               order.Status == "Cancelled" ? "badge-error" : "")">
-                                        @(order.Status == "Paid Deposit" ? "Đã cọc" : order.Status)
+                                        @(order.Status == "Paid Deposit" ? "Đã cọc" :
+                                          order.Status == "Pending" ? "Chờ xử lý" :
+                                          order.Status == "Preparing" ? "Đang chuẩn bị" :
+                                          order.Status == "Served" ? "Đã phục vụ" :
+                                          order.Status == "Completed" ? "Hoàn thành" :
+                                          order.Status == "Paid" ? "Đã thanh toán" :
+                                          order.Status == "Cancelled" ? "Đã hủy" : order.Status)
                                     </span>
                                 </td>
                                 <td>
@@ -132,18 +155,20 @@
                                         var isFullyPaid = orderTotalPaid >= order.TotalPrice || orderPayments.Any(p => p.PaymentType == "Full");
                                     }
 
-                                    <div class="flex gap-1 flex-wrap">
+                                    <div class="flex gap-1 flex-wrap justify-center">
                                         <!-- Quick Status Actions -->
                                         @if (order.Status == "Pending")
                                         {
                                             <button class="btn btn-xs btn-info update-status" data-id="@order.Id" data-status="Preparing" title="Bắt đầu chuẩn bị">
-                                                🍳
+                                                <span class="hidden sm:inline">🍳</span>
+                                                <span class="sm:hidden text-xs">Chuẩn bị</span>
                                             </button>
                                         }
                                         else if (order.Status == "Preparing")
                                         {
                                             <button class="btn btn-xs btn-warning update-status" data-id="@order.Id" data-status="Served" title="Đã phục vụ">
-                                                🍽️
+                                                <span class="hidden sm:inline">🍽️</span>
+                                                <span class="sm:hidden text-xs">Phục vụ</span>
                                             </button>
                                         }
 
@@ -151,7 +176,8 @@
                                         @if (hasDepositOnly && (order.Status == "Paid Deposit" || order.Status == "Served"))
                                         {
                                             <button class="btn btn-xs btn-primary confirm-remaining-payment" data-id="@order.Id" title="Xác nhận thanh toán còn lại">
-                                                💰
+                                                <span class="hidden sm:inline">💰</span>
+                                                <span class="sm:hidden text-xs">Thanh toán</span>
                                             </button>
                                         }
 

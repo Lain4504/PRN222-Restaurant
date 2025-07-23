@@ -72,23 +72,44 @@
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             @foreach (var dish in Model.FeaturedDishes)
             {
-                <div class="card bg-base-100 shadow-xl">
-                    <figure class="h-64">
+                <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 group">
+                    <figure class="h-48 md:h-56 overflow-hidden">
                         <img src="@dish.ImageUrl"
                              alt="@dish.Name"
-                             class="w-full h-full object-cover" />
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     </figure>
-                    <div class="card-body">
-                        <h3 class="card-title text-xl">@dish.Name</h3>
-                        <p class="text-slate-600">@dish.Description</p>
-                        <div class="flex justify-between items-center mt-4">
-                            <span class="text-xl font-bold text-primary">
+                    <div class="card-body p-4 md:p-6">
+                        <h3 class="card-title text-lg md:text-xl text-base-content mb-2">@dish.Name</h3>
+
+                        <!-- Description with truncation -->
+                        <div class="description-container mb-3">
+                            <p class="text-base-content/70 text-sm md:text-base description-text" data-full-text="@dish.Description">
+                                @(dish.Description.Length > 80 ? dish.Description.Substring(0, 80) + "..." : dish.Description)
+                            </p>
+                            @if (dish.Description.Length > 80)
+                            {
+                                <button class="btn btn-ghost btn-xs text-primary expand-btn mt-1" onclick="toggleDescription(this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                    Xem thêm
+                                </button>
+                            }
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4">
+                            <span class="text-lg md:text-xl font-bold text-primary">
                                 @string.Format("{0:N0} VNĐ", dish.Price)
                             </span>
-                            <a href="/menu" class="btn btn-sm btn-primary">Đặt ngay</a>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <span class="badge text-xs font-semibold px-3 py-1 @(dish.Status == Models.MenuItemStatus.Available ? "badge-success" : "badge-error")">
+                                    @(dish.Status == Models.MenuItemStatus.Available ? "Còn món" : "Hết món")
+                                </span>
+                                <a href="/menu" class="btn btn-sm btn-primary flex-1 sm:flex-none">Đặt ngay</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -100,6 +121,8 @@
         </div>
     </div>
 </section>
+
+
 
 <!-- Testimonials Section -->
 <component type="typeof(PRN222_Restaurant.Pages.BlazorComponent.FeedbackPreview)" render-mode="ServerPrerendered" />
@@ -193,6 +216,60 @@
 </section>
 
 
+<!-- Description Modal -->
+<div id="descriptionModal" class="modal">
+    <div class="modal-box max-w-md">
+        <h3 class="font-bold text-lg mb-4" id="modalTitle">Mô tả món ăn</h3>
+        <div class="max-h-60 overflow-y-auto">
+            <p id="modalDescription" class="text-base-content/80 leading-relaxed"></p>
+        </div>
+        <div class="modal-action">
+            <button class="btn btn-primary" onclick="closeDescriptionModal()">Đóng</button>
+        </div>
+    </div>
+    <div class="modal-backdrop" onclick="closeDescriptionModal()"></div>
+</div>
+
+<script>
+function toggleDescription(button) {
+    const container = button.closest('.description-container');
+    const textElement = container.querySelector('.description-text');
+    const fullText = textElement.getAttribute('data-full-text');
+    const isExpanded = button.classList.contains('expanded');
+
+    if (isExpanded) {
+        // Collapse
+        const truncatedText = fullText.length > 80 ? fullText.substring(0, 80) + '...' : fullText;
+        textElement.textContent = truncatedText;
+        button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Xem thêm
+        `;
+        button.classList.remove('expanded');
+    } else {
+        // Show in modal for better UX
+        const cardTitle = button.closest('.card').querySelector('.card-title').textContent;
+        document.getElementById('modalTitle').textContent = cardTitle;
+        document.getElementById('modalDescription').textContent = fullText;
+        document.getElementById('descriptionModal').classList.add('modal-open');
+    }
+}
+
+function closeDescriptionModal() {
+    document.getElementById('descriptionModal').classList.remove('modal-open');
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDescriptionModal();
+    }
+});
+</script>
+
 @{
     ViewData["Title"] = "Home page";
 }
+

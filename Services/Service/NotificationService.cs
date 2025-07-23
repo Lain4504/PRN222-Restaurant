@@ -83,7 +83,7 @@ public class NotificationService : INotificationService
             Title = "Đặt bàn thành công",
             Message = "Bạn đã đặt bàn thành công. Chúng tôi sẽ liên hệ với bạn sớm nhất.",
             Type = "Success",
-            RelatedUrl = $"/reservation/{reservationId}",
+            RelatedUrl = "/order-list", // Chuyển đến trang danh sách đơn hàng thay vì reservation detail
             RelatedId = reservationId,
             CreatedAt = DateTime.Now,
             IsRead = false

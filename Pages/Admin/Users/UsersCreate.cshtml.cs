@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PRN222_Restaurant.Models;
 using PRN222_Restaurant.Services;
+using PRN222_Restaurant.Helper;
 using System.Threading.Tasks;
 
 namespace PRN222_Restaurant.Pages.Admin
@@ -18,13 +19,26 @@ namespace PRN222_Restaurant.Pages.Admin
         [BindProperty]
         public User User { get; set; } = new User();
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
+            // Check if current user is Admin
+            if (!AuthHelper.IsAdmin(HttpContext.User))
+            {
+                return Redirect("/admin/login");
+            }
+
             // Logic khi load trang nếu cần
+            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Check if current user is Admin
+            if (!AuthHelper.IsAdmin(HttpContext.User))
+            {
+                return Redirect("/admin/login");
+            }
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors)
